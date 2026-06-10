@@ -34,7 +34,7 @@ const props = defineProps<{ data: any; hideDuplicateAction?: boolean }>();
           <td class="w-20 items-center text-right">
             <div class="flex">
               <div
-                class="table-list-actions hover:bg-gray-200 [&_path]:hover:fill-white"
+                class="table-list-actions group"
                 title="edit"
                 @click="$emit('editAction', item)"
               >
@@ -43,7 +43,7 @@ const props = defineProps<{ data: any; hideDuplicateAction?: boolean }>();
 
               <div
                 v-if="!hideDuplicateAction"
-                class="table-list-actions hover:bg-blue-400 [&_path]:hover:fill-white"
+                class="table-list-actions group"
                 title="duplicate"
                 @click="$emit('duplicateAction', item)"
               >
@@ -51,7 +51,7 @@ const props = defineProps<{ data: any; hideDuplicateAction?: boolean }>();
               </div>
 
               <div
-                class="table-list-actions hover:bg-red-500 [&_path]:hover:fill-white"
+                class="table-list-actions group"
                 title="delete"
                 @click="$emit('deleteAction', item)"
               >
@@ -69,6 +69,6 @@ const props = defineProps<{ data: any; hideDuplicateAction?: boolean }>();
 
 <style>
 .table-list-actions {
-  @apply h-fit cursor-pointer border border-r-0 border-gray-300 p-1 transition-all first:rounded-l-sm last-of-type:rounded-r-sm last-of-type:border-r group-hover:border-gray-300 [&_path]:fill-gray-400 [&_svg]:h-4 [&_svg]:w-4;
+  @apply bg-white h-fit cursor-pointer border border-r-0 border-gray-300 p-1 transition-all first:rounded-l-sm last-of-type:rounded-r-sm last-of-type:border-r [&_path]:fill-gray-400 [&_svg]:h-4 [&_svg]:w-4 hover:bg-gray-100 group-hover:[&_path]:fill-gray-700;
 }
 </style>
