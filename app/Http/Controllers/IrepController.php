@@ -79,6 +79,8 @@ class IrepController extends Controller
         'irep_delete_reservation'              => 'deleteReservation',
 
         'irep_upload_image'                    => 'uploadImage',
+        'irep_get_images'                      => 'getImages',
+        'irep_delete_image'                    => 'deleteImage',
 
         'irep_import'                          => 'stubNotImplemented',
         'irep_export_zip'                      => 'exportZip',
@@ -320,10 +322,29 @@ class IrepController extends Controller
         $perPage     = (int) $request->input('per_page', 99999);
         $page        = (int) $request->input('page', 1);
         $blockFilter = $request->input('block');
+        $floorFilter = $request->input('floor');
+        $search      = trim($request->input('search', ''));
+        $sortField   = $request->input('sort_field');
+        $sortOrder   = strtoupper($request->input('sort_order', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
+
+        $allowedSortFields = ['id', 'flat_number', 'floor_id', 'block_id', 'price', 'offer_price', 'conf', 'is_active'];
 
         $query = Flat::with('type')->where('project_id', $request->input('project_id'));
+
         if ($blockFilter && $blockFilter !== 'all') {
             $query->where('block_id', $blockFilter);
+        }
+
+        if ($floorFilter && $floorFilter !== 'all' && $floorFilter !== '') {
+            $query->where('floor_id', $floorFilter);
+        }
+
+        if ($search !== '') {
+            $query->where('flat_number', 'like', "%{$search}%");
+        }
+
+        if ($sortField && in_array($sortField, $allowedSortFields)) {
+            $query->orderBy($sortField, $sortOrder);
         }
 
         $total = $query->count();
@@ -782,5 +803,73 @@ class IrepController extends Controller
     private function stubNotImplemented(Request $request): JsonResponse
     {
         return response()->json(['success' => false, 'data' => 'Not yet implemented.']);
+    }
+
+    private function getImages(Request $request): JsonResponse
+    {
+        $search = strtolower(trim($request->input('search', '')));
+        $page   = max(1, (int) $request->input('page', 1));
+        $perPage = 40;
+
+        $disk  = Storage::disk('public');
+        $dir   = 'irep/images';
+
+        if (!$disk->exists($dir)) {
+            return response()->json(['success' => true, 'data' => ['images' => [], 'total' => 0, 'page' => $page]]);
+        }
+
+        $allFiles = collect($disk->files($dir))
+            ->filter(fn($f) => preg_match('/\.(jpe?g|png|gif|webp|svg|pdf)$/i', $f))
+            ->sortByDesc(fn($f) => $disk->lastModified($f))
+            ->values();
+
+        if ($search) {
+            $allFiles = $allFiles->filter(fn($f) => str_contains(strtolower(basename($f)), $search))->values();
+        }
+
+        $total  = $allFiles->count();
+        $sliced = $allFiles->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $images = $sliced->map(function ($path) use ($disk) {
+            $url  = asset('storage/' . $path);
+            $name = basename($path);
+            $w = 0; $h = 0;
+            if (!str_ends_with(strtolower($name), '.pdf')) {
+                [$w, $h] = @getimagesize($disk->path($path)) ?: [0, 0];
+            }
+            $sizeEntry = ['url' => $url, 'width' => $w, 'height' => $h, 'orientation' => $w >= $h ? 'landscape' : 'portrait'];
+            return [
+                'id'       => abs(crc32($path)),
+                'url'      => $url,
+                'filename' => $name,
+                'title'    => $name,
+                'alt'      => '',
+                'width'    => $w,
+                'height'   => $h,
+                'path'     => $path,
+                'date'     => date('Y-m-d H:i', $disk->lastModified($path)),
+                'filesizeHumanReadable' => $this->humanFilesize($disk->size($path)),
+                'sizes'    => ['thumbnail' => $sizeEntry, 'medium' => $sizeEntry, 'large' => $sizeEntry, 'full' => $sizeEntry],
+            ];
+        })->values();
+
+        return response()->json(['success' => true, 'data' => ['images' => $images, 'total' => $total, 'page' => $page, 'per_page' => $perPage]]);
+    }
+
+    private function deleteImage(Request $request): JsonResponse
+    {
+        $path = $request->input('path');
+        if (!$path || !str_starts_with($path, 'irep/images/')) {
+            return response()->json(['success' => false, 'data' => 'Invalid path'], 422);
+        }
+        Storage::disk('public')->delete($path);
+        return response()->json(['success' => true]);
+    }
+
+    private function humanFilesize(int $bytes): string
+    {
+        if ($bytes < 1024) return $bytes . ' B';
+        if ($bytes < 1048576) return round($bytes / 1024, 1) . ' KB';
+        return round($bytes / 1048576, 1) . ' MB';
     }
 }

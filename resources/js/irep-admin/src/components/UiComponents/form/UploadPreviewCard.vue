@@ -43,17 +43,17 @@ const emit = defineEmits<{
     </div>
 
     <div
-      class="pointer-events-none absolute left-0 top-0 h-full w-full rounded-md bg-black/0 transition-all duration-200 group-hover:bg-red-900/20"
+      class="pointer-events-none absolute left-0 top-0 h-full w-full rounded-md bg-black/0 transition-all duration-200 group-hover:bg-black/25"
     ></div>
 
     <button
       type="button"
-      class="absolute left-1/2 top-1/2 z-40 shrink-0 -translate-x-1/2 translate-y-full rounded-md bg-white p-1 text-gray-500 opacity-0 transition-all duration-200 hover:bg-red-900/60 hover:text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 group-hover:-translate-y-1/2 group-hover:opacity-100"
+      class="absolute left-1/2 top-1/2 z-40 shrink-0 -translate-x-1/2 translate-y-full rounded-md bg-white/90 p-1.5 text-red-500 opacity-0 shadow-sm transition-all duration-200 hover:bg-red-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 group-hover:-translate-y-1/2 group-hover:opacity-100"
       title="Remove image"
       aria-label="Remove image"
       @click.stop="emit('delete')"
     >
-      <Delete class="size-6" />
+      <Delete class="size-5" />
     </button>
 
     <div v-if="hasPolygons" class="absolute left-1 top-1 size-1.5 rounded-full bg-orange-400"></div>

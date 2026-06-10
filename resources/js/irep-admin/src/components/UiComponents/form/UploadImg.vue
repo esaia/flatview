@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
-import { useSelectImage } from "@/src/composables/useSelectImage";
 import { imageInterface } from "@/types/components";
 import Info from "@/src/components/UiComponents/icons/Info.vue";
 import Modal from "@/src/components/UiComponents/Modal.vue";
+import MediaLibraryModal from "@/src/components/UiComponents/form/MediaLibraryModal.vue";
 import UploadPreviewCard from "@/src/components/UiComponents/form/UploadPreviewCard.vue";
 import draggable from "vuedraggable";
 
@@ -30,27 +30,29 @@ function filesOrderKey(list: imageInterface[]) {
   return list.map((i) => i?.id).join(",");
 }
 
-const { selectedImages, selectImage } = useSelectImage(props.multiple || false);
+const showLibrary = ref(false);
 const showExampleImage = ref(false);
-const imagesArray = ref<any>([]);
+const imagesArray = ref<imageInterface[]>([]);
 
 const deleteImage = (id: number) => {
-  if (!Array.isArray(selectedImages.value)) return;
-  selectedImages.value = selectedImages.value.filter((item) => item && item.id !== id);
+  imagesArray.value = imagesArray.value.filter((item) => item && item.id !== id);
 };
+
+function onLibrarySelect(images: imageInterface[]) {
+  if (props.multiple) {
+    const existing = imagesArray.value;
+    const newOnes = images.filter(img => !existing.some(e => e.id === img.id));
+    imagesArray.value = [...existing, ...newOnes];
+  } else {
+    imagesArray.value = images.slice(0, 1);
+  }
+}
 
 watch(
   () => imagesArray.value,
   () => {
-    const normalized = Array.isArray(imagesArray.value) ? imagesArray.value.filter((item) => item) : [];
+    const normalized = imagesArray.value.filter((item) => item);
     emit("update:modelValue", normalized);
-  }
-);
-
-watch(
-  () => selectedImages.value,
-  () => {
-    imagesArray.value = Array.isArray(selectedImages.value) ? selectedImages.value.filter((item) => item) : [];
   }
 );
 
@@ -58,8 +60,8 @@ watch(
   () => props.modelValue,
   (val) => {
     const next = normalizeModelValue(val);
-    if (filesOrderKey(next) === filesOrderKey(selectedImages.value)) return;
-    selectedImages.value = next;
+    if (filesOrderKey(next) === filesOrderKey(imagesArray.value)) return;
+    imagesArray.value = next;
   },
   { immediate: true, deep: true }
 );
@@ -90,17 +92,17 @@ watch(
     <button
       v-if="!imagesArray?.length"
       type="button"
-      class="group flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50/60 py-6 text-gray-400 transition-all hover:border-gray-300 hover:bg-gray-50 hover:text-gray-600"
-      @click.prevent="selectImage"
+      class="group flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50/60 py-6 text-gray-400 transition-all hover:border-gray-400 hover:bg-gray-50 hover:text-gray-600"
+      @click.prevent="showLibrary = true"
     >
       <svg class="size-7 transition-transform group-hover:-translate-y-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M12 16V7m0 0L9 10m3-3 3 3" stroke-linecap="round" stroke-linejoin="round" />
         <path d="M20 16.5A3.5 3.5 0 0 0 16.5 13H15a5 5 0 1 0-9.9 1A4 4 0 0 0 4 21h12.5A3.5 3.5 0 0 0 20 17.5v-1z" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
-      <span class="text-xs font-medium">Click to upload</span>
+      <span class="text-xs font-medium">Choose or upload image</span>
     </button>
 
-    <!-- Previews + add more -->
+    <!-- Previews + actions -->
     <div v-else class="space-y-2">
       <draggable
         v-model="imagesArray"
@@ -127,8 +129,8 @@ watch(
 
       <button
         type="button"
-        class="flex items-center gap-1.5 rounded border border-dashed border-gray-300 px-2.5 py-1.5 text-[11px] text-gray-400 transition-colors hover:border-gray-300 hover:text-gray-600"
-        @click.prevent="selectImage"
+        class="flex items-center gap-1.5 rounded border border-dashed border-gray-300 px-2.5 py-1.5 text-[11px] text-gray-400 transition-colors hover:border-gray-400 hover:text-gray-600"
+        @click.prevent="showLibrary = true"
       >
         <svg class="size-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M8 3v10M3 8h10" stroke-linecap="round" />
@@ -148,5 +150,13 @@ watch(
         </Modal>
       </Transition>
     </teleport>
+
+    <!-- Media Library Modal -->
+    <MediaLibraryModal
+      :show="showLibrary"
+      :multiple="multiple"
+      @close="showLibrary = false"
+      @select="onLibrarySelect"
+    />
   </div>
 </template>
