@@ -1,0 +1,3 @@
+[submodule "packages/filament-irep"]
+	path = packages/filament-irep
+	url = https://github.com/esaia/interactive-real-estate-filament-lib.git

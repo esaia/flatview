@@ -94,7 +94,7 @@
     "repositories": [
         {
             "type": "path",
-            "url": "../filament-irep"
+            "url": "./packages/filament-irep"
         }
     ],
     "minimum-stability": "dev",

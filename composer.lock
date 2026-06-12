@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f0d715ad4decf2da07dbdbf6478a7007",
+    "content-hash": "88e3ea61fd1f815c271d75a780a2877a",
     "packages": [
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -2039,8 +2039,8 @@
             "version": "1.0.0",
             "dist": {
                 "type": "path",
-                "url": "../filament-irep",
-                "reference": "74b63655c25d3d2da745141dbd7b4d047d3083b7"
+                "url": "./packages/filament-irep",
+                "reference": "75320b3384f7004285762db2039c7f75ab698c55"
             },
             "require": {
                 "filament/filament": "^3.0 || ^4.0 || ^5.0",
