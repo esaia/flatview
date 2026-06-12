@@ -34,7 +34,7 @@ class IrepAdminPage extends Page
                 'is_gold'             => true,
                 'translations'        => [],
                 'price_history_addon' => false,
-                'building_360_addon'  => false,
+                'building_360_addon'  => true,
             ],
         ];
     }

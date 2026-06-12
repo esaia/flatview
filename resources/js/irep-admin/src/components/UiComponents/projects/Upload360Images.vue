@@ -1,19 +1,14 @@
 <script setup lang="ts">
-import { watch } from "vue";
-import { useSelectImage } from "@/src/composables/useSelectImage";
+import { ref } from "vue";
 import Upload from "@/src/components/UiComponents/icons/Upload.vue";
 import { imageInterface } from "@/types/components";
 import draggable from "vuedraggable";
 import { useProjectStore } from "@/src/stores/useProject";
 import { storeToRefs } from "pinia";
 import UploadPreviewCard from "@/src/components/UiComponents/form/UploadPreviewCard.vue";
-
-const emit = defineEmits<{
-  (e: "update:modelValue", params: typeof props.modelValue): void;
-}>();
+import MediaLibraryModal from "@/src/components/UiComponents/form/MediaLibraryModal.vue";
 
 const props = defineProps<{
-  modelValue?: imageInterface[] | null;
   title: string;
   required?: boolean;
   multiple?: boolean;
@@ -23,7 +18,20 @@ const props = defineProps<{
 const projectStore = useProjectStore();
 const { images_360, selected_360_image_index } = storeToRefs(projectStore);
 
-const { selectedImages, selectImage } = useSelectImage(props.multiple || false);
+const showLibrary = ref(false);
+
+const onLibrarySelect = (selected: imageInterface[]) => {
+  const newImages = selected.map((item) => ({
+    img: item.url,
+    svg: "",
+    polygon_data: [],
+    svgRef: null
+  }));
+
+  const combined = [...images_360.value, ...newImages];
+  images_360.value = Array.from(new Map(combined.map((item) => [item.img, item])).values());
+  projectStore.syncSelected360ImageIdentity();
+};
 
 const set360ImageIndex = (index: number) => {
   projectStore.setSelected360ImageIndex(index);
@@ -43,35 +51,16 @@ const sortImagesByName = () => {
 
 const removeAllImages = () => {
   projectStore.persist360SvgFromRef();
-  // Important: clear `images_360` before clearing `selectedImages`,
-  // otherwise the `watch(selectedImages.value)` below may re-append items.
   images_360.value = [];
-  selectedImages.value = [];
   projectStore.setSelected360ImageIndex(0);
   projectStore.syncSelected360ImageIdentity();
 };
 
 const deleteImage = (img: string) => {
-  if (!Array.isArray(selectedImages.value)) return;
   projectStore.persist360SvgFromRef();
-
   images_360.value = images_360.value.filter((item) => item && item.img !== img);
   projectStore.syncSelected360ImageIdentity();
 };
-
-watch(
-  () => selectedImages.value,
-  () => {
-    const normalized = Array.isArray(selectedImages.value) ? selectedImages.value.filter((item) => item) : [];
-
-    const newImages = normalized.map((item) => ({ img: item.url, svg: "", polygon_data: [], svgRef: null }));
-
-    const combined = [...images_360.value, ...newImages];
-
-    images_360.value = Array.from(new Map(combined.map((item) => [item.img, item])).values());
-    projectStore.syncSelected360ImageIdentity();
-  }
-);
 </script>
 <template>
   <div class="mt-4 w-full rounded-md bg-white p-4">
@@ -101,15 +90,14 @@ watch(
     </div>
 
     <div class="flex w-full gap-2 overflow-x-auto py-4 pr-4">
-      <div
-        class="flex h-24 w-24 cursor-pointer items-center justify-center gap-2 rounded-sm border border-dashed border-gray-200 bg-white p-3 transition-all hover:bg-white"
-        @click.prevent="selectImage"
+      <button
+        type="button"
+        class="flex h-24 w-24 shrink-0 cursor-pointer flex-col items-center justify-center gap-2 rounded-sm border border-dashed border-gray-300 bg-white p-3 transition-all hover:bg-gray-50"
+        @click.prevent="showLibrary = true"
       >
-        <div class="min-w-max">
-          <Upload />
-        </div>
-        <p>Upload</p>
-      </div>
+        <Upload class="size-5 text-gray-400" />
+        <p class="text-xs text-gray-500">Upload</p>
+      </button>
 
       <draggable
         v-if="images_360"
@@ -136,4 +124,11 @@ watch(
       </draggable>
     </div>
   </div>
+
+  <MediaLibraryModal
+    :show="showLibrary"
+    :multiple="multiple ?? true"
+    @close="showLibrary = false"
+    @select="onLibrarySelect"
+  />
 </template>

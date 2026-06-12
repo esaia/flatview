@@ -24,7 +24,7 @@ const toggle = () => {
       :aria-checked="model"
       class="relative h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-1"
       :class="model ? 'bg-blue-500' : 'bg-gray-200'"
-      @click.prevent="toggle"
+      @click.stop.prevent="toggle"
     >
       <span
         class="block h-4 w-4 rounded-full bg-white shadow transition-transform"

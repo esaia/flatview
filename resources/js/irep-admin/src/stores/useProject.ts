@@ -168,7 +168,7 @@ export const useProjectStore = defineStore("project", () => {
     if (projectID && data.success && !data.data.length) {
       setProject(data?.data);
       project.value = data?.data;
-      images_360.value = data?.data?.["360images"] || [];
+      images_360.value = data?.data?.images_360 || [];
       syncSelected360ImageIdentity();
     } else {
       projects.value = data?.data;

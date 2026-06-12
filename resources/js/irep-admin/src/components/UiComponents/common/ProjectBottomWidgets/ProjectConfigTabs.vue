@@ -169,7 +169,7 @@ const updateProject = async () => {
     slug: slug.value,
     svg: svgBase64,
     polygon_data: polygon_data.value,
-    "360images": JSON.stringify(images360Payload)
+    images_360: JSON.stringify(images360Payload)
   };
 
   if (project_image.value) {

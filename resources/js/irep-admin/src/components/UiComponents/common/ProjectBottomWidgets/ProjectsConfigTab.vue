@@ -50,8 +50,8 @@ const exampleImage = ref("");
 
 const is360FlowDisabled = computed(() => !irePlugin?.building_360_addon);
 
-const onToggle360FlowChange = async (nextValue: boolean) => {
-    await metaStore.setProjectMeta([{ key: "is_360_flow", value: nextValue }]);
+const onToggle360FlowChange = async () => {
+    await metaStore.setProjectMeta([{ key: "is_360_flow", value: is_360_flow.value }]);
 };
 
 const pushToFormResponsesPage = () => {
