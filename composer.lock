@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "df43187e17419edaf80f1b564eabae51",
+    "content-hash": "f0d715ad4decf2da07dbdbf6478a7007",
     "packages": [
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -2033,6 +2033,45 @@
                 "source": "https://github.com/inertiajs/inertia-laravel/tree/v2.0.24"
             },
             "time": "2026-04-10T14:36:44+00:00"
+        },
+        {
+            "name": "irep-plugin/filament-irep",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "../filament-irep",
+                "reference": "74b63655c25d3d2da745141dbd7b4d047d3083b7"
+            },
+            "require": {
+                "filament/filament": "^3.0 || ^4.0 || ^5.0",
+                "illuminate/support": "^11.0 || ^12.0 || ^13.0",
+                "php": "^8.2"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "IrepPlugin\\FilamentIrep\\FilamentIrepServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "IrepPlugin\\FilamentIrep\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "IrepPlugin\\FilamentIrep\\Database\\Seeders\\": "database/seeders/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Interactive Real Estate visual editor for Filament v3+",
+            "transport-options": {
+                "relative": true
+            }
         },
         {
             "name": "kirschbaum-development/eloquent-power-joins",
@@ -10606,8 +10645,10 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": {},
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "irep-plugin/filament-irep": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
