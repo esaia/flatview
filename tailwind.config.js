@@ -19,6 +19,9 @@ export default {
             colors: {
                 primary: '#1e293b',
             },
+            animation: {
+                'spin-slow': 'spin 8s linear infinite',
+            },
         },
     },
 

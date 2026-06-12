@@ -7,6 +7,8 @@ const props = defineProps({
     centerBorder: { type: Boolean, default: false },
 })
 
+const emit = defineEmits(['update:menuOpen'])
+
 const menuOpen = ref(false)
 const navScrollRef = ref(null)
 let rafId = null
@@ -45,9 +47,8 @@ function onNavMouseLeave() {
 
 function scrollLoop() {
     if (mouseInNav && navScrollRef.value && containerW > 0) {
-        // cursor right of center → scroll left (positive), left of center → scroll right (negative)
-        const normalised = cursorX / containerW   // 0 – 1
-        const deadzone = 0.15                     // inner 30% has no scroll
+        const normalised = cursorX / containerW
+        const deadzone = 0.15
         let velocity = 0
         if (normalised > 0.5 + deadzone) {
             velocity = (normalised - 0.5 - deadzone) / (0.5 - deadzone) * 8
@@ -61,6 +62,7 @@ function scrollLoop() {
 
 async function openMenu() {
     menuOpen.value = true
+    emit('update:menuOpen', true)
     await nextTick()
     if (rafId) cancelAnimationFrame(rafId)
     rafId = requestAnimationFrame(scrollLoop)
@@ -68,9 +70,12 @@ async function openMenu() {
 
 function closeMenu() {
     menuOpen.value = false
+    emit('update:menuOpen', false)
     mouseInNav = false
     if (rafId) { cancelAnimationFrame(rafId); rafId = null }
 }
+
+function toggleMenu() { menuOpen.value ? closeMenu() : openMenu() }
 
 onMounted(() => document.addEventListener('keydown', onKey))
 onUnmounted(() => {
@@ -80,31 +85,28 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <!-- ── Floating trigger ─────────────────────────────────────────── -->
-    <div
-        class="fixed z-40 flex items-center gap-2 cursor-pointer group"
-        :class="centerBorder
-            ? 'bottom-6 right-6 md:bottom-8 md:right-auto md:left-[55%] md:-translate-x-1/2'
-            : 'bottom-6 right-6 md:bottom-8 md:right-8'"
-        @click="openMenu"
+    <!-- ── Home page trigger (centerBorder = true, unused since Home.vue owns it) ── -->
+    <button
+        v-if="centerBorder"
+        @click="toggleMenu"
+        class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 group cursor-pointer"
+        style="width: 96px; height: 96px;"
+        :aria-label="menuOpen ? 'Close menu' : 'Open menu'"
     >
-        <div
-            class="w-12 h-12 md:w-[52px] md:h-[52px] rounded-full flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
-            style="background-color: #5DCAA5;"
-        >
-            <svg width="16" height="11" viewBox="0 0 18 12" fill="none">
-                <rect width="18" height="1.5" rx="0.75" fill="white"/>
-                <rect y="5.25" width="18" height="1.5" rx="0.75" fill="white"/>
-                <rect y="10.5" width="18" height="1.5" rx="0.75" fill="white"/>
-            </svg>
-        </div>
-        <!-- Vertical "Menu" label — only on home page, hidden on mobile -->
-        <span
-            v-if="centerBorder"
-            class="hidden md:block text-[9px] font-medium tracking-[0.25em] uppercase text-white/70 select-none flex-shrink-0 group-hover:text-white/90 transition-colors duration-200"
-            style="writing-mode: vertical-rl;"
-        >Menu</span>
-    </div>
+        <div class="absolute inset-0 rounded-full transition-transform duration-500 group-hover:scale-90" style="background-color: #5DCAA5;"></div>
+        <svg v-if="!menuOpen" class="absolute -top-8 -left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 group-hover:animate-spin-slow" width="160" height="160" viewBox="0 0 160 160">
+            <defs><path id="fp-home-menu-path" d="M 80,80 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"/></defs>
+            <text fill="black" font-size="10" font-family="Inter, sans-serif" letter-spacing="6" font-weight="500">
+                <textPath href="#fp-home-menu-path">MENU · MENU · MENU · MENU ·</textPath>
+            </text>
+        </svg>
+        <svg v-if="menuOpen" class="absolute -top-8 -left-8 animate-spin-slow" width="160" height="160" viewBox="0 0 160 160">
+            <defs><path id="fp-home-close-path" d="M 80,80 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"/></defs>
+            <text fill="white" font-size="10" font-family="Inter, sans-serif" letter-spacing="6" font-weight="500">
+                <textPath href="#fp-home-close-path">CLOSE · CLOSE · CLOSE · CLOSE ·</textPath>
+            </text>
+        </svg>
+    </button>
 
     <!-- ── Slide-up nav panel ──────────────────────────────────────── -->
     <Transition
@@ -120,7 +122,7 @@ onUnmounted(() => {
             class="fixed bottom-0 left-0 right-0 z-50 flex flex-col bg-black"
             style="height: 50vh;"
         >
-            <!-- ── Scrollable columns ──── -->
+            <!-- Scrollable columns -->
             <div
                 ref="navScrollRef"
                 class="menus-scroll flex flex-1 min-h-0 overflow-x-auto overflow-y-hidden"
@@ -132,12 +134,11 @@ onUnmounted(() => {
                     <div
                         v-for="item in navItems"
                         :key="item.key"
-                        class="flex-shrink-0 flex flex-col p-5 md:p-7 cursor-pointer group border-r border-white/[0.07] last:border-r-0 transition-colors duration-200 hover:bg-white/[0.03]"
+                        class="flex-shrink-0 flex flex-col p-5 md:p-7 pb-4 cursor-pointer group border-r border-white/[0.07] last:border-r-0 transition-colors duration-200 hover:bg-white/[0.03]"
                         style="width: 240px;"
                         :style="{ width: 'clamp(200px, 22vw, 380px)' }"
                         @click.stop="navigate(item.href)"
                     >
-                        <!-- Page label -->
                         <div class="flex items-center gap-2 mb-4 flex-shrink-0">
                             <span
                                 v-if="activePage === item.key"
@@ -150,17 +151,19 @@ onUnmounted(() => {
                             >{{ item.label }}</span>
                         </div>
 
-                        <!-- 16:9 preview placeholder -->
                         <div
-                            class="flex-1 relative overflow-hidden transition-colors duration-200"
-                            style="aspect-ratio: 16/9;"
+                            class="flex-shrink-0 relative overflow-hidden transition-colors duration-200"
+                            style="height: 160px;"
                             :style="{ background: '#111' }"
                         >
-                            <!-- subtle page hint watermark -->
+                            <img
+                                :src="`https://picsum.photos/seed/${item.key}/400/200`"
+                                class="w-full h-full object-cover opacity-60"
+                                alt=""
+                            />
                             <div class="absolute inset-0 flex items-end p-3 md:p-4">
                                 <span class="text-white/[0.07] text-xs uppercase tracking-widest font-medium">{{ item.label }}</span>
                             </div>
-                            <!-- thin teal bar at bottom on active -->
                             <div
                                 v-if="activePage === item.key"
                                 class="absolute bottom-0 left-0 right-0 h-px"
@@ -171,29 +174,61 @@ onUnmounted(() => {
                 </div>
             </div>
 
-            <!-- ── Close button ──── -->
-            <div class="flex items-center justify-center py-5 flex-shrink-0">
-                <div
-                    class="flex items-center gap-2 cursor-pointer group"
-                    @click="closeMenu"
-                >
-                    <button
-                        class="w-12 h-12 md:w-[52px] md:h-[52px] rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
-                        style="background-color: #5DCAA5;"
-                        aria-label="Close navigation"
-                    >
-                        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                            <path d="M1 1L13 13M13 1L1 13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
-                    </button>
-                    <span
-                        class="hidden md:block text-[9px] font-medium tracking-[0.25em] uppercase text-white/50 select-none group-hover:text-white/80 transition-colors duration-200"
-                        style="writing-mode: vertical-rl;"
-                    >Close</span>
+            <!-- Bottom bar -->
+            <div class="flex-shrink-0 flex items-center justify-between px-8 py-5 border-t border-white/[0.07]">
+                <div></div>
+                <div class="flex items-center gap-6">
+                    <span class="text-white/30 text-[10px] tracking-widest uppercase select-none">Follow us</span>
+                    <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">Instagram</a>
+                    <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">LinkedIn</a>
                 </div>
             </div>
         </div>
     </Transition>
+
+    <!-- ── Inner-page trigger: centered circle, AFTER panel in DOM so z-50 wins ── -->
+    <button
+        v-if="!centerBorder"
+        @click="toggleMenu"
+        class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 group cursor-pointer"
+        style="width: 96px; height: 96px;"
+        :aria-label="menuOpen ? 'Close menu' : 'Open menu'"
+    >
+        <div
+            class="absolute inset-0 rounded-full transition-transform duration-500 group-hover:scale-90"
+            style="background-color: #5DCAA5;"
+        ></div>
+
+        <!-- Rotating MENU text — on hover when closed -->
+        <svg
+            v-if="!menuOpen"
+            class="absolute -top-8 -left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 group-hover:animate-spin-slow"
+            width="160" height="160"
+            viewBox="0 0 160 160"
+        >
+            <defs>
+                <path id="fp-menu-path" d="M 80,80 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"/>
+            </defs>
+            <text fill="black" font-size="10" font-family="Inter, sans-serif" letter-spacing="6" font-weight="500">
+                <textPath href="#fp-menu-path">MENU · MENU · MENU · MENU ·</textPath>
+            </text>
+        </svg>
+
+        <!-- Rotating CLOSE text — always spinning when menu is open -->
+        <svg
+            v-if="menuOpen"
+            class="absolute -top-8 -left-8 animate-spin-slow"
+            width="160" height="160"
+            viewBox="0 0 160 160"
+        >
+            <defs>
+                <path id="fp-close-path" d="M 80,80 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"/>
+            </defs>
+            <text fill="white" font-size="10" font-family="Inter, sans-serif" letter-spacing="6" font-weight="500">
+                <textPath href="#fp-close-path">CLOSE · CLOSE · CLOSE · CLOSE ·</textPath>
+            </text>
+        </svg>
+    </button>
 </template>
 
 <style>
