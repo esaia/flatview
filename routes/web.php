@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\IrepController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,10 +19,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-Route::middleware(['auth'])->group(function () {
-    Route::post('/admin/irep-ajax', [IrepController::class, 'handle'])->name('irep.handle');
 });
 
 require __DIR__.'/auth.php';
