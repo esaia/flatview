@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IrepController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', fn() => Inertia::render('Home'))->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/work', fn() => Inertia::render('Work'))->name('work');
 Route::get('/services', fn() => Inertia::render('Services'))->name('services');
 Route::get('/about', fn() => Inertia::render('About'))->name('about');

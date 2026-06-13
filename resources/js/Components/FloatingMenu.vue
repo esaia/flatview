@@ -1,13 +1,16 @@
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
 
 const props = defineProps({
-    activePage: { type: String, default: '' },
     centerBorder: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:menuOpen'])
+
+const page = usePage()
+const menuItems = computed(() => page.props.menuItems || [])
+const currentPath = computed(() => new URL(page.url, window.location.origin).pathname)
 
 const menuOpen = ref(false)
 const navScrollRef = ref(null)
@@ -15,14 +18,6 @@ let rafId = null
 let cursorX = 0
 let containerW = 0
 let mouseInNav = false
-
-const navItems = [
-    { key: 'home',     label: 'Home',     href: '/' },
-    { key: 'work',     label: 'Work',     href: '/work' },
-    { key: 'services', label: 'Services', href: '/services' },
-    { key: 'about',    label: 'About',    href: '/about' },
-    { key: 'contact',  label: 'Contact',  href: '/contact' },
-]
 
 function navigate(href) {
     closeMenu()
@@ -132,8 +127,8 @@ onUnmounted(() => {
             >
                 <div class="flex h-full">
                     <div
-                        v-for="item in navItems"
-                        :key="item.key"
+                        v-for="item in menuItems"
+                        :key="item.id"
                         class="flex-shrink-0 flex flex-col p-5 md:p-7 pb-4 cursor-pointer group border-r border-white/[0.07] last:border-r-0 transition-colors duration-200 hover:bg-white/[0.03]"
                         style="width: 240px;"
                         :style="{ width: 'clamp(200px, 22vw, 380px)' }"
@@ -141,31 +136,35 @@ onUnmounted(() => {
                     >
                         <div class="flex items-center gap-2 mb-4 flex-shrink-0">
                             <span
-                                v-if="activePage === item.key"
+                                v-if="currentPath === item.href"
                                 class="w-1.5 h-1.5 rounded-full flex-shrink-0"
                                 style="background-color: #5DCAA5;"
                             ></span>
                             <span
                                 class="text-white text-[10px] md:text-xs font-medium tracking-[0.2em] uppercase transition-colors duration-200"
-                                :class="activePage === item.key ? 'text-white' : 'text-white/60 group-hover:text-white/90'"
+                                :class="currentPath === item.href ? 'text-white' : 'text-white/60 group-hover:text-white/90'"
                             >{{ item.label }}</span>
                         </div>
 
                         <div
                             class="flex-shrink-0 relative overflow-hidden transition-colors duration-200"
-                            style="height: 160px;"
-                            :style="{ background: '#111' }"
+                            style="height: 160px; background: #111;"
                         >
                             <img
-                                :src="`https://picsum.photos/seed/${item.key}/400/200`"
-                                class="w-full h-full object-cover opacity-60"
-                                alt=""
+                                v-if="item.image"
+                                :src="`/storage/${item.image}`"
+                                class="w-full h-full object-cover opacity-70"
+                            />
+                            <img
+                                v-else
+                                :src="`https://picsum.photos/seed/${item.label}/400/300`"
+                                class="w-full h-full object-cover opacity-50"
                             />
                             <div class="absolute inset-0 flex items-end p-3 md:p-4">
                                 <span class="text-white/[0.07] text-xs uppercase tracking-widest font-medium">{{ item.label }}</span>
                             </div>
                             <div
-                                v-if="activePage === item.key"
+                                v-if="currentPath === item.href"
                                 class="absolute bottom-0 left-0 right-0 h-px"
                                 style="background-color: #5DCAA5;"
                             ></div>

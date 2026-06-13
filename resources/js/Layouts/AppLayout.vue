@@ -13,8 +13,8 @@ const menuOpen = ref(false)
     <div class="min-h-screen bg-white overflow-hidden">
         <div
             :style="{
-                transform: menuOpen ? 'translateY(-25vh)' : 'translateY(0)',
-                transition: 'transform 0.7s cubic-bezier(0.76, 0, 0.24, 1)'
+                transform: menuOpen ? 'translateY(-38vh)' : 'translateY(0)',
+                transition: 'transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
             }"
         >
             <slot />

@@ -1,31 +1,42 @@
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
+
+const props = defineProps({
+    projects: {
+        type: Array,
+        default: () => [],
+    },
+    settings: {
+        type: Object,
+        default: () => ({}),
+    },
+})
 
 // ── Slideshow ────────────────────────────────────────────────────────────────
-const slides = [
-    { id: 1, label: 'Tbilisi Towers',     category: 'Real Estate · 2024',       shade: '#111111' },
-    { id: 2, label: 'SkyView Residences', category: 'Floor Plan Plugin · 2024', shade: '#161616' },
-    { id: 3, label: 'BuildCore',          category: 'Construction · 2024',       shade: '#0d0d0d' },
-]
+const slides = computed(() => props.projects)
 const currentSlide = ref(0)
+const videoRefs = ref([])
 let slideTimer = null
 
+watch(currentSlide, (newIdx) => {
+    videoRefs.value.forEach((el, i) => {
+        if (!el) return
+        i === newIdx ? el.play() : el.pause()
+    })
+})
+
 // ── Menu ─────────────────────────────────────────────────────────────────────
+const page = usePage()
+const menuItems = computed(() => page.props.menuItems || [])
+const currentPath = computed(() => new URL(page.url, window.location.origin).pathname)
+
 const menuOpen = ref(false)
 const navScrollRef = ref(null)
 let rafId = null
 let cursorX = 0
 let containerW = 0
 let mouseInNav = false
-
-const navItems = [
-    { key: 'home',     label: 'Home',     href: '/' },
-    { key: 'work',     label: 'Work',     href: '/work' },
-    { key: 'services', label: 'Services', href: '/services' },
-    { key: 'about',    label: 'About',    href: '/about' },
-    { key: 'contact',  label: 'Contact',  href: '/contact' },
-]
 
 function navigate(href) {
     menuOpen.value = false
@@ -82,8 +93,8 @@ function onKey(e) {
 
 onMounted(() => {
     slideTimer = setInterval(() => {
-        currentSlide.value = (currentSlide.value + 1) % slides.length
-    }, 4000)
+        currentSlide.value = (currentSlide.value + 1) % (slides.value.length || 1)
+    }, 5000)
     document.addEventListener('keydown', onKey)
 })
 
@@ -101,8 +112,8 @@ onUnmounted(() => {
         <div
             class="absolute inset-0 flex flex-col md:flex-row select-none"
             :style="{
-                transform: menuOpen ? 'translateY(-25vh)' : 'translateY(0)',
-                transition: 'transform 0.7s cubic-bezier(0.76, 0, 0.24, 1)'
+                transform: menuOpen ? 'translateY(-38vh)' : 'translateY(0)',
+                transition: 'transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
             }"
         >
             <!-- Image panel -->
@@ -110,18 +121,38 @@ onUnmounted(() => {
                 <div
                     v-for="(slide, index) in slides"
                     :key="slide.id"
-                    class="absolute inset-0 transition-opacity duration-1000"
+                    class="absolute inset-0"
                     :class="index === currentSlide ? 'opacity-100' : 'opacity-0'"
-                    :style="{ backgroundColor: slide.shade }"
+                    :style="{ backgroundColor: slide.background_color || '#1a1a1a', transition: 'opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }"
                 >
+                    <video
+                        v-if="slide.media_type === 'video' && slide.video"
+                        :ref="el => { if (el) videoRefs.value[index] = el }"
+                        class="absolute inset-0 w-full h-full object-cover"
+                        autoplay muted loop playsinline
+                        :src="`/storage/${slide.video}`"
+                    ></video>
+                    <img
+                        v-else-if="slide.image"
+                        :src="slide.image.startsWith('http') ? slide.image : `/storage/${slide.image}`"
+                        :alt="slide.title"
+                        class="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div
+                        v-else
+                        class="absolute inset-0"
+                        :style="{ backgroundColor: slide.background_color || '#1a1a1a' }"
+                    ></div>
                     <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
                         <span class="text-white/[0.03] text-[22vw] md:text-[18vw] font-bold uppercase leading-none tracking-tighter select-none whitespace-nowrap">
-                            {{ slide.label.split(' ')[0] }}
+                            {{ slide.title ? slide.title.split(' ')[0] : '' }}
                         </span>
                     </div>
                     <div class="absolute bottom-6 md:bottom-10 left-6 md:left-10">
-                        <p class="text-white/30 text-[10px] tracking-[0.2em] uppercase mb-1.5">{{ slide.category }}</p>
-                        <p class="text-white text-sm font-medium">{{ slide.label }}</p>
+                        <p class="text-white/30 text-[10px] tracking-[0.2em] uppercase mb-1.5">
+                            {{ slide.category }}{{ slide.year ? ' · ' + slide.year : '' }}
+                        </p>
+                        <p class="text-white text-sm font-medium">{{ slide.title }}</p>
                     </div>
                     <div class="absolute bottom-7 md:bottom-11 right-6 md:right-10 flex items-center gap-2">
                         <span
@@ -138,14 +169,11 @@ onUnmounted(() => {
             <div class="absolute inset-y-0 right-0 w-1/2 bg-white flex flex-col px-16">
                 <div class="flex-1 flex flex-col justify-center">
                     <p class="text-[10px] tracking-[0.18em] uppercase text-black/40 font-medium mb-8">
-                        Web Development Agency
+                        {{ props.settings.badge || 'Web Development Agency' }}
                     </p>
-                    <h1 class="font-black text-[clamp(40px,4.5vw,72px)] leading-[0.92] tracking-[-0.02em] uppercase text-black mb-6">
-                        Digital<br>Presence<br>For Builders.
-                    </h1>
+                    <h1 class="font-black text-[clamp(40px,4.5vw,72px)] leading-[0.92] tracking-[-0.02em] uppercase text-black mb-6" style="white-space: pre-line">{{ props.settings.headline || "Digital\nPresence\nFor Builders." }}</h1>
                     <p class="text-black/45 text-[15px] leading-relaxed max-w-[340px] mb-8">
-                        Websites and interactive floor plan tools for
-                        construction and real estate companies.
+                        {{ props.settings.subtitle || 'Websites and interactive floor plan tools for construction and real estate companies.' }}
                     </p>
                     <div class="flex items-center gap-4">
                         <a href="/work"
@@ -162,14 +190,7 @@ onUnmounted(() => {
         </div>
 
         <!-- ── Menu panel: identical structure to FloatingMenu.vue ──── -->
-        <Transition
-            enter-active-class="transition-transform duration-500 ease-out"
-            enter-from-class="translate-y-full"
-            enter-to-class="translate-y-0"
-            leave-active-class="transition-transform duration-300 ease-in"
-            leave-from-class="translate-y-0"
-            leave-to-class="translate-y-full"
-        >
+        <Transition name="menu-panel">
             <div
                 v-if="menuOpen"
                 class="fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-black"
@@ -185,8 +206,8 @@ onUnmounted(() => {
                 >
                     <div class="flex h-full">
                         <div
-                            v-for="item in navItems"
-                            :key="item.key"
+                            v-for="item in menuItems"
+                            :key="item.id"
                             class="flex-shrink-0 flex flex-col p-5 md:p-7 pb-4 cursor-pointer group border-r border-white/[0.07] last:border-r-0 transition-colors duration-200 hover:bg-white/[0.03]"
                             style="width: 240px;"
                             :style="{ width: 'clamp(200px, 22vw, 380px)' }"
@@ -195,32 +216,36 @@ onUnmounted(() => {
                             <!-- Page label -->
                             <div class="flex items-center gap-2 mb-4 flex-shrink-0">
                                 <span
-                                    v-if="'home' === item.key"
+                                    v-if="currentPath === item.href"
                                     class="w-1.5 h-1.5 rounded-full flex-shrink-0"
                                     style="background-color: #5DCAA5;"
                                 ></span>
                                 <span
                                     class="text-white text-[10px] md:text-xs font-medium tracking-[0.2em] uppercase transition-colors duration-200"
-                                    :class="'home' === item.key ? 'text-white' : 'text-white/60 group-hover:text-white/90'"
+                                    :class="currentPath === item.href ? 'text-white' : 'text-white/60 group-hover:text-white/90'"
                                 >{{ item.label }}</span>
                             </div>
 
-                            <!-- preview card — fixed height so it doesn't overflow the button area -->
+                            <!-- preview card -->
                             <div
                                 class="flex-shrink-0 relative overflow-hidden transition-colors duration-200"
-                                style="height: 160px;"
-                                :style="{ background: '#111' }"
+                                style="height: 160px; background: #111;"
                             >
                                 <img
-                                    :src="`https://picsum.photos/seed/${item.key}/400/200`"
-                                    class="w-full h-full object-cover opacity-60"
-                                    alt=""
+                                    v-if="item.image"
+                                    :src="`/storage/${item.image}`"
+                                    class="w-full h-full object-cover opacity-70"
+                                />
+                                <img
+                                    v-else
+                                    :src="`https://picsum.photos/seed/${item.label}/400/300`"
+                                    class="w-full h-full object-cover opacity-50"
                                 />
                                 <div class="absolute inset-0 flex items-end p-3 md:p-4">
                                     <span class="text-white/[0.07] text-xs uppercase tracking-widest font-medium">{{ item.label }}</span>
                                 </div>
                                 <div
-                                    v-if="'home' === item.key"
+                                    v-if="currentPath === item.href"
                                     class="absolute bottom-0 left-0 right-0 h-px"
                                     style="background-color: #5DCAA5;"
                                 ></div>
@@ -296,4 +321,9 @@ onUnmounted(() => {
 
 <style>
 .menus-scroll::-webkit-scrollbar { display: none; }
+
+.menu-panel-enter-active { transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+.menu-panel-leave-active { transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+.menu-panel-enter-from,
+.menu-panel-leave-to   { transform: translateY(100%); }
 </style>
