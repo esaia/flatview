@@ -25,5 +25,8 @@ class DatabaseSeeder extends Seeder
         $this->call(SettingsSeeder::class);
         $this->call(ProjectSeeder::class);
         $this->call(MenuItemSeeder::class);
+        $this->call(AboutSettingsSeeder::class);
+        $this->call(AboutStatSeeder::class);
+        $this->call(AboutGalleryImageSeeder::class);
     }
 }

@@ -12,10 +12,9 @@ const menuOpen = ref(false)
 <template>
     <div class="min-h-screen bg-white overflow-hidden">
         <div
-            :style="{
-                transform: menuOpen ? 'translateY(-38vh)' : 'translateY(0)',
-                transition: 'transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-            }"
+            :style="menuOpen
+                ? { transform: 'translateY(-38vh)', transition: 'transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }
+                : { transition: 'transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }"
         >
             <slot />
         </div>
