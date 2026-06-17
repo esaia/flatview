@@ -267,50 +267,25 @@ onUnmounted(() => {
         <!-- ── Circle button: always fixed, never moves ───────────────── -->
         <button
             @click="toggleMenu"
-            class="fixed bottom-4 md:bottom-16 left-1/2 -translate-x-1/2 z-50 group cursor-pointer w-12 h-12 md:w-24 md:h-24"
+            class="fixed bottom-4 md:bottom-16 left-1/2 -translate-x-1/2 z-50 group cursor-pointer w-12 h-12 md:w-[85.51px] md:h-[85.51px]"
             :aria-label="menuOpen ? 'Close menu' : 'Open menu'"
         >
-            <!-- Circle (empty, no icon) -->
+            <!-- Circle -->
             <div
                 class="absolute inset-0 rounded-full transition-transform duration-500 group-hover:scale-90"
-                style="background-color: #5DCAA5;"
+                style="background-color: #5DCAA5; aspect-ratio: 1/1;"
             ></div>
 
-            <!-- Rotating MENU text — shown when menu is CLOSED -->
-            <svg
-                v-if="!menuOpen"
-                class="hidden md:block absolute -top-8 -left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 group-hover:animate-spin-slow"
-                width="160" height="160"
-                viewBox="0 0 160 160"
-            >
-                <defs>
-                    <path
-                        id="circle-text-path"
-                        d="M 80,80 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"
-                    />
-                </defs>
-                <text fill="black" font-size="10" font-family="Inter, sans-serif" letter-spacing="6" font-weight="500">
-                    <textPath href="#circle-text-path">MENU · MENU · MENU · MENU ·</textPath>
-                </text>
-            </svg>
-
-            <!-- Rotating CLOSE text — shown when menu is OPEN -->
-            <svg
-                v-if="menuOpen"
-                class="hidden md:block absolute -top-8 -left-8 animate-spin-slow"
-                width="160" height="160"
-                viewBox="0 0 160 160"
-            >
-                <defs>
-                    <path
-                        id="close-text-path"
-                        d="M 80,80 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"
-                    />
-                </defs>
-                <text fill="white" font-size="10" font-family="Inter, sans-serif" letter-spacing="6" font-weight="500">
-                    <textPath href="#close-text-path">CLOSE · CLOSE · CLOSE · CLOSE ·</textPath>
-                </text>
-            </svg>
+            <!-- Vertical label: rotated 90° CW, hidden on mobile -->
+            <div class="btn-label-clip hidden md:block" style="left: calc(100% + 10px); width: 18px; height: 52px;">
+                <Transition name="btn-label">
+                    <div :key="menuOpen ? 'close' : 'menu'" class="btn-label-slide">
+                        <span class="btn-label-text" :class="menuOpen ? 'text-white' : 'text-black'">
+                            {{ menuOpen ? 'Close' : 'Menu' }}
+                        </span>
+                    </div>
+                </Transition>
+            </div>
         </button>
 
     </div>
@@ -323,4 +298,41 @@ onUnmounted(() => {
 .menu-panel-leave-active { transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
 .menu-panel-enter-from,
 .menu-panel-leave-to   { transform: translateY(100%); }
+
+/* Shared with FloatingMenu.vue — keep in sync */
+.btn-label-clip {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    overflow: hidden;
+}
+.btn-label-slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-label-text {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1;
+    transform: rotate(90deg);
+}
+.btn-label-enter-active {
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity   0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.btn-label-enter-from { transform: translateY(-100%); opacity: 0; }
+.btn-label-enter-to   { transform: translateY(0);     opacity: 1; }
+.btn-label-leave-active {
+    transition: transform 0.22s cubic-bezier(0.55, 0, 1, 0.45),
+                opacity   0.22s cubic-bezier(0.55, 0, 1, 0.45);
+}
+.btn-label-leave-from { transform: translateY(0);     opacity: 1; }
+.btn-label-leave-to   { transform: translateY(100%);  opacity: 0; }
 </style>

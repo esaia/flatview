@@ -13,6 +13,7 @@ const menuItems = computed(() => page.props.menuItems || [])
 const currentPath = computed(() => new URL(page.url, window.location.origin).pathname)
 
 const menuOpen = ref(false)
+const buttonHovered = ref(false)
 const navScrollRef = ref(null)
 let rafId = null
 let cursorX = 0
@@ -85,22 +86,21 @@ onUnmounted(() => {
         v-if="centerBorder"
         @click="toggleMenu"
         class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 group cursor-pointer"
-        style="width: 96px; height: 96px;"
+        style="width: 85.51px; height: 85.51px;"
         :aria-label="menuOpen ? 'Close menu' : 'Open menu'"
     >
-        <div class="absolute inset-0 rounded-full transition-transform duration-500 group-hover:scale-90" style="background-color: #5DCAA5;"></div>
-        <svg v-if="!menuOpen" class="absolute -top-8 -left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 group-hover:animate-spin-slow" width="160" height="160" viewBox="0 0 160 160">
-            <defs><path id="fp-home-menu-path" d="M 80,80 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"/></defs>
-            <text fill="black" font-size="10" font-family="Inter, sans-serif" letter-spacing="6" font-weight="500">
-                <textPath href="#fp-home-menu-path">MENU · MENU · MENU · MENU ·</textPath>
-            </text>
-        </svg>
-        <svg v-if="menuOpen" class="absolute -top-8 -left-8 animate-spin-slow" width="160" height="160" viewBox="0 0 160 160">
-            <defs><path id="fp-home-close-path" d="M 80,80 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"/></defs>
-            <text fill="white" font-size="10" font-family="Inter, sans-serif" letter-spacing="6" font-weight="500">
-                <textPath href="#fp-home-close-path">CLOSE · CLOSE · CLOSE · CLOSE ·</textPath>
-            </text>
-        </svg>
+        <div class="rounded-full transition-transform duration-500 group-hover:scale-90" style="position:absolute;top:0;left:0;width:85.51px;height:85.51px;aspect-ratio:1/1;background-color:#5DCAA5;"></div>
+
+        <!-- Vertical label: rotated 90° CW, slides in/out in screen-Y -->
+        <div class="btn-label-clip" style="left: calc(100% + 10px); width: 18px; height: 52px;">
+            <Transition name="btn-label">
+                <div :key="menuOpen ? 'close' : 'menu'" class="btn-label-slide">
+                    <span class="btn-label-text" :class="menuOpen ? 'text-white' : 'text-black'">
+                        {{ menuOpen ? 'Close' : 'Menu' }}
+                    </span>
+                </div>
+            </Transition>
+        </div>
     </button>
 
     <!-- ── Slide-up nav panel ──────────────────────────────────────── -->
@@ -189,47 +189,89 @@ onUnmounted(() => {
     <button
         v-if="!centerBorder"
         @click="toggleMenu"
+        @mouseenter="buttonHovered = true"
+        @mouseleave="buttonHovered = false"
         class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 group cursor-pointer"
-        style="width: 96px; height: 96px;"
+        :style="{
+            width: '85.51px',
+            height: '85.51px',
+            opacity: (buttonHovered || menuOpen) ? 1 : 0,
+            transition: 'opacity 0.2s ease',
+        }"
         :aria-label="menuOpen ? 'Close menu' : 'Open menu'"
     >
         <div
-            class="absolute inset-0 rounded-full transition-transform duration-500 group-hover:scale-90"
-            style="background-color: #5DCAA5;"
+            class="rounded-full transition-transform duration-500 group-hover:scale-90"
+            style="position:absolute;top:0;left:0;width:85.51px;height:85.51px;aspect-ratio:1/1;background-color:#5DCAA5;"
         ></div>
 
-        <!-- Rotating MENU text — on hover when closed -->
-        <svg
-            v-if="!menuOpen"
-            class="absolute -top-8 -left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 group-hover:animate-spin-slow"
-            width="160" height="160"
-            viewBox="0 0 160 160"
-        >
-            <defs>
-                <path id="fp-menu-path" d="M 80,80 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"/>
-            </defs>
-            <text fill="black" font-size="10" font-family="Inter, sans-serif" letter-spacing="6" font-weight="500">
-                <textPath href="#fp-menu-path">MENU · MENU · MENU · MENU ·</textPath>
-            </text>
-        </svg>
-
-        <!-- Rotating CLOSE text — always spinning when menu is open -->
-        <svg
-            v-if="menuOpen"
-            class="absolute -top-8 -left-8 animate-spin-slow"
-            width="160" height="160"
-            viewBox="0 0 160 160"
-        >
-            <defs>
-                <path id="fp-close-path" d="M 80,80 m -68,0 a 68,68 0 1,1 136,0 a 68,68 0 1,1 -136,0"/>
-            </defs>
-            <text fill="white" font-size="10" font-family="Inter, sans-serif" letter-spacing="6" font-weight="500">
-                <textPath href="#fp-close-path">CLOSE · CLOSE · CLOSE · CLOSE ·</textPath>
-            </text>
-        </svg>
+        <!-- Vertical label: rotated 90° CW, slides in/out in screen-Y -->
+        <div class="btn-label-clip" style="left: calc(100% + 10px); width: 18px; height: 52px;">
+            <Transition name="btn-label">
+                <div :key="menuOpen ? 'close' : 'menu'" class="btn-label-slide">
+                    <span class="btn-label-text" :class="menuOpen ? 'text-white' : 'text-black'">
+                        {{ menuOpen ? 'Close' : 'Menu' }}
+                    </span>
+                </div>
+            </Transition>
+        </div>
     </button>
 </template>
 
 <style>
 .menus-scroll::-webkit-scrollbar { display: none; }
+
+/*
+ * Label layout
+ * ─────────────────────────────────────────────────────────────────
+ * .btn-label-clip   – overflow:hidden window; sized for the *rotated*
+ *                     text (width ≈ line-height, height ≈ text width).
+ *                     Positioned to the right of the circle.
+ * .btn-label-slide  – absolutely fills the clip window; this is the
+ *                     element that transitions (translateY in screen-Y).
+ * .btn-label-text   – the word; rotate(90deg) makes it read bottom→top.
+ *                     Rotation is purely static — never animated.
+ */
+.btn-label-clip {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);   /* vertically centres clip on circle */
+    overflow: hidden;
+    /* width / height set via inline style per button */
+}
+
+.btn-label-slide {
+    position: absolute;
+    inset: 0;                      /* fills clip window */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-label-text {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1;
+    transform: rotate(90deg);      /* static — reads bottom-to-top */
+}
+
+/* Enter from screen-top ↓ */
+.btn-label-enter-active {
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity   0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.btn-label-enter-from { transform: translateY(-100%); opacity: 0; }
+.btn-label-enter-to   { transform: translateY(0);     opacity: 1; }
+
+/* Exit to screen-bottom ↓ */
+.btn-label-leave-active {
+    transition: transform 0.22s cubic-bezier(0.55, 0, 1, 0.45),
+                opacity   0.22s cubic-bezier(0.55, 0, 1, 0.45);
+}
+.btn-label-leave-from { transform: translateY(0);     opacity: 1; }
+.btn-label-leave-to   { transform: translateY(100%);  opacity: 0; }
 </style>
