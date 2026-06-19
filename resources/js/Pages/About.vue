@@ -150,7 +150,7 @@ const progressPct = computed(() => Math.round(progress.value * 100))
         <div class="about-root overflow-x-hidden">
 
             <!-- ── Section 1: Hero statement ─────────────────────────────── -->
-            <section class="relative flex flex-col justify-center px-6 md:px-16" style="min-height: 86vh;">
+            <section class="relative flex flex-col justify-start md:justify-center px-6 md:px-16 pt-28 pb-16 md:py-0 min-h-0 md:min-h-[86vh]">
                 <span class="reveal kicker flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-black/45 mb-7" style="--d: 0s;">
                     <span class="dot"></span> About Merisimo
                 </span>

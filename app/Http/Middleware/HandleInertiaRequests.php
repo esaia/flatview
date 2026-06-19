@@ -41,7 +41,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'menuItems' => MenuItem::where('is_active', true)
                 ->orderBy('sort_order')
-                ->get(['id', 'label', 'href', 'image']),
+                ->get(['id', 'label', 'href', 'external', 'image']),
         ];
     }
 }

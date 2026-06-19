@@ -33,7 +33,13 @@ class MenuItemResource extends Resource
 
             TextInput::make('href')
                 ->required()
-                ->placeholder('/work'),
+                ->placeholder('/work or https://example.com')
+                ->helperText('Internal path (e.g. /work) or a full URL when "External link" is on.'),
+
+            Toggle::make('external')
+                ->label('External link')
+                ->helperText('Open a different website in a new tab instead of navigating within the site.')
+                ->default(false),
 
             FileUpload::make('image')
                 ->disk('public')
@@ -73,6 +79,10 @@ class MenuItemResource extends Resource
                     ->searchable(),
 
                 TextColumn::make('href'),
+
+                IconColumn::make('external')
+                    ->label('External')
+                    ->boolean(),
 
                 IconColumn::make('is_active')
                     ->boolean(),

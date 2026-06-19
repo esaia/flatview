@@ -27,9 +27,13 @@ let targetX = 0   // target translateX from cursor position
 let prevX = 0     // previous currentX, for velocity → skew
 let skew = 0
 
-function navigate(href) {
+function navigate(item) {
     closeMenu()
-    router.visit(href)
+    if (item.external) {
+        window.open(item.href, '_blank', 'noopener,noreferrer')
+        return
+    }
+    router.visit(item.href)
 }
 
 function onKey(e) {
@@ -129,7 +133,7 @@ onUnmounted(() => {
                         :key="item.id"
                         class="menu-col flex-shrink-0 flex flex-col justify-center md:justify-start px-2.5 py-5 md:px-3 md:py-8 cursor-pointer group transition-colors duration-200 hover:bg-white/[0.03]"
                         :style="{ '--col-delay': `${0.18 + i * 0.07}s` }"
-                        @click.stop="navigate(item.href)"
+                        @click.stop="navigate(item)"
                     >
                         <!-- Page label — dot slides in on hover, always shown when active -->
                         <div class="flex items-center mb-4 md:mb-5 flex-shrink-0">

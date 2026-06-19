@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MenuItem extends Model
 {
-    protected $fillable = ['label', 'href', 'image', 'is_active', 'sort_order'];
+    protected $fillable = ['label', 'href', 'external', 'image', 'is_active', 'sort_order'];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = ['is_active' => 'boolean', 'external' => 'boolean'];
 }
