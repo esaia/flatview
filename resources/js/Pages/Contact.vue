@@ -18,109 +18,148 @@ function submit() {
         onSuccess: () => form.reset(),
     })
 }
+
+const contactImages = [
+    'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80',
+    'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80',
+    'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80',
+    'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
+]
 </script>
 
 <template>
     <AppLayout active-page="contact">
-        <div class="max-w-[1400px] mx-auto px-5 sm:px-8 md:px-16 pt-14 md:pt-20 pb-20 md:pb-32">
 
-            <!-- Headline -->
-            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold uppercase tracking-tight text-black leading-none mb-12 md:mb-20 max-w-3xl">
-                Ready to build your digital presence?
-            </h1>
+        <div class="flex flex-col md:flex-row h-screen overflow-hidden">
 
-            <!-- Success state -->
-            <div v-if="flash.success" class="mb-12 md:mb-16 py-5 md:py-6 border-l-2 pl-5 md:pl-6" style="border-color: #5DCAA5;">
-                <p class="text-sm font-medium text-black">{{ flash.success }}</p>
+            <!-- LEFT: 2×2 image grid, edge-to-edge, fixed height -->
+            <div class="hidden md:grid md:w-1/2 grid-cols-2 flex-shrink-0" style="gap: 2px;">
+                <div
+                    v-for="(img, i) in contactImages"
+                    :key="i"
+                    class="overflow-hidden"
+                    style="height: 50vh;"
+                >
+                    <img
+                        :src="img"
+                        class="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                        draggable="false"
+                        loading="lazy"
+                    />
+                </div>
             </div>
 
-            <!-- Two-column layout -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
+            <!-- RIGHT: scrollable content panel -->
+            <div class="flex-1 md:w-1/2 overflow-y-auto px-8 md:px-16 pt-16 pb-36">
 
-                <!-- Left: contact info -->
-                <div class="space-y-8 md:space-y-10">
+                <!-- Headline -->
+                <h1
+                    class="text-black tracking-tight mb-14"
+                    style="font-size: clamp(36px, 4vw, 64px); font-weight: 300; line-height: 1.1;"
+                >
+                    Get in touch
+                </h1>
+
+                <!-- Contact blocks -->
+                <div class="space-y-10 mb-14">
                     <div>
-                        <p class="text-xs font-medium tracking-[0.2em] uppercase text-black/25 mb-3 md:mb-4">Email</p>
-                        <a href="mailto:hello@merisimo.com" class="text-sm text-black hover:text-black/50 transition-colors duration-200">
+                        <p class="text-[11px] tracking-[0.15em] uppercase font-medium text-black mb-1.5">Start a project</p>
+                        <p class="text-[15px] text-black/55">Fill out the form below</p>
+                    </div>
+                    <div>
+                        <p class="text-[11px] tracking-[0.15em] uppercase font-medium text-black mb-1.5">Just say hi</p>
+                        <a
+                            href="mailto:hello@merisimo.com"
+                            class="text-[15px] text-black/55 hover:text-black transition-colors duration-200"
+                        >
                             hello@merisimo.com
                         </a>
                     </div>
-
                     <div>
-                        <p class="text-xs font-medium tracking-[0.2em] uppercase text-black/25 mb-3 md:mb-4">Location</p>
-                        <p class="text-sm text-black">Tbilisi, Georgia</p>
-                        <p class="text-sm text-black/40 font-light mt-0.5">Available for remote projects worldwide</p>
+                        <p class="text-[11px] tracking-[0.15em] uppercase font-medium text-black mb-1.5">Location</p>
+                        <p class="text-[15px] text-black/55">Tbilisi, Georgia</p>
+                        <p class="text-[13px] text-black/35 mt-0.5">Available for remote projects worldwide</p>
                     </div>
-
                     <div>
-                        <p class="text-xs font-medium tracking-[0.2em] uppercase text-black/25 mb-3 md:mb-4">Social</p>
-                        <div class="flex flex-col gap-2">
-                            <a href="#" class="text-sm text-black hover:text-black/50 transition-colors duration-200">LinkedIn</a>
-                            <a href="#" class="text-sm text-black hover:text-black/50 transition-colors duration-200">GitHub</a>
+                        <p class="text-[11px] tracking-[0.15em] uppercase font-medium text-black mb-1.5">Follow us</p>
+                        <div class="flex gap-6">
+                            <a href="#" class="text-[15px] text-black/55 hover:text-black transition-colors duration-200">LinkedIn</a>
+                            <a href="#" class="text-[15px] text-black/55 hover:text-black transition-colors duration-200">Instagram</a>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right: form -->
-                <form @submit.prevent="submit" class="space-y-0">
+                <!-- Divider -->
+                <div class="border-t border-black/10 mb-12"></div>
 
-                    <div class="border-b border-black/15 pb-4 mb-7 md:mb-8">
-                        <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Name *</label>
-                        <input
-                            v-model="form.name"
-                            type="text"
-                            class="w-full bg-transparent border-none text-sm text-black placeholder-black/20 outline-none focus:ring-0 p-0 font-light"
-                            placeholder="Your name"
-                            required
-                        />
-                        <p v-if="form.errors.name" class="text-xs text-red-500 mt-1.5">{{ form.errors.name }}</p>
-                    </div>
+                <!-- Success flash -->
+                <div v-if="flash.success" class="mb-10 py-5 border-l-2 pl-5" style="border-color: #5DCAA5;">
+                    <p class="text-sm font-medium text-black">{{ flash.success }}</p>
+                </div>
 
-                    <div class="border-b border-black/15 pb-4 mb-7 md:mb-8">
-                        <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Email *</label>
-                        <input
-                            v-model="form.email"
-                            type="email"
-                            class="w-full bg-transparent border-none text-sm text-black placeholder-black/20 outline-none focus:ring-0 p-0 font-light"
-                            placeholder="you@company.com"
-                            required
-                        />
-                        <p v-if="form.errors.email" class="text-xs text-red-500 mt-1.5">{{ form.errors.email }}</p>
-                    </div>
+                <!-- Form -->
+                <form @submit.prevent="submit">
+                    <div class="space-y-8">
 
-                    <div class="border-b border-black/15 pb-4 mb-7 md:mb-8">
-                        <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Company</label>
-                        <input
-                            v-model="form.company"
-                            type="text"
-                            class="w-full bg-transparent border-none text-sm text-black placeholder-black/20 outline-none focus:ring-0 p-0 font-light"
-                            placeholder="Company name (optional)"
-                        />
-                    </div>
+                        <div class="border-b border-black/15 pb-4">
+                            <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Name *</label>
+                            <input
+                                v-model="form.name"
+                                type="text"
+                                class="w-full bg-transparent border-none text-sm text-black placeholder-black/20 outline-none focus:ring-0 p-0 font-light"
+                                placeholder="Your name"
+                                required
+                            />
+                            <p v-if="form.errors.name" class="text-xs text-red-500 mt-1.5">{{ form.errors.name }}</p>
+                        </div>
 
-                    <div class="border-b border-black/15 pb-4 mb-10 md:mb-12">
-                        <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Message *</label>
-                        <textarea
-                            v-model="form.message"
-                            rows="5"
-                            class="w-full bg-transparent border-none text-sm text-black placeholder-black/20 outline-none focus:ring-0 p-0 resize-none font-light"
-                            placeholder="Tell us about your project..."
-                            required
-                        ></textarea>
-                        <p v-if="form.errors.message" class="text-xs text-red-500 mt-1.5">{{ form.errors.message }}</p>
+                        <div class="border-b border-black/15 pb-4">
+                            <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Email *</label>
+                            <input
+                                v-model="form.email"
+                                type="email"
+                                class="w-full bg-transparent border-none text-sm text-black placeholder-black/20 outline-none focus:ring-0 p-0 font-light"
+                                placeholder="you@company.com"
+                                required
+                            />
+                            <p v-if="form.errors.email" class="text-xs text-red-500 mt-1.5">{{ form.errors.email }}</p>
+                        </div>
+
+                        <div class="border-b border-black/15 pb-4">
+                            <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Company</label>
+                            <input
+                                v-model="form.company"
+                                type="text"
+                                class="w-full bg-transparent border-none text-sm text-black placeholder-black/20 outline-none focus:ring-0 p-0 font-light"
+                                placeholder="Company name (optional)"
+                            />
+                        </div>
+
+                        <div class="border-b border-black/15 pb-4">
+                            <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Message *</label>
+                            <textarea
+                                v-model="form.message"
+                                rows="5"
+                                class="w-full bg-transparent border-none text-sm text-black placeholder-black/20 outline-none focus:ring-0 p-0 resize-none font-light"
+                                placeholder="Tell us about your project..."
+                                required
+                            ></textarea>
+                            <p v-if="form.errors.message" class="text-xs text-red-500 mt-1.5">{{ form.errors.message }}</p>
+                        </div>
+
                     </div>
 
                     <button
                         type="submit"
                         :disabled="form.processing"
-                        class="w-full sm:w-auto text-sm font-medium tracking-[0.15em] uppercase text-black border border-black/20 px-8 py-4 transition-all duration-200 hover:bg-black hover:text-white disabled:opacity-40"
+                        class="w-full bg-black text-white text-[12px] tracking-[0.15em] uppercase py-4 mt-8 hover:bg-black/80 transition-colors disabled:opacity-40"
                     >
                         {{ form.processing ? 'Sending…' : 'Send message' }}
                     </button>
-
                 </form>
 
             </div>
         </div>
+
     </AppLayout>
 </template>
