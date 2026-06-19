@@ -47,8 +47,13 @@ function imgSrc(img) {
  */
 const SENSITIVITY = 0.55      // lower = faster traversal (less scroll needed)
 const EASE = 0.12             // lerp factor toward target (lower = floatier)
-const COL_VW = 26             // each frame width in vw
+const FRAME_VH = 66          // each frame height in vh (9:16 portrait → width derives from it)
 const GAP_PX = 12
+
+// Pixel width of one 9:16 portrait frame, derived from its viewport height.
+function frameWidthPx() {
+    return window.innerHeight * (FRAME_VH / 100) * (9 / 16)
+}
 
 const gallerySection = ref(null)
 const galleryState = ref('before')   // 'before' | 'active' | 'after'
@@ -62,7 +67,7 @@ const galleryTranslate = ref(0)
 let rafId = null
 
 function stripWidth() {
-    return Math.max(0, props.gallery.length * (COL_VW * window.innerWidth / 100 + GAP_PX) - window.innerWidth)
+    return Math.max(0, props.gallery.length * (frameWidthPx() + GAP_PX) - window.innerWidth)
 }
 
 function pinPx() {
@@ -151,9 +156,9 @@ onUnmounted(() => {
                         v-for="(img, i) in props.gallery"
                         :key="'mobile-'+i"
                         class="snap-start flex-shrink-0 overflow-hidden relative bg-[#ece8e2]"
-                        style="width: 82vw; height: 64vw;"
+                        style="width: 70vw; aspect-ratio: 9 / 16;"
                     >
-                        <img :src="imgSrc(img)" class="w-full h-full object-contain" draggable="false" />
+                        <img :src="imgSrc(img)" class="w-full h-full object-cover" draggable="false" />
                     </figure>
                 </div>
             </div>
@@ -192,11 +197,11 @@ onUnmounted(() => {
                             v-for="(img, i) in props.gallery"
                             :key="i"
                             class="flex-shrink-0 overflow-hidden relative group bg-[#ece8e2]"
-                            :style="{ width: COL_VW + 'vw', height: '66vh' }"
+                            :style="{ height: FRAME_VH + 'vh', aspectRatio: '9 / 16' }"
                         >
                             <img
                                 :src="imgSrc(img)"
-                                class="w-full h-full object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+                                class="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
                                 draggable="false"
                             />
                         </figure>

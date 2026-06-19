@@ -126,9 +126,8 @@ onUnmounted(() => {
          instead of vanishing instantly.
     -->
     <div
-        class="fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-black"
+        class="fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-black h-[min(400px,82vh)] md:h-[min(540px,92vh)]"
         :style="{
-            height: '50vh',
             transform: menuOpen ? 'translateY(0)' : 'translateY(100%)',
             transition: 'transform var(--menu-duration) var(--menu-ease)',
             pointerEvents: menuOpen ? 'auto' : 'none',
@@ -146,7 +145,7 @@ onUnmounted(() => {
                 <div
                     v-for="(item, i) in menuItems"
                     :key="item.id"
-                    class="menu-col flex-shrink-0 flex flex-col justify-center md:justify-start px-2.5 py-5 md:px-3 md:py-8 cursor-pointer group transition-colors duration-200 hover:bg-white/[0.03]"
+                    class="menu-col flex-shrink-0 flex flex-col justify-center md:justify-start px-2.5 py-5 md:px-3 md:py-8 cursor-pointer group"
                     @click.stop="navigate(item)"
                 >
                     <!-- Page label — dot slides in on hover, always shown when active -->
@@ -184,8 +183,8 @@ onUnmounted(() => {
         <!-- Bottom bar -->
         <div class="flex items-center justify-between px-4 md:px-8 py-3 md:py-4 border-t border-white/10 flex-shrink-0">
             <div></div>
-            <div class="hidden md:flex items-center gap-6">
-                <span class="text-white/30 text-[10px] tracking-widest uppercase select-none">Follow us</span>
+            <div class="flex items-center gap-3 md:gap-6">
+                <span class="hidden md:inline text-white/30 text-[10px] tracking-widest uppercase select-none">Follow us</span>
                 <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">Instagram</a>
                 <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">LinkedIn</a>
             </div>
@@ -243,9 +242,11 @@ onUnmounted(() => {
     /* Mobile: one card fills most of the width with the next peeking in. */
     width: clamp(260px, 78vw, 360px);
 }
-/* Desktop: narrower, cursor-scrubbed columns. */
+/* Desktop: fixed-width, cursor-scrubbed columns. Fixed (not vw) so the 16:9
+   cards keep a constant size at any viewport width — narrower screens scroll
+   horizontally instead of shrinking the cards. */
 @media (min-width: 768px) {
-    .menu-col { width: clamp(240px, 28vw, 460px); }
+    .menu-col { width: 480px; }
 }
 
 /*
