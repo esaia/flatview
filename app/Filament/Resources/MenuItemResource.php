@@ -80,7 +80,8 @@ class MenuItemResource extends Resource
                 TextColumn::make('sort_order')
                     ->sortable(),
             ])
-            ->defaultSort('sort_order', 'asc');
+            ->defaultSort('sort_order', 'asc')
+            ->reorderable('sort_order');
     }
 
     public static function getPages(): array

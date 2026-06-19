@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Shared menu motion — content-shift (AppLayout) and panel-slide (FloatingMenu)
+     must use these so they move as one locked motion and never drift. */
+  --menu-duration: 0.8s;
+  --menu-ease: cubic-bezier(0.76, 0, 0.24, 1); /* easeInOutQuart */
+  --menu-shift: -38vh; /* how far page content slides up to reveal the 50vh panel */
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
