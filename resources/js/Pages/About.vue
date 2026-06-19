@@ -1,81 +1,11 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
 const props = defineProps({
     settings: { type: Object, default: () => ({}) },
-    gallery:  { type: Array,  default: () => [] },
     stats:    { type: Array,  default: () => [] },
 })
-
-// Resolve a gallery image to a usable URL: pass external URLs through,
-// otherwise serve the stored relative path from the public disk symlink.
-function imgSrc(img) {
-    const path = img?.image
-    if (!path) return ''
-    if (path.startsWith('http')) return path
-    return '/storage/' + path.replace(/^\/+/, '')
-}
-
-/* ───────────────────────── Gallery: pinned horizontal scroll ─────────────────────────
- * SENSITIVITY < 1 means the pinned section is SHORTER than the horizontal strip, so a
- * little vertical scroll travels a lot of horizontal distance → faster, snappier feel.
- * The strip position is eased (lerp) every frame for buttery, weighted motion.
- */
-const SENSITIVITY = 0.55      // lower = faster traversal (less scroll needed)
-const EASE = 0.12             // lerp factor toward target (lower = floatier)
-const COL_VW = 26             // each frame width in vw
-const GAP_PX = 12
-
-const gallerySection = ref(null)
-const galleryState = ref('before')   // 'before' | 'active' | 'after'
-const sectionHeight = ref('300vh')
-const progress = ref(0)              // 0..1 scroll progress through the gallery
-const activeIndex = ref(0)
-
-let targetTranslate = 0
-let currentTranslate = 0
-const galleryTranslate = ref(0)
-let rafId = null
-
-function stripWidth() {
-    return Math.max(0, props.gallery.length * (COL_VW * window.innerWidth / 100 + GAP_PX) - window.innerWidth)
-}
-
-function pinPx() {
-    return stripWidth() * SENSITIVITY
-}
-
-function recompute() {
-    sectionHeight.value = `${Math.round(window.innerHeight + pinPx())}px`
-}
-
-function handleScroll() {
-    const el = gallerySection.value
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const pin = pinPx()
-
-    if (rect.top > 0) {
-        galleryState.value = 'before'
-    } else if (rect.bottom <= window.innerHeight) {
-        galleryState.value = 'after'
-    } else {
-        galleryState.value = 'active'
-    }
-
-    const scrolled = pin > 0 ? Math.max(0, Math.min(1, -rect.top / pin)) : 0
-    progress.value = scrolled
-    targetTranslate = -scrolled * stripWidth()
-    activeIndex.value = Math.min(props.gallery.length - 1, Math.round(scrolled * (props.gallery.length - 1)))
-}
-
-function loop() {
-    currentTranslate += (targetTranslate - currentTranslate) * EASE
-    if (Math.abs(targetTranslate - currentTranslate) < 0.05) currentTranslate = targetTranslate
-    galleryTranslate.value = currentTranslate
-    rafId = requestAnimationFrame(loop)
-}
 
 /* ───────────────────────── Stats: reveal + count-up ───────────────────────── */
 const statsSection = ref(null)
@@ -118,11 +48,6 @@ let statObserver = null
 
 onMounted(async () => {
     await nextTick()
-    recompute()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('resize', recompute)
-    handleScroll()
-    rafId = requestAnimationFrame(loop)
 
     if (statsSection.value) {
         statObserver = new IntersectionObserver((entries) => {
@@ -136,13 +61,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-    window.removeEventListener('scroll', handleScroll)
-    window.removeEventListener('resize', recompute)
-    if (rafId) cancelAnimationFrame(rafId)
     if (statObserver) statObserver.disconnect()
 })
-
-const progressPct = computed(() => Math.round(progress.value * 100))
 </script>
 
 <template>
@@ -173,79 +93,6 @@ const progressPct = computed(() => Math.round(progress.value * 100))
                     Est. — Studio
                 </span>
             </section>
-
-            <!-- ── Section 2 mobile: swipe gallery ───────────────────────── -->
-            <div class="md:hidden">
-                <div class="flex items-end justify-between px-6 mb-4">
-                    <span class="text-[11px] tracking-[0.2em] uppercase text-black/45">Selected Work</span>
-                    <span class="text-[11px] tracking-[0.2em] uppercase text-black/30">{{ props.gallery.length }} —</span>
-                </div>
-                <div class="overflow-x-auto snap-x snap-mandatory flex gap-3 pb-6 px-6 no-bar">
-                    <figure
-                        v-for="(img, i) in props.gallery"
-                        :key="'mobile-'+i"
-                        class="snap-start flex-shrink-0 overflow-hidden relative bg-[#ece8e2]"
-                        style="width: 82vw; height: 64vw;"
-                    >
-                        <img :src="imgSrc(img)" class="w-full h-full object-contain" draggable="false" />
-                    </figure>
-                </div>
-            </div>
-
-            <!-- ── Section 2 desktop: pinned horizontal scroll gallery ───── -->
-            <div
-                ref="gallerySection"
-                class="hidden md:block relative"
-                :style="{ height: sectionHeight }"
-            >
-                <div
-                    class="h-screen overflow-hidden flex flex-col justify-center left-0 w-full"
-                    :class="{
-                        'fixed top-0':       galleryState === 'active',
-                        'absolute top-0':    galleryState === 'before',
-                        'absolute bottom-0': galleryState === 'after',
-                    }"
-                >
-                    <!-- top meta row -->
-                    <div class="flex items-center justify-between px-16 pb-8">
-                        <span class="text-[11px] tracking-[0.25em] uppercase text-black/45 flex items-center gap-2">
-                            <span class="dot"></span> Selected Work
-                        </span>
-                        <span class="display text-black/80 tabular-nums" style="font-size: 15px; letter-spacing: .04em;">
-                            {{ pad(activeIndex) }} <span class="text-black/30">/ {{ pad(props.gallery.length - 1) }}</span>
-                        </span>
-                    </div>
-
-                    <!-- strip -->
-                    <div
-                        class="flex pl-16 will-change-transform"
-                        :style="{ gap: GAP_PX + 'px', transform: `translateX(${galleryTranslate}px)` }"
-                    >
-                        <figure
-                            v-for="(img, i) in props.gallery"
-                            :key="i"
-                            class="flex-shrink-0 overflow-hidden relative group bg-[#ece8e2]"
-                            :style="{ width: COL_VW + 'vw', height: '66vh' }"
-                        >
-                            <img
-                                :src="imgSrc(img)"
-                                class="w-full h-full object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
-                                draggable="false"
-                            />
-                        </figure>
-                    </div>
-
-                    <!-- progress bar -->
-                    <div class="px-16 pt-10">
-                        <div class="flex items-center gap-4">
-                            <div class="h-px flex-1 bg-black/10 relative overflow-hidden">
-                                <div class="absolute inset-y-0 left-0 bg-black transition-none" :style="{ width: progressPct + '%' }"></div>
-                            </div>
-                            <span class="text-[10px] tracking-[0.2em] tabular-nums text-black/40 w-10 text-right">{{ progressPct }}%</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- ── Section 3: Stats — left title rail, full-width rows, count-up on reveal ─── -->
             <section ref="statsSection" class="px-6 md:px-16 pt-28 md:pt-36 pb-28 md:pb-36">
@@ -336,10 +183,6 @@ const progressPct = computed(() => Math.round(progress.value * 100))
 </template>
 
 <style scoped>
-/* hide scrollbar on the mobile swipe strip */
-.no-bar::-webkit-scrollbar { display: none; }
-.no-bar { -ms-overflow-style: none; scrollbar-width: none; }
-
 /* stats grid: hairline vertical divider between the two columns (desktop) */
 @media (min-width: 640px) {
     .stat-cell:nth-child(even) {

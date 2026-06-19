@@ -5,12 +5,13 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IrepController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ServicesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/work', fn() => Inertia::render('Work'))->name('work');
-Route::get('/services', fn() => Inertia::render('Services'))->name('services');
+Route::get('/services', [ServicesController::class, 'index'])->name('services');
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/contact', fn() => Inertia::render('Contact'))->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
