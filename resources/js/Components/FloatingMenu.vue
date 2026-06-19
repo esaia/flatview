@@ -86,6 +86,7 @@ function scrollLoop() {
 async function openMenu() {
     menuOpen.value = true
     emit('update:menuOpen', true)
+    document.body.style.overflow = 'hidden'
     await nextTick()
     currentX = 0
     targetX = 0
@@ -98,6 +99,7 @@ async function openMenu() {
 function closeMenu() {
     menuOpen.value = false
     emit('update:menuOpen', false)
+    document.body.style.overflow = ''
     mouseInNav = false
     if (rafId) { cancelAnimationFrame(rafId); rafId = null }
 }
@@ -108,6 +110,7 @@ onMounted(() => document.addEventListener('keydown', onKey))
 onUnmounted(() => {
     document.removeEventListener('keydown', onKey)
     if (rafId) cancelAnimationFrame(rafId)
+    document.body.style.overflow = ''
 })
 </script>
 
@@ -127,7 +130,7 @@ onUnmounted(() => {
                 @mousemove="onNavMouseMove"
                 @mouseleave="onNavMouseLeave"
             >
-                <div ref="navTrackRef" class="flex h-full" style="will-change: transform; transform-origin: center;">
+                <div ref="navTrackRef" class="flex h-full px-6 md:px-12" style="will-change: transform; transform-origin: center;">
                     <div
                         v-for="(item, i) in menuItems"
                         :key="item.id"

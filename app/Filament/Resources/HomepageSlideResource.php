@@ -2,9 +2,8 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProjectResource\Pages;
-use App\Models\Project;
-use Filament\Forms\Components\ColorPicker;
+use App\Filament\Resources\HomepageSlideResource\Pages;
+use App\Models\HomepageSlide;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -18,15 +17,17 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class ProjectResource extends Resource
+class HomepageSlideResource extends Resource
 {
-    protected static ?string $model = Project::class;
+    protected static ?string $model = HomepageSlide::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-photo';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Website';
 
-    protected static ?string $navigationLabel = 'Homepage Slides';
+    protected static ?string $navigationLabel = 'Homepage';
+
+    protected static ?string $modelLabel = 'slide';
 
     public static function form(Schema $schema): Schema
     {
@@ -34,44 +35,32 @@ class ProjectResource extends Resource
             TextInput::make('title')
                 ->required(),
 
-            TextInput::make('category')
-                ->required(),
-
-            TextInput::make('year')
-                ->numeric()
-                ->minLength(4)
-                ->maxLength(4)
-                ->placeholder('2024'),
-
             Select::make('media_type')
-                ->options(['image' => 'Image', 'video' => 'Video'])
-                ->default('image')
+                ->options(['video' => 'Video (MP4)', 'image' => 'Image'])
+                ->default('video')
                 ->live(),
+
+            FileUpload::make('video')
+                ->label('Video (MP4)')
+                ->disk('public')
+                ->directory('homepage-slides/videos')
+                ->visibility('public')
+                ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime'])
+                ->downloadable()
+                ->openable()
+                ->nullable()
+                ->hidden(fn (Get $get) => $get('media_type') !== 'video'),
 
             FileUpload::make('image')
                 ->disk('public')
-                ->directory('projects')
+                ->directory('homepage-slides')
                 ->visibility('public')
                 ->image()
                 ->imagePreviewHeight('200')
                 ->downloadable()
                 ->openable()
                 ->nullable()
-                ->hidden(fn (Get $get) => $get('media_type') === 'video'),
-
-            FileUpload::make('video')
-                ->label('Video (optional)')
-                ->disk('public')
-                ->directory('projects/videos')
-                ->visibility('public')
-                ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/mov'])
-                ->downloadable()
-                ->openable()
-                ->nullable()
-                ->hidden(fn (Get $get) => $get('media_type') !== 'video'),
-
-            ColorPicker::make('background_color')
-                ->default('#1a1a1a'),
+                ->hidden(fn (Get $get) => $get('media_type') !== 'image'),
 
             Toggle::make('is_active')
                 ->label('Active')
@@ -102,12 +91,9 @@ class ProjectResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('category'),
-
-                TextColumn::make('year'),
-
                 TextColumn::make('media_type')
-                    ->label('Type'),
+                    ->label('Type')
+                    ->badge(),
 
                 IconColumn::make('is_active')
                     ->boolean(),
@@ -115,15 +101,16 @@ class ProjectResource extends Resource
                 TextColumn::make('sort_order')
                     ->sortable(),
             ])
-            ->defaultSort('sort_order', 'asc');
+            ->defaultSort('sort_order', 'asc')
+            ->reorderable('sort_order');
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListProjects::route('/'),
-            'create' => Pages\CreateProject::route('/create'),
-            'edit' => Pages\EditProject::route('/{record}/edit'),
+            'index' => Pages\ListHomepageSlides::route('/'),
+            'create' => Pages\CreateHomepageSlide::route('/create'),
+            'edit' => Pages\EditHomepageSlide::route('/{record}/edit'),
         ];
     }
 }

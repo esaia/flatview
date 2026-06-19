@@ -1,23 +1,27 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Widgets;
 
 use App\Models\HomepageSetting;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
-use Filament\Pages\Page;
 use Filament\Schemas\Schema;
+use Filament\Widgets\Widget;
 
-class HomepageSettings extends Page
+class HomepageTextWidget extends Widget implements HasForms
 {
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-pencil-square';
+    use InteractsWithForms;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Website';
+    protected string $view = 'filament.widgets.homepage-text-widget';
 
-    protected static ?string $navigationLabel = 'Homepage Text';
+    protected int|string|array $columnSpan = 'full';
 
-    protected string $view = 'filament.pages.homepage-settings';
+    // Only render where explicitly placed (homepage slides page header),
+    // not auto-registered onto the dashboard.
+    protected static bool $isDiscovered = false;
 
     public ?array $data = [];
 
@@ -58,7 +62,7 @@ class HomepageSettings extends Page
         }
 
         Notification::make()
-            ->title('Settings saved')
+            ->title('Homepage text saved')
             ->success()
             ->send();
     }

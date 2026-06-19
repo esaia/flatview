@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
 const props = defineProps({
-    projects: {
+    slides: {
         type: Array,
         default: () => [],
     },
@@ -14,7 +14,7 @@ const props = defineProps({
 })
 
 // ── Slideshow ────────────────────────────────────────────────────────────────
-const slides = computed(() => props.projects)
+const slides = computed(() => props.slides)
 const currentSlide = ref(0)
 const videoRefs = ref([])
 let slideTimer = null
@@ -39,10 +39,10 @@ onUnmounted(() => {
 
 <template>
     <AppLayout active-page="home" :always-visible="true">
-        <div class="relative h-screen overflow-hidden overflow-x-hidden">
-            <div class="absolute inset-0 flex flex-col md:flex-row select-none">
+        <div class="relative overflow-x-hidden md:h-screen md:overflow-hidden">
+            <div class="flex flex-col md:flex-row select-none md:absolute md:inset-0">
                 <!-- Image panel -->
-                <div class="absolute inset-x-0 top-0 h-[50vh] md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full overflow-hidden bg-black">
+                <div class="relative order-2 w-full h-[100svh] overflow-hidden bg-black md:order-none md:absolute md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full">
                     <div
                         v-for="(slide, index) in slides"
                         :key="slide.id"
@@ -52,7 +52,7 @@ onUnmounted(() => {
                     >
                         <video
                             v-if="slide.media_type === 'video' && slide.video"
-                            :ref="el => { if (el) videoRefs.value[index] = el }"
+                            :ref="el => { if (el) videoRefs[index] = el }"
                             class="absolute inset-0 w-full h-full object-cover"
                             autoplay muted loop playsinline
                             :src="`/storage/${slide.video}`"
@@ -74,9 +74,6 @@ onUnmounted(() => {
                             </span>
                         </div>
                         <div class="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-10">
-                            <p class="text-white/30 text-[8px] md:text-[10px] tracking-[0.2em] uppercase mb-1.5">
-                                {{ slide.category }}{{ slide.year ? ' · ' + slide.year : '' }}
-                            </p>
                             <p class="text-white text-[11px] md:text-sm font-medium">{{ slide.title }}</p>
                         </div>
                         <div class="absolute bottom-7 md:bottom-11 right-6 md:right-10 flex items-center gap-2">
@@ -91,23 +88,27 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Content panel -->
-                <div class="absolute inset-x-0 bottom-0 h-[50vh] md:inset-y-0 md:left-auto md:right-0 md:w-1/2 md:h-full bg-white flex flex-col justify-center px-6 md:px-16">
-                    <div class="flex-1 flex flex-col justify-center">
-                        <p class="text-[9px] md:text-[10px] tracking-[0.18em] uppercase text-black/40 font-medium mb-8">
-                            {{ props.settings.badge || 'Web Development Agency' }}
-                        </p>
-                        <h1 class="font-black text-[28px] md:text-[clamp(40px,4.5vw,72px)] leading-[0.92] tracking-[-0.02em] uppercase text-black mb-6" style="white-space: pre-line">{{ props.settings.headline || "Digital\nPresence\nFor Builders." }}</h1>
-                        <p class="text-black/45 text-[13px] md:text-[15px] leading-relaxed max-w-[340px] mb-8">
+                <div class="relative order-1 w-full h-[100svh] bg-white flex flex-col justify-center px-7 md:px-14 lg:px-20 md:order-none md:absolute md:inset-y-0 md:left-auto md:right-0 md:w-1/2 md:h-full">
+                    <div class="w-full max-w-[560px]">
+                        <!-- headline -->
+                        <h1 class="reveal display text-black mb-8 md:mb-9 text-balance" style="--d: .08s; font-size: clamp(33px, 4.4vw, 60px); line-height: 1.06; font-weight: 300; letter-spacing: -0.022em; white-space: pre-line">{{ props.settings.headline || "Digital\nPresence\nFor Builders." }}</h1>
+
+                        <!-- subtitle -->
+                        <p class="reveal border-l border-black/10 pl-5 text-black/50 text-[14px] md:text-[15px] leading-[1.75] max-w-[420px] mb-10 md:mb-12" style="--d: .16s">
                             {{ props.settings.subtitle || 'Websites and interactive floor plan tools for construction and real estate companies.' }}
                         </p>
-                        <div class="flex items-center gap-4">
+
+                        <!-- ctas -->
+                        <div class="reveal flex flex-wrap items-center gap-2 md:gap-4" style="--d: .24s">
                             <a href="/work"
-                               class="border border-black text-black text-[10px] md:text-[11px] tracking-[0.1em] uppercase px-4 py-3 md:px-8 md:py-4 hover:bg-black hover:text-white transition-colors duration-200">
+                               class="group inline-flex items-center gap-3 bg-black text-white text-[10px] md:text-[11px] tracking-[0.18em] uppercase px-7 py-4 hover:bg-[#5DCAA5] hover:text-black transition-colors duration-300">
                                 View Our Work
+                                <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
                             </a>
                             <a href="/contact"
-                               class="border border-black text-black text-[10px] md:text-[11px] tracking-[0.1em] uppercase px-4 py-3 md:px-8 md:py-4 hover:bg-black hover:text-white transition-colors duration-200">
+                               class="group inline-flex items-center gap-2 text-[10px] md:text-[11px] tracking-[0.18em] uppercase text-black/55 hover:text-black px-4 py-4 transition-colors duration-300">
                                 Get In Touch
+                                <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
                             </a>
                         </div>
                     </div>
@@ -116,3 +117,35 @@ onUnmounted(() => {
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+/* Brand display serif — matches the About page */
+.display {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+}
+
+/* green brand accent dot */
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: #5DCAA5;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+/* staggered load reveal */
+.reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: reveal 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    animation-delay: var(--d, 0s);
+}
+@keyframes reveal {
+    to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .reveal { animation: none; opacity: 1; transform: none; }
+}
+</style>
