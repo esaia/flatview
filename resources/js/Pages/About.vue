@@ -336,21 +336,6 @@ const progressPct = computed(() => Math.round(progress.value * 100))
 </template>
 
 <style scoped>
-.display {
-    font-family: 'Fraunces', Georgia, serif;
-    font-optical-sizing: auto;
-}
-
-/* green brand accent dot */
-.dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 9999px;
-    background-color: #5DCAA5;
-    display: inline-block;
-    flex-shrink: 0;
-}
-
 /* hide scrollbar on the mobile swipe strip */
 .no-bar::-webkit-scrollbar { display: none; }
 .no-bar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -393,21 +378,6 @@ const progressPct = computed(() => Math.round(progress.value * 100))
     transform: scaleX(1);
 }
 
-/* hero staggered reveal */
-.reveal {
-    opacity: 0;
-    transform: translateY(22px);
-    animation: reveal-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: var(--d, 0s);
-}
-@keyframes reveal-up {
-    to { opacity: 1; transform: translateY(0); }
-}
-
 /* the gallery progress fill should track instantly with scroll */
 .tabular-nums { font-variant-numeric: tabular-nums; }
-
-@media (prefers-reduced-motion: reduce) {
-    .reveal { animation: none; opacity: 1; transform: none; }
-}
 </style>

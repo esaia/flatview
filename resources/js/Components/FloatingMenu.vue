@@ -116,71 +116,81 @@ onUnmounted(() => {
 
 <template>
     <!-- ── Slide-up nav panel ──────────────────────────────────────── -->
-    <Transition name="menu-panel">
+    <!--
+         The panel is ALWAYS mounted (content included) and slides via a
+         reactive inline-style transition — identical mechanism, duration and
+         easing to the page content-shift in AppLayout. This keeps the two
+         motions in perfect lockstep (a Vue <Transition> here would start a
+         frame late and briefly expose a white gap between the page bottom and
+         the panel top) and lets the items slide down with the panel on close
+         instead of vanishing instantly.
+    -->
+    <div
+        class="fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-black"
+        :style="{
+            height: '50vh',
+            transform: menuOpen ? 'translateY(0)' : 'translateY(100%)',
+            transition: 'transform var(--menu-duration) var(--menu-ease)',
+            pointerEvents: menuOpen ? 'auto' : 'none',
+        }"
+    >
+        <!-- Scrollable columns — always horizontal (desktop: cursor-driven; mobile: touch) -->
         <div
-            v-if="menuOpen"
-            class="fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-black"
-            style="height: 50vh;"
+            ref="navScrollRef"
+            class="menus-scroll flex flex-1 min-h-0"
+            style="cursor: ew-resize; -webkit-overflow-scrolling: touch;"
+            @mousemove="onNavMouseMove"
+            @mouseleave="onNavMouseLeave"
         >
-            <!-- Scrollable columns — always horizontal (desktop: cursor-driven; mobile: touch) -->
-            <div
-                ref="navScrollRef"
-                class="menus-scroll flex flex-1 min-h-0"
-                style="cursor: ew-resize; -webkit-overflow-scrolling: touch;"
-                @mousemove="onNavMouseMove"
-                @mouseleave="onNavMouseLeave"
-            >
-                <div ref="navTrackRef" class="flex h-full px-6 md:px-12" style="will-change: transform; transform-origin: center;">
-                    <div
-                        v-for="(item, i) in menuItems"
-                        :key="item.id"
-                        class="menu-col flex-shrink-0 flex flex-col justify-center md:justify-start px-2.5 py-5 md:px-3 md:py-8 cursor-pointer group transition-colors duration-200 hover:bg-white/[0.03]"
-                        :style="{ '--col-delay': `${0.18 + i * 0.07}s` }"
-                        @click.stop="navigate(item)"
-                    >
-                        <!-- Page label — dot slides in on hover, always shown when active -->
-                        <div class="flex items-center mb-4 md:mb-5 flex-shrink-0">
-                            <span
-                                class="rounded-full flex-shrink-0 transition-all duration-300 ease-out"
-                                :class="currentPath === item.href
-                                    ? 'w-1.5 mr-2 opacity-100'
-                                    : 'w-0 mr-0 opacity-0 group-hover:w-1.5 group-hover:mr-2 group-hover:opacity-100'"
-                                style="height: 6px; background-color: #5DCAA5;"
-                            ></span>
-                            <span class="text-white text-[11px] md:text-sm font-semibold tracking-[0.2em] uppercase">{{ item.label }}</span>
-                        </div>
+            <div ref="navTrackRef" class="flex h-full px-6 md:px-12" style="will-change: transform; transform-origin: center;">
+                <div
+                    v-for="(item, i) in menuItems"
+                    :key="item.id"
+                    class="menu-col flex-shrink-0 flex flex-col justify-center md:justify-start px-2.5 py-5 md:px-3 md:py-8 cursor-pointer group transition-colors duration-200 hover:bg-white/[0.03]"
+                    @click.stop="navigate(item)"
+                >
+                    <!-- Page label — dot slides in on hover, always shown when active -->
+                    <div class="flex items-center mb-4 md:mb-5 flex-shrink-0">
+                        <span
+                            class="rounded-full flex-shrink-0 transition-all duration-300 ease-out"
+                            :class="currentPath === item.href
+                                ? 'w-1.5 mr-2 opacity-100'
+                                : 'w-0 mr-0 opacity-0 group-hover:w-1.5 group-hover:mr-2 group-hover:opacity-100'"
+                            style="height: 6px; background-color: #5DCAA5;"
+                        ></span>
+                        <span class="text-white text-[11px] md:text-sm font-semibold tracking-[0.2em] uppercase">{{ item.label }}</span>
+                    </div>
 
-                        <!-- 16:9 preview card -->
-                        <div
-                            class="w-full flex-shrink-0 relative overflow-hidden transition-colors duration-200"
-                            style="aspect-ratio: 16 / 9; background: #111;"
-                        >
-                            <img
-                                v-if="item.image"
-                                :src="`/storage/${item.image}`"
-                                class="w-full h-full object-cover opacity-70 transition-opacity duration-200 group-hover:opacity-100"
-                            />
-                            <img
-                                v-else
-                                :src="`https://picsum.photos/seed/${item.label}/640/360`"
-                                class="w-full h-full object-cover opacity-50 transition-opacity duration-200 group-hover:opacity-80"
-                            />
-                        </div>
+                    <!-- 16:9 preview card -->
+                    <div
+                        class="w-full flex-shrink-0 relative overflow-hidden transition-colors duration-200"
+                        style="aspect-ratio: 16 / 9; background: #111;"
+                    >
+                        <img
+                            v-if="item.image"
+                            :src="`/storage/${item.image}`"
+                            class="w-full h-full object-cover opacity-70 transition-opacity duration-200 group-hover:opacity-100"
+                        />
+                        <img
+                            v-else
+                            :src="`https://picsum.photos/seed/${item.label}/640/360`"
+                            class="w-full h-full object-cover opacity-50 transition-opacity duration-200 group-hover:opacity-80"
+                        />
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Bottom bar -->
-            <div class="flex items-center justify-between px-4 md:px-8 py-3 md:py-4 border-t border-white/10 flex-shrink-0">
-                <div></div>
-                <div class="hidden md:flex items-center gap-6">
-                    <span class="text-white/30 text-[10px] tracking-widest uppercase select-none">Follow us</span>
-                    <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">Instagram</a>
-                    <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">LinkedIn</a>
-                </div>
+        <!-- Bottom bar -->
+        <div class="flex items-center justify-between px-4 md:px-8 py-3 md:py-4 border-t border-white/10 flex-shrink-0">
+            <div></div>
+            <div class="hidden md:flex items-center gap-6">
+                <span class="text-white/30 text-[10px] tracking-widest uppercase select-none">Follow us</span>
+                <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">Instagram</a>
+                <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">LinkedIn</a>
             </div>
         </div>
-    </Transition>
+    </div>
 
     <!-- ── Circle button: always fixed, never moves ───────────────── -->
     <button
@@ -228,49 +238,15 @@ onUnmounted(() => {
     .menus-scroll { overflow-x: hidden; }
 }
 
-/*
- * Staggered column reveal — each column fades + rises in sequence after the
- * panel slides up. Delay is set per-column via the inline --col-delay custom
- * property (inherits to the image, which wipes in with the same timing).
- * Columns mount fresh on every open (panel is v-if'd), so this auto-plays.
- */
+/* Menu columns — no entrance animation; they slide in/out with the panel. */
 .menu-col {
     /* Mobile: one card fills most of the width with the next peeking in. */
     width: clamp(260px, 78vw, 360px);
-    opacity: 0;
-    animation: menu-col-in 0.65s var(--menu-ease) both;
-    animation-delay: var(--col-delay, 0s);
 }
 /* Desktop: narrower, cursor-scrubbed columns. */
 @media (min-width: 768px) {
     .menu-col { width: clamp(240px, 28vw, 460px); }
 }
-.menu-col img {
-    animation: menu-img-in 0.9s var(--menu-ease) both;
-    animation-delay: var(--col-delay, 0s);
-}
-@keyframes menu-col-in {
-    from { opacity: 0; transform: translateY(34px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes menu-img-in {
-    from { clip-path: inset(0 100% 0 0); transform: scale(1.08); }
-    to   { clip-path: inset(0 0 0 0);    transform: scale(1); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .menu-col, .menu-col img { animation: none; opacity: 1; }
-}
-
-/*
- * Panel slide — locked to the page content-shift in AppLayout via shared
- * CSS vars (resources/css/app.css). Symmetric enter/leave so open and close
- * read as one motion.
- */
-.menu-panel-enter-active,
-.menu-panel-leave-active { transition: transform var(--menu-duration) var(--menu-ease); }
-.menu-panel-enter-from,
-.menu-panel-leave-to     { transform: translateY(100%); }
 
 /*
  * Label layout

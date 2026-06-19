@@ -53,21 +53,24 @@ const contactImages = [
             <div class="flex-1 md:w-1/2 overflow-y-auto px-8 md:px-16 pt-16 pb-36">
 
                 <!-- Headline -->
+                <span class="reveal kicker flex items-center gap-2 mb-7" style="--d: 0s;">
+                    <span class="dot"></span> Contact
+                </span>
                 <h1
-                    class="text-black tracking-tight mb-14"
-                    style="font-size: clamp(36px, 4vw, 64px); font-weight: 300; line-height: 1.1;"
+                    class="reveal display text-black mb-14"
+                    style="--d: .08s; font-size: clamp(38px, 4.4vw, 64px); font-weight: 300; line-height: 1.06; letter-spacing: -0.02em;"
                 >
                     Get in touch
                 </h1>
 
                 <!-- Contact blocks -->
-                <div class="space-y-10 mb-14">
+                <div class="reveal space-y-10 mb-14" style="--d: .16s;">
                     <div>
-                        <p class="text-[11px] tracking-[0.15em] uppercase font-medium text-black mb-1.5">Start a project</p>
+                        <p class="text-[11px] tracking-[0.25em] uppercase font-medium text-black mb-1.5">Start a project</p>
                         <p class="text-[15px] text-black/55">Fill out the form below</p>
                     </div>
                     <div>
-                        <p class="text-[11px] tracking-[0.15em] uppercase font-medium text-black mb-1.5">Just say hi</p>
+                        <p class="text-[11px] tracking-[0.25em] uppercase font-medium text-black mb-1.5">Just say hi</p>
                         <a
                             href="mailto:hello@merisimo.com"
                             class="text-[15px] text-black/55 hover:text-black transition-colors duration-200"
@@ -76,12 +79,12 @@ const contactImages = [
                         </a>
                     </div>
                     <div>
-                        <p class="text-[11px] tracking-[0.15em] uppercase font-medium text-black mb-1.5">Location</p>
+                        <p class="text-[11px] tracking-[0.25em] uppercase font-medium text-black mb-1.5">Location</p>
                         <p class="text-[15px] text-black/55">Tbilisi, Georgia</p>
                         <p class="text-[13px] text-black/35 mt-0.5">Available for remote projects worldwide</p>
                     </div>
                     <div>
-                        <p class="text-[11px] tracking-[0.15em] uppercase font-medium text-black mb-1.5">Follow us</p>
+                        <p class="text-[11px] tracking-[0.25em] uppercase font-medium text-black mb-1.5">Follow us</p>
                         <div class="flex gap-6">
                             <a href="#" class="text-[15px] text-black/55 hover:text-black transition-colors duration-200">LinkedIn</a>
                             <a href="#" class="text-[15px] text-black/55 hover:text-black transition-colors duration-200">Instagram</a>
@@ -102,7 +105,7 @@ const contactImages = [
                     <div class="space-y-8">
 
                         <div class="border-b border-black/15 pb-4">
-                            <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Name *</label>
+                            <label class="block text-xs font-medium tracking-[0.25em] uppercase text-black/30 mb-2">Name *</label>
                             <input
                                 v-model="form.name"
                                 type="text"
@@ -114,7 +117,7 @@ const contactImages = [
                         </div>
 
                         <div class="border-b border-black/15 pb-4">
-                            <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Email *</label>
+                            <label class="block text-xs font-medium tracking-[0.25em] uppercase text-black/30 mb-2">Email *</label>
                             <input
                                 v-model="form.email"
                                 type="email"
@@ -126,7 +129,7 @@ const contactImages = [
                         </div>
 
                         <div class="border-b border-black/15 pb-4">
-                            <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Company</label>
+                            <label class="block text-xs font-medium tracking-[0.25em] uppercase text-black/30 mb-2">Company</label>
                             <input
                                 v-model="form.company"
                                 type="text"
@@ -136,7 +139,7 @@ const contactImages = [
                         </div>
 
                         <div class="border-b border-black/15 pb-4">
-                            <label class="block text-xs font-medium tracking-[0.15em] uppercase text-black/30 mb-2">Message *</label>
+                            <label class="block text-xs font-medium tracking-[0.25em] uppercase text-black/30 mb-2">Message *</label>
                             <textarea
                                 v-model="form.message"
                                 rows="5"
@@ -152,7 +155,7 @@ const contactImages = [
                     <button
                         type="submit"
                         :disabled="form.processing"
-                        class="w-full bg-black text-white text-[12px] tracking-[0.15em] uppercase py-4 mt-8 hover:bg-black/80 transition-colors disabled:opacity-40"
+                        class="w-full bg-black text-white text-[12px] tracking-[0.18em] uppercase py-4 mt-8 hover:bg-[#5DCAA5] hover:text-black transition-colors duration-300 disabled:opacity-40"
                     >
                         {{ form.processing ? 'Sending…' : 'Send message' }}
                     </button>

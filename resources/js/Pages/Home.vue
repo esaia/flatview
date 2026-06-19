@@ -42,7 +42,7 @@ onUnmounted(() => {
         <div class="relative overflow-x-hidden md:h-screen md:overflow-hidden">
             <div class="flex flex-col md:flex-row select-none md:absolute md:inset-0">
                 <!-- Image panel -->
-                <div class="relative order-2 w-full h-[100svh] overflow-hidden bg-black md:order-none md:absolute md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full">
+                <div class="hero-media relative order-2 w-full h-[100svh] overflow-hidden bg-black md:order-none md:absolute md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full md:z-20">
                     <div
                         v-for="(slide, index) in slides"
                         :key="slide.id"
@@ -88,7 +88,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Content panel -->
-                <div class="relative order-1 w-full h-[100svh] bg-white flex flex-col justify-center px-7 md:px-14 lg:px-20 md:order-none md:absolute md:inset-y-0 md:left-auto md:right-0 md:w-1/2 md:h-full">
+                <div class="hero-content relative order-1 w-full h-[100svh] bg-white flex flex-col justify-center px-7 md:px-14 lg:px-20 md:order-none md:absolute md:inset-y-0 md:left-auto md:right-0 md:w-1/2 md:h-full md:z-10">
                     <div class="w-full max-w-[560px]">
                         <!-- headline -->
                         <h1 class="reveal display text-black mb-8 md:mb-9 text-balance" style="--d: .08s; font-size: clamp(33px, 4.4vw, 60px); line-height: 1.06; font-weight: 300; letter-spacing: -0.022em; white-space: pre-line">{{ props.settings.headline || "Digital\nPresence\nFor Builders." }}</h1>
@@ -117,35 +117,3 @@ onUnmounted(() => {
         </div>
     </AppLayout>
 </template>
-
-<style scoped>
-/* Brand display serif — matches the About page */
-.display {
-    font-family: 'Fraunces', Georgia, serif;
-    font-optical-sizing: auto;
-}
-
-/* green brand accent dot */
-.dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 9999px;
-    background-color: #5DCAA5;
-    display: inline-block;
-    flex-shrink: 0;
-}
-
-/* staggered load reveal */
-.reveal {
-    opacity: 0;
-    transform: translateY(16px);
-    animation: reveal 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-    animation-delay: var(--d, 0s);
-}
-@keyframes reveal {
-    to { opacity: 1; transform: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-    .reveal { animation: none; opacity: 1; transform: none; }
-}
-</style>

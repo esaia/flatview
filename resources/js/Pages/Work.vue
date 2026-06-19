@@ -22,14 +22,18 @@ const filteredProjects = computed(() => {
 
 <template>
     <AppLayout active-page="work">
-        <div class="max-w-[1400px] mx-auto px-5 sm:px-8 md:px-16 pt-14 md:pt-20 pb-20 md:pb-32">
+        <div class="max-w-[1400px] mx-auto px-6 md:px-16 pt-14 md:pt-20 pb-20 md:pb-32">
 
             <!-- Header -->
-            <div class="flex items-baseline gap-3 md:gap-4 mb-5 md:mb-6 flex-wrap">
-                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase tracking-tight text-black leading-none">
+            <span class="reveal kicker flex items-center gap-2 mb-7" style="--d: 0s;">
+                <span class="dot"></span> Portfolio
+            </span>
+            <div class="reveal flex items-baseline gap-3 md:gap-4 mb-8 md:mb-10 flex-wrap" style="--d: .08s;">
+                <h1 class="display text-black"
+                    style="font-size: clamp(38px, 6.4vw, 88px); font-weight: 300; line-height: 1.04; letter-spacing: -0.02em;">
                     Selected Work
                 </h1>
-                <span class="text-xs font-medium tracking-widest uppercase text-black/30 border border-black/10 px-2.5 py-1 rounded-full">
+                <span class="text-[11px] tracking-[0.25em] uppercase text-black/40 border border-black/10 px-2.5 py-1 rounded-full">
                     {{ projects.length }} projects
                 </span>
             </div>
@@ -41,9 +45,9 @@ const filteredProjects = computed(() => {
                         v-for="filter in filters"
                         :key="filter"
                         @click="activeFilter = filter"
-                        class="px-4 md:px-5 py-3 text-xs md:text-sm font-medium tracking-wide transition-colors duration-200 border-b-2 -mb-px whitespace-nowrap"
+                        class="px-4 md:px-5 py-3 text-[11px] tracking-[0.25em] uppercase transition-colors duration-200 border-b-2 -mb-px whitespace-nowrap"
                         :class="activeFilter === filter
-                            ? 'text-black border-black'
+                            ? 'text-black border-[#5DCAA5]'
                             : 'text-black/30 border-transparent hover:text-black/60'"
                     >
                         {{ filter }}
@@ -76,10 +80,10 @@ const filteredProjects = computed(() => {
                     <!-- Project info -->
                     <div class="pt-3 md:pt-4 pb-8 md:pb-10 flex items-start justify-between">
                         <div>
-                            <p class="text-sm md:text-base font-semibold text-black tracking-tight">{{ project.name }}</p>
-                            <p class="text-xs md:text-sm text-black/40 mt-0.5 font-light">{{ project.desc }}</p>
+                            <p class="display text-lg text-black leading-snug" style="font-weight: 400;">{{ project.name }}</p>
+                            <p class="text-xs md:text-sm text-black/40 mt-1 font-light">{{ project.desc }}</p>
                         </div>
-                        <span class="text-xs text-black/25 font-medium mt-0.5">{{ project.year }}</span>
+                        <span class="text-xs text-black/25 font-medium mt-1 tabular-nums">{{ project.year }}</span>
                     </div>
                 </div>
             </div>

@@ -29,14 +29,18 @@ const valueProps = [
 
 <template>
     <AppLayout active-page="services">
-        <div class="max-w-[1400px] mx-auto px-5 sm:px-8 md:px-16 pt-14 md:pt-20 pb-20 md:pb-32">
+        <div class="max-w-[1400px] mx-auto px-6 md:px-16 pt-14 md:pt-20 pb-20 md:pb-32">
 
             <!-- Hero text -->
             <div class="mb-14 md:mb-24 max-w-2xl">
-                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase tracking-tight text-black leading-none mb-5 md:mb-6">
+                <span class="reveal kicker flex items-center gap-2 mb-7" style="--d: 0s;">
+                    <span class="dot"></span> Our Services
+                </span>
+                <h1 class="reveal display text-black mb-5 md:mb-6"
+                    style="--d: .08s; font-size: clamp(38px, 6.4vw, 88px); font-weight: 300; line-height: 1.04; letter-spacing: -0.02em;">
                     What we do
                 </h1>
-                <p class="text-sm md:text-base text-black/40 font-light leading-relaxed">
+                <p class="reveal text-sm md:text-base text-black/40 font-light leading-relaxed" style="--d: .16s;">
                     We build digital products for the construction and real estate sector —
                     from marketing websites to interactive tools that help sell properties faster.
                 </p>
@@ -51,19 +55,19 @@ const valueProps = [
                 >
                     <!-- Faded number -->
                     <span
-                        class="absolute top-0 right-4 md:right-8 text-[6rem] md:text-[7rem] font-bold leading-none select-none text-black"
+                        class="display absolute top-0 right-4 md:right-8 text-[6rem] md:text-[7rem] leading-none select-none text-black"
                         style="opacity: 0.05;"
                     >
                         {{ service.number }}
                     </span>
 
                     <div class="relative flex flex-col flex-1">
-                        <p class="text-xs font-medium tracking-[0.2em] uppercase text-black/25 mb-4">{{ service.number }}</p>
-                        <h2 class="text-lg md:text-xl font-bold text-black mb-3 md:mb-4 leading-snug">{{ service.name }}</h2>
+                        <p class="kicker text-black/45 mb-4">{{ service.number }}</p>
+                        <h2 class="display text-2xl text-black mb-3 md:mb-4 leading-snug" style="font-weight: 400;">{{ service.name }}</h2>
                         <p class="text-sm text-black/45 font-light leading-relaxed flex-1">{{ service.description }}</p>
-                        <a href="#" class="inline-flex items-center gap-1.5 text-xs font-medium tracking-widest uppercase text-black mt-7 md:mt-8 group">
+                        <a href="#" class="inline-flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-black/55 hover:text-black transition-colors duration-300 mt-7 md:mt-8 group">
                             <span>Learn more</span>
-                            <span class="transition-transform duration-200 group-hover:translate-x-1">→</span>
+                            <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
                         </a>
                     </div>
                 </div>
@@ -71,7 +75,7 @@ const valueProps = [
 
             <!-- Why Merisimo -->
             <div>
-                <p class="text-xs font-medium tracking-[0.2em] uppercase text-black/25 mb-8 md:mb-10">Why Merisimo?</p>
+                <p class="kicker flex items-center gap-2 mb-8 md:mb-10"><span class="dot"></span> Why Merisimo?</p>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-black/10">
                     <div
                         v-for="prop in valueProps"
