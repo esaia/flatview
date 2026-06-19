@@ -126,7 +126,7 @@ onUnmounted(() => {
          instead of vanishing instantly.
     -->
     <div
-        class="fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-black h-[min(400px,82vh)] md:h-[min(540px,92vh)]"
+        class="fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-black h-[min(400px,82vh)] md:h-[min(460px,92vh)] 2xl:h-[min(500px,92vh)]"
         :style="{
             transform: menuOpen ? 'translateY(0)' : 'translateY(100%)',
             transition: 'transform var(--menu-duration) var(--menu-ease)',
@@ -160,9 +160,9 @@ onUnmounted(() => {
                         <span class="text-white text-[11px] md:text-sm font-semibold tracking-[0.2em] uppercase">{{ item.label }}</span>
                     </div>
 
-                    <!-- 16:9 preview card -->
+                    <!-- preview card -->
                     <div
-                        class="w-full flex-shrink-0 relative overflow-hidden transition-colors duration-200"
+                        class="menu-card w-full flex-shrink-0 relative overflow-hidden transition-colors duration-200"
                         style="aspect-ratio: 16 / 9; background: #111;"
                     >
                         <img
@@ -246,7 +246,14 @@ onUnmounted(() => {
    cards keep a constant size at any viewport width — narrower screens scroll
    horizontally instead of shrinking the cards. */
 @media (min-width: 768px) {
-    .menu-col { width: 480px; }
+    .menu-col { width: 360px; }
+    /* Fixed 360×192 card on laptops (overrides the mobile aspect-ratio). */
+    .menu-card { aspect-ratio: auto; height: 192px; }
+}
+/* Large desktops: slightly bigger cards. */
+@media (min-width: 1536px) {
+    .menu-col { width: 400px; }
+    .menu-card { height: 214px; }
 }
 
 /*
