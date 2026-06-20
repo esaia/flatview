@@ -1,90 +1,33 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import IreProject360 from '@/irep/shortcodes/IreProject360.vue'
 
 const props = defineProps({
-    slides: {
-        type: Array,
-        default: () => [],
-    },
     settings: {
         type: Object,
         default: () => ({}),
     },
+    demoProjectId: {
+        type: [String, Number],
+        default: null,
+    },
+    demoData: {
+        type: Object,
+        default: null,
+    },
 })
 
-// ── Slideshow ────────────────────────────────────────────────────────────────
-const slides = computed(() => props.slides)
-const currentSlide = ref(0)
-const videoRefs = ref([])
-let slideTimer = null
-
-watch(currentSlide, (newIdx) => {
-    videoRefs.value.forEach((el, i) => {
-        if (!el) return
-        i === newIdx ? el.play() : el.pause()
-    })
-})
-
-onMounted(() => {
-    slideTimer = setInterval(() => {
-        currentSlide.value = (currentSlide.value + 1) % (slides.value.length || 1)
-    }, 5000)
-})
-
-onUnmounted(() => {
-    clearInterval(slideTimer)
-})
+const demoProjectId = computed(() => props.demoProjectId)
 </script>
 
 <template>
     <AppLayout active-page="home" :always-visible="true">
         <div class="relative overflow-x-hidden md:h-screen md:overflow-hidden">
             <div class="flex flex-col md:flex-row select-none md:absolute md:inset-0">
-                <!-- Image panel -->
+                <!-- Interactive 360 demo panel -->
                 <div class="hero-media relative order-2 w-full h-[60svh] overflow-hidden bg-black md:order-none md:absolute md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full md:z-20">
-                    <div
-                        v-for="(slide, index) in slides"
-                        :key="slide.id"
-                        class="absolute inset-0"
-                        :class="index === currentSlide ? 'opacity-100' : 'opacity-0'"
-                        :style="{ backgroundColor: slide.background_color || '#1a1a1a', transition: 'opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }"
-                    >
-                        <video
-                            v-if="slide.media_type === 'video' && slide.video"
-                            :ref="el => { if (el) videoRefs[index] = el }"
-                            class="absolute inset-0 w-full h-full object-cover"
-                            autoplay muted loop playsinline
-                            :src="`/storage/${slide.video}`"
-                        ></video>
-                        <img
-                            v-else-if="slide.image"
-                            :src="slide.image.startsWith('http') ? slide.image : `/storage/${slide.image}`"
-                            :alt="slide.title"
-                            class="absolute inset-0 w-full h-full object-cover"
-                        />
-                        <div
-                            v-else
-                            class="absolute inset-0"
-                            :style="{ backgroundColor: slide.background_color || '#1a1a1a' }"
-                        ></div>
-                        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
-                            <span class="text-white/[0.03] text-[22vw] md:text-[18vw] font-bold uppercase leading-none tracking-tighter select-none whitespace-nowrap">
-                                {{ slide.title ? slide.title.split(' ')[0] : '' }}
-                            </span>
-                        </div>
-                        <div class="absolute bottom-4 left-4 md:bottom-8 md:left-8 z-10">
-                            <p class="text-white text-[11px] md:text-sm font-medium">{{ slide.title }}</p>
-                        </div>
-                        <div class="absolute bottom-7 md:bottom-11 right-6 md:right-10 flex items-center gap-2">
-                            <span
-                                v-for="(s, i) in slides"
-                                :key="i"
-                                class="block transition-all duration-500 rounded-full"
-                                :class="i === currentSlide ? 'w-4 md:w-6 h-px bg-white' : 'w-0.5 h-0.5 md:w-1 md:h-1 bg-white/25'"
-                            ></span>
-                        </div>
-                    </div>
+                    <IreProject360 v-if="demoProjectId" :project-id="demoProjectId" :data="props.demoData" class="absolute inset-0 h-full w-full" />
                 </div>
 
                 <!-- Content panel -->
@@ -128,5 +71,14 @@ onUnmounted(() => {
     .hero-h1 {
         font-size: clamp(33px, 4.4vw, 60px);
     }
+}
+
+/* The 360 viewer's children use h-full, so the viewer needs a definite height.
+   Its wrapper chain is height:auto, which collapses it to the image's intrinsic
+   size. Anchor the viewer to the absolutely-positioned IreProject360 root
+   (which fills the .hero-media panel) so it always matches the panel height. */
+.hero-media :deep(.irep-project-360-viewer) {
+    position: absolute;
+    inset: 0;
 }
 </style>

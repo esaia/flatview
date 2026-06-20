@@ -3,22 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\HomepageSetting;
-use App\Models\HomepageSlide;
+use App\Support\IrepShortcode;
 use Inertia\Inertia;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $slides = HomepageSlide::where('is_active', true)
-            ->orderBy('sort_order')
-            ->get();
-
         $settings = HomepageSetting::pluck('value', 'key');
 
+        $demoProjectId = $settings['demo_project_id'] ?? null;
+
         return Inertia::render('Home', [
-            'slides' => $slides,
             'settings' => $settings,
+            'demoProjectId' => $demoProjectId,
+            'demoData' => $demoProjectId ? IrepShortcode::forProject($demoProjectId) : null,
         ]);
     }
 }
