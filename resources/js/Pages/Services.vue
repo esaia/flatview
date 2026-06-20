@@ -47,12 +47,12 @@ function imgSrc(img) {
  */
 const SENSITIVITY = 0.55      // lower = faster traversal (less scroll needed)
 const EASE = 0.12             // lerp factor toward target (lower = floatier)
-const FRAME_VH = 66          // each frame height in vh (9:16 portrait → width derives from it)
+const FRAME_VH = 66          // each frame height in vh (4:3 landscape → width derives from it)
 const GAP_PX = 12
 
-// Pixel width of one 9:16 portrait frame, derived from its viewport height.
+// Pixel width of one 4:3 landscape frame, derived from its viewport height.
 function frameWidthPx() {
-    return window.innerHeight * (FRAME_VH / 100) * (9 / 16)
+    return window.innerHeight * (FRAME_VH / 100) * (4 / 3)
 }
 
 const gallerySection = ref(null)
@@ -156,7 +156,7 @@ onUnmounted(() => {
                         v-for="(img, i) in props.gallery"
                         :key="'mobile-'+i"
                         class="snap-start flex-shrink-0 overflow-hidden relative bg-[#ece8e2]"
-                        style="width: 70vw; aspect-ratio: 9 / 16;"
+                        style="width: 80vw; aspect-ratio: 4 / 3;"
                     >
                         <img :src="imgSrc(img)" class="w-full h-full object-cover" draggable="false" />
                     </figure>
@@ -197,7 +197,7 @@ onUnmounted(() => {
                             v-for="(img, i) in props.gallery"
                             :key="i"
                             class="flex-shrink-0 overflow-hidden relative group bg-[#ece8e2]"
-                            :style="{ height: FRAME_VH + 'vh', aspectRatio: '9 / 16' }"
+                            :style="{ height: FRAME_VH + 'vh', aspectRatio: '4 / 3' }"
                         >
                             <img
                                 :src="imgSrc(img)"
