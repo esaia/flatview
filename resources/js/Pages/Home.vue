@@ -42,7 +42,7 @@ onUnmounted(() => {
         <div class="relative overflow-x-hidden md:h-screen md:overflow-hidden">
             <div class="flex flex-col md:flex-row select-none md:absolute md:inset-0">
                 <!-- Image panel -->
-                <div class="hero-media relative order-2 w-full h-[100svh] overflow-hidden bg-black md:order-none md:absolute md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full md:z-20">
+                <div class="hero-media relative order-2 w-full h-[60svh] overflow-hidden bg-black md:order-none md:absolute md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full md:z-20">
                     <div
                         v-for="(slide, index) in slides"
                         :key="slide.id"
@@ -88,10 +88,10 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Content panel -->
-                <div class="hero-content relative order-1 w-full h-[100svh] bg-white flex flex-col justify-center px-7 md:px-14 lg:px-20 md:order-none md:absolute md:inset-y-0 md:left-auto md:right-0 md:w-1/2 md:h-full md:z-10">
-                    <div class="w-full max-w-[560px]">
+                <div class="hero-content relative order-1 w-full min-h-[60svh] py-20 bg-white flex flex-col justify-center px-7 md:px-14 lg:px-20 md:py-0 md:order-none md:absolute md:inset-y-0 md:left-auto md:right-0 md:w-1/2 md:h-full md:z-10">
+                    <div class="w-full">
                         <!-- headline -->
-                        <h1 class="reveal display text-black mb-8 md:mb-9 text-balance" style="--d: .08s; font-size: clamp(33px, 4.4vw, 60px); line-height: 1.06; font-weight: 300; letter-spacing: -0.022em; white-space: pre-line">{{ props.settings.headline || "Digital\nPresence\nFor Builders." }}</h1>
+                        <h1 class="reveal display hero-h1 text-black mb-8 md:mb-9 text-balance" style="--d: .08s; line-height: 1.06; font-weight: 300; letter-spacing: -0.022em; white-space: pre-line">{{ props.settings.headline || "Digital\nPresence\nFor Builders." }}</h1>
 
                         <!-- subtitle -->
                         <p class="reveal border-l border-black/10 pl-5 text-black/50 text-[14px] md:text-[15px] leading-[1.75] max-w-[420px] mb-10 md:mb-12" style="--d: .16s">
@@ -117,3 +117,16 @@ onUnmounted(() => {
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+/* Mobile: headline scales fluidly with viewport width. */
+.hero-h1 {
+    font-size: clamp(33px, 11vw, 64px);
+}
+/* Desktop: bound to the content column width. */
+@media (min-width: 768px) {
+    .hero-h1 {
+        font-size: clamp(33px, 4.4vw, 60px);
+    }
+}
+</style>

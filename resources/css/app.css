@@ -7,7 +7,16 @@
      must use these so they move as one locked motion and never drift. */
   --menu-duration: 0.8s;
   --menu-ease: cubic-bezier(0.76, 0, 0.24, 1); /* easeInOutQuart */
-  --menu-shift: -38vh; /* how far page content slides up to reveal the 50vh panel */
+  /* How far page content slides up to reveal the panel. Must track the
+     FloatingMenu panel height (which is a fixed px height, capped by vh) so
+     the shift never exceeds the panel and leaves a gap on tall screens. */
+  --menu-shift: calc(min(400px, 82vh) * -0.82);
+}
+@media (min-width: 768px) {
+  :root { --menu-shift: calc(min(460px, 92vh) * -0.82); }
+}
+@media (min-width: 1536px) {
+  :root { --menu-shift: calc(min(500px, 92vh) * -0.82); }
 }
 
 * { box-sizing: border-box; }
