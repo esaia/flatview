@@ -158,12 +158,12 @@ onUnmounted(() => {
                         <img
                             v-if="item.image"
                             :src="`/storage/${item.image}`"
-                            class="w-full h-full object-cover opacity-70 transition-opacity duration-200 group-hover:opacity-100"
+                            class="w-full h-full object-cover opacity-90 transition-opacity duration-200 group-hover:opacity-100"
                         />
                         <img
                             v-else
                             :src="`https://picsum.photos/seed/${item.label}/640/360`"
-                            class="w-full h-full object-cover opacity-50 transition-opacity duration-200 group-hover:opacity-80"
+                            class="w-full h-full object-cover opacity-80 transition-opacity duration-200 group-hover:opacity-100"
                         />
                     </div>
                 </div>

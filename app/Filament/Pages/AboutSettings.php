@@ -113,7 +113,8 @@ class AboutSettings extends Page
                                     ->reorderable()
                                     ->appendFiles()
                                     ->panelLayout('grid')
-                                    ->imagePreviewHeight('120')
+                                    ->itemPanelAspectRatio('9:16')
+                                    ->imagePreviewHeight('220')
                                     ->openable()
                                     ->downloadable()
                                     ->hintAction(MediaLibrary::pickerAction()),
