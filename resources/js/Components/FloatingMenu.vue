@@ -24,8 +24,6 @@ let containerW = 0
 let mouseInNav = false
 let currentX = 0  // current (lerped) track translateX
 let targetX = 0   // target translateX from cursor position
-let prevX = 0     // previous currentX, for velocity → skew
-let skew = 0
 
 function navigate(item) {
     closeMenu()
@@ -72,13 +70,7 @@ function scrollLoop() {
         // Scrub: ease the whole parent track toward the target translateX.
         currentX += (targetX - currentX) * SCROLL_EASE
 
-        // Velocity-driven skew (lerped) for an elastic, fluid lean.
-        const velocity = currentX - prevX
-        prevX = currentX
-        const targetSkew = Math.max(-7, Math.min(7, velocity * 0.35))
-        skew += (targetSkew - skew) * 0.06
-
-        track.style.transform = `translate3d(${-currentX}px, 0, 0) skewX(${skew}deg)`
+        track.style.transform = `translate3d(${-currentX}px, 0, 0)`
     }
     rafId = requestAnimationFrame(scrollLoop)
 }
@@ -90,8 +82,6 @@ async function openMenu() {
     await nextTick()
     currentX = 0
     targetX = 0
-    prevX = 0
-    skew = 0
     if (rafId) cancelAnimationFrame(rafId)
     rafId = requestAnimationFrame(scrollLoop)
 }
