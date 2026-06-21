@@ -163,6 +163,18 @@ function reset() {
                             >{{ social.label }}</a>
                         </div>
                     </div>
+                    <div v-if="settings.whatsappQr" class="flex items-center gap-4">
+                        <div class="p-2 bg-white ring-1 ring-black/10 rounded-sm shrink-0">
+                            <img
+                                :src="settings.whatsappQr"
+                                alt="WhatsApp QR code"
+                                class="w-24 h-24 object-contain"
+                                draggable="false"
+                                loading="lazy"
+                            />
+                        </div>
+                        <p class="text-[13px] text-black/45 leading-relaxed max-w-[10rem]">{{ settings.whatsappLabel }}</p>
+                    </div>
                 </div>
 
                 <!-- Divider -->

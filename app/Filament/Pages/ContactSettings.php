@@ -39,6 +39,8 @@ class ContactSettings extends Page
         'contact_location',
         'contact_location_note',
         'contact_social_label',
+        'contact_whatsapp_label',
+        'contact_whatsapp_qr',
     ];
 
     /** Setting keys whose value is stored as a JSON-encoded array. */
@@ -145,6 +147,25 @@ class ContactSettings extends Page
                                     ->addActionLabel('Add social link'),
                             ]),
 
+                        Tab::make('WhatsApp')
+                            ->icon('heroicon-o-chat-bubble-left-right')
+                            ->schema([
+                                TextInput::make('contact_whatsapp_label')
+                                    ->label('Caption')
+                                    ->placeholder('Scan to chat on WhatsApp'),
+
+                                FileUpload::make('contact_whatsapp_qr')
+                                    ->label('WhatsApp QR code')
+                                    ->helperText('Upload a QR code image. Leave empty to hide the WhatsApp block.')
+                                    ->disk('public')
+                                    ->directory('contact')
+                                    ->visibility('public')
+                                    ->image()
+                                    ->imagePreviewHeight('160')
+                                    ->openable()
+                                    ->downloadable(),
+                            ]),
+
                         Tab::make('Images')
                             ->icon('heroicon-o-photo')
                             ->schema([
@@ -175,6 +196,9 @@ class ContactSettings extends Page
 
         // Drop the previous images that are no longer referenced.
         $this->pruneImages($data['contact_images'] ?? []);
+
+        // Delete the old QR code file when it is replaced or cleared.
+        $this->pruneSingle('contact_whatsapp_qr', $data['contact_whatsapp_qr'] ?? null);
 
         foreach (self::JSON_KEYS as $key) {
             HomepageSetting::updateOrCreate(
@@ -214,6 +238,18 @@ class ContactSettings extends Page
 
         foreach (array_diff($previous, $paths) as $removed) {
             Storage::disk('public')->delete($removed);
+        }
+    }
+
+    /**
+     * Delete the file stored for a single-file setting when its value changes.
+     */
+    protected function pruneSingle(string $key, ?string $new): void
+    {
+        $previous = HomepageSetting::where('key', $key)->value('value');
+
+        if (filled($previous) && $previous !== $new) {
+            Storage::disk('public')->delete($previous);
         }
     }
 }

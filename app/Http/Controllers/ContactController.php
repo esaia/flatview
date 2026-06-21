@@ -40,6 +40,11 @@ class ContactController extends Controller
                 ['label' => 'LinkedIn', 'url' => '#'],
                 ['label' => 'Instagram', 'url' => '#'],
             ]),
+
+            'whatsappLabel' => $get('contact_whatsapp_label', 'Scan to chat on WhatsApp'),
+            'whatsappQr' => filled($stored['contact_whatsapp_qr'] ?? null)
+                ? Storage::disk('public')->url($stored['contact_whatsapp_qr'])
+                : null,
         ];
 
         $images = $this->json($stored['contact_images'] ?? null, []);
