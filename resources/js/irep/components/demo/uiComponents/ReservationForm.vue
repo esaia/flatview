@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import Input from "../form/Input.vue";
+import PhoneInput from "../form/PhoneInput.vue";
 import Button from "./Button.vue";
 import SuccessCheck from "../../icons/SuccessCheck.vue";
 import createAxios from "../../../utils/axios";
@@ -160,7 +161,7 @@ const handleSubmit = async () => {
 
                 <Input v-model="obj.name" label="Name" :error="errors.name" />
 
-                <Input
+                <PhoneInput
                     v-model="obj.phone"
                     label="Phone"
                     :error="errors.phone"

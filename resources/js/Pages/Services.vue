@@ -4,32 +4,19 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 
 const props = defineProps({
     gallery: { type: Array, default: () => [] },
+    settings: { type: Object, default: () => ({}) },
 })
 
-const services = [
-    {
-        number: '01',
-        name: 'Website development',
-        description: 'Custom websites for construction and real estate companies. WordPress or custom-built. Fast, SEO-ready, mobile-first — designed to convert visitors into clients.',
-    },
-    {
-        number: '02',
-        name: 'Floor plan plugin',
-        description: 'Interactive building visualizer. Browse floors, select apartments, view availability and pricing — embedded directly on your website with no third-party platform needed.',
-    },
-    {
-        number: '03',
-        name: 'Maintenance & support',
-        description: 'Ongoing updates, hosting management, and technical support so your digital presence stays fast, secure, and reliable long after launch.',
-    },
-]
+const num = (i) => String(i + 1).padStart(2, '0')
 
-const valueProps = [
-    { label: 'Niche focused',   detail: 'We work exclusively in construction and real estate.' },
-    { label: 'Fast delivery',   detail: 'Typical project turnaround: 3–6 weeks.' },
-    { label: 'EU-ready',        detail: 'GDPR compliant, multi-language, EU-hosted.' },
-    { label: 'Ongoing support', detail: 'Retainer options from day one.' },
-]
+// Service & process numbers are derived from position so the admin only edits text.
+const services = computed(() =>
+    (props.settings.blocks ?? []).map((b, i) => ({ ...b, number: num(i) }))
+)
+const valueProps = computed(() => props.settings.valueprops ?? [])
+const process = computed(() =>
+    (props.settings.process ?? []).map((p, i) => ({ ...p, step: num(i) }))
+)
 
 // Resolve a gallery image to a usable URL: pass external URLs through,
 // otherwise serve the stored relative path from the public disk symlink.
@@ -132,15 +119,14 @@ onUnmounted(() => {
             <div class="max-w-[1400px] mx-auto px-6 md:px-16 pt-14 md:pt-20 pb-14 md:pb-24">
                 <div class="max-w-2xl">
                     <span class="reveal kicker flex items-center gap-2 mb-7" style="--d: 0s;">
-                        <span class="dot"></span> Our Services
+                        <span class="dot"></span> {{ settings.kicker }}
                     </span>
-                    <h1 class="reveal display text-black mb-5 md:mb-6"
+                    <h1 class="reveal display text-black mb-5 md:mb-6 whitespace-pre-line"
                         style="--d: .08s; font-size: clamp(38px, 6.4vw, 88px); font-weight: 300; line-height: 1.04; letter-spacing: -0.02em;">
-                        What we do
+                        {{ settings.headline }}
                     </h1>
-                    <p class="reveal text-sm md:text-base text-black/40 font-light leading-relaxed" style="--d: .16s;">
-                        We build digital products for the construction and real estate sector —
-                        from marketing websites to interactive tools that help sell properties faster.
+                    <p class="reveal text-sm md:text-base text-black/40 font-light leading-relaxed whitespace-pre-line" style="--d: .16s;">
+                        {{ settings.intro }}
                     </p>
                 </div>
             </div>
@@ -240,30 +226,91 @@ onUnmounted(() => {
                             <p class="kicker text-black/45 mb-4">{{ service.number }}</p>
                             <h2 class="display text-2xl text-black mb-3 md:mb-4 leading-snug" style="font-weight: 400;">{{ service.name }}</h2>
                             <p class="text-sm text-black/45 font-light leading-relaxed flex-1">{{ service.description }}</p>
-                            <a href="#" class="inline-flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-black/55 hover:text-black transition-colors duration-300 mt-7 md:mt-8 group">
-                                <span>Learn more</span>
-                                <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
-                            </a>
                         </div>
                     </div>
                 </div>
 
-                <!-- Why Merisimo -->
+                <!-- Why Flatview -->
                 <div>
-                    <p class="kicker flex items-center gap-2 mb-8 md:mb-10"><span class="dot"></span> Why Merisimo?</p>
+                    <p class="kicker flex items-center gap-2 mb-8 md:mb-10"><span class="dot"></span> {{ settings.valuepropsKicker }}</p>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-black/10">
                         <div
                             v-for="prop in valueProps"
                             :key="prop.label"
                             class="py-6 md:py-8 pr-6 md:pr-10 border-b border-black/10 md:border-b-0"
                         >
-                            <h3 class="text-sm font-semibold text-black mb-1.5 md:mb-2">{{ prop.label }}</h3>
-                            <p class="text-xs md:text-sm text-black/40 font-light leading-relaxed">{{ prop.detail }}</p>
+                            <h3 class="display text-lg text-black mb-2.5 md:mb-3 leading-snug" style="font-weight: 400;">{{ prop.label }}</h3>
+                            <p class="text-sm text-black/45 font-light leading-relaxed">{{ prop.detail }}</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- How we work -->
+                <div class="mt-24 md:mt-40 grid grid-cols-1 md:grid-cols-12 gap-y-12 md:gap-x-16">
+
+                    <!-- sticky intro -->
+                    <div class="md:col-span-4">
+                        <div class="md:sticky md:top-28">
+                            <p class="kicker flex items-center gap-2 mb-6"><span class="dot"></span> {{ settings.processKicker }}</p>
+                            <h2 class="display text-black leading-[1.08] mb-5 whitespace-pre-line"
+                                style="font-size: clamp(28px, 3vw, 40px); font-weight: 300; letter-spacing: -0.01em;">
+                                {{ settings.processHeadline }}
+                            </h2>
+                            <p class="text-sm text-black/45 font-light leading-relaxed max-w-xs">
+                                {{ settings.processIntro }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- stepped process list -->
+                    <div class="md:col-span-7 md:col-start-6">
+                        <div
+                            v-for="(item, i) in process"
+                            :key="item.step"
+                            class="step-row group relative grid grid-cols-[auto_1fr] gap-x-6 md:gap-x-10 items-start pl-1 py-7 md:py-9 border-t border-black/10 last:border-b transition-[background-color] duration-500 hover:bg-black/[0.015]"
+                        >
+                            <!-- index + connecting node -->
+                            <div class="step-index relative flex flex-col items-center">
+                                <span class="display tabular-nums leading-none text-black/15 group-hover:text-black/70 transition-colors duration-500"
+                                      style="font-size: 1.75rem; font-weight: 300;">
+                                    {{ item.step }}
+                                </span>
+                                <span class="step-node mt-3 h-1.5 w-1.5 rounded-full bg-black/15 group-hover:bg-[#5DCAA5] group-hover:scale-150 transition-all duration-500"></span>
+                            </div>
+
+                            <div class="pt-0.5">
+                                <h3 class="display text-xl md:text-2xl text-black leading-snug mb-2 flex items-center gap-3" style="font-weight: 400;">
+                                    {{ item.title }}
+                                    <span class="text-base text-black/30 -translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500">→</span>
+                                </h3>
+                                <p class="text-sm text-black/45 font-light leading-relaxed max-w-md">{{ item.detail }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
+
+            <!-- Closing CTA -->
+            <section class="bg-[#0e0e0e] text-white">
+                <div class="max-w-[1400px] mx-auto px-6 md:px-16 pt-28 md:pt-44 pb-40 md:pb-56 text-center flex flex-col items-center">
+                    <p class="kicker mb-8 md:mb-10" style="color: rgba(255,255,255,0.4);">{{ settings.ctaKicker }}</p>
+                    <h2
+                        class="display font-light whitespace-pre-line"
+                        style="font-size: clamp(40px, 7vw, 104px); line-height: 1.02; letter-spacing: -0.02em;"
+                    >
+                        {{ settings.ctaHeadline }}
+                    </h2>
+                    <a
+                        :href="settings.ctaButtonLink || '/contact'"
+                        class="inline-flex items-center gap-3 mt-12 md:mt-16 px-7 py-4 bg-white text-black text-[11px] tracking-[0.25em] uppercase hover:bg-white/90 transition-colors duration-300 group"
+                    >
+                        <span>{{ settings.ctaButtonText }}</span>
+                        <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">↗</span>
+                    </a>
+                </div>
+            </section>
 
         </div>
     </AppLayout>
@@ -275,4 +322,19 @@ onUnmounted(() => {
 .no-bar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .tabular-nums { font-variant-numeric: tabular-nums; }
+
+/* Continuous vertical timeline line behind the step nodes.
+   The node dot sits above it (relative z-index) and masks the line. */
+.step-index::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: -1.5rem;          /* bridge the gap into the next row */
+    left: 50%;
+    width: 1px;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.08);
+}
+.step-row:last-child .step-index::before { bottom: 0; }   /* don't trail past the final node */
+.step-index .step-node { position: relative; z-index: 1; box-shadow: 0 0 0 4px #fff; }
 </style>

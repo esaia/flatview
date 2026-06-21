@@ -24,6 +24,8 @@ class AboutSettings extends Page
 
     protected static ?string $navigationLabel = 'About Page';
 
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $title = 'About Page';
 
     protected string $view = 'filament.pages.about-settings';

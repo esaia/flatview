@@ -25,6 +25,8 @@ class MenuItemResource extends Resource
 
     protected static ?string $navigationLabel = 'Navigation Menu';
 
+    protected static ?int $navigationSort = 5;
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

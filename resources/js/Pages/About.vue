@@ -72,7 +72,7 @@ onUnmounted(() => {
             <!-- ── Section 1: Hero statement ─────────────────────────────── -->
             <section class="relative flex flex-col justify-start md:justify-center px-6 md:px-16 pt-28 pb-16 md:py-0 min-h-0 md:min-h-[86vh]">
                 <span class="reveal kicker flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-black/45 mb-7" style="--d: 0s;">
-                    <span class="dot"></span> About Merisimo
+                    <span class="dot"></span> About Flatview
                 </span>
 
                 <h1 class="reveal display text-black max-w-5xl" style="--d: .08s; font-size: clamp(38px, 6.4vw, 88px); line-height: 1.04; font-weight: 300; letter-spacing: -0.02em;">
@@ -150,7 +150,7 @@ onUnmounted(() => {
                     <span class="md:col-span-3 text-[11px] tracking-[0.25em] uppercase" style="color: #9a8f7e;">Who we are</span>
                     <div class="md:col-span-9 max-w-3xl">
                         <p class="leading-relaxed" style="color: #2a2520; font-size: clamp(19px, 2.4vw, 30px); font-weight: 300; line-height: 1.5;">
-                            {{ props.settings.about_beige_text_1 || 'Merisimo is a boutique web development agency specialising in digital products for the construction and real estate sector.' }}
+                            {{ props.settings.about_beige_text_1 || 'Flatview is a boutique web development agency specialising in digital products for the construction and real estate sector.' }}
                         </p>
                         <p class="mt-8 leading-loose" style="color: #6b6155; font-size: clamp(15px, 1.6vw, 18px);">
                             {{ props.settings.about_beige_text_2 || 'Our flagship product is an interactive floor plan plugin that lets buyers browse buildings, select apartments by floor and status, and view pricing — embedded directly in your website.' }}

@@ -19,6 +19,8 @@ class HomepageSettings extends Page
 
     protected static ?string $navigationLabel = 'Homepage';
 
+    protected static ?int $navigationSort = 1;
+
     protected static ?string $title = 'Homepage';
 
     protected string $view = 'filament.pages.homepage-settings';
