@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Support\MediaLibrary;
 use App\Models\AboutGalleryImage;
 use App\Models\AboutStat;
 use App\Models\HomepageSetting;
@@ -114,7 +115,8 @@ class AboutSettings extends Page
                                     ->panelLayout('grid')
                                     ->imagePreviewHeight('120')
                                     ->openable()
-                                    ->downloadable(),
+                                    ->downloadable()
+                                    ->hintAction(MediaLibrary::pickerAction()),
                             ]),
 
                         Tab::make('Stats')

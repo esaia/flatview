@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Support\MediaLibrary;
 use App\Models\HomepageSetting;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -163,7 +164,8 @@ class ContactSettings extends Page
                                     ->image()
                                     ->imagePreviewHeight('160')
                                     ->openable()
-                                    ->downloadable(),
+                                    ->downloadable()
+                                    ->hintAction(MediaLibrary::pickerAction()),
                             ]),
 
                         Tab::make('Images')
@@ -182,7 +184,8 @@ class ContactSettings extends Page
                                     ->panelLayout('grid')
                                     ->imagePreviewHeight('120')
                                     ->openable()
-                                    ->downloadable(),
+                                    ->downloadable()
+                                    ->hintAction(MediaLibrary::pickerAction()),
                             ]),
                     ])
                     ->persistTabInQueryString(),

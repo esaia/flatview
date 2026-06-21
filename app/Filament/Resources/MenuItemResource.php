@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\MenuItemResource\Pages;
+use App\Filament\Support\MediaLibrary;
 use App\Models\MenuItem;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
@@ -51,6 +52,7 @@ class MenuItemResource extends Resource
                 ->imagePreviewHeight('160')
                 ->downloadable()
                 ->openable()
+                ->hintAction(MediaLibrary::pickerAction())
                 ->nullable(),
 
             Toggle::make('is_active')
