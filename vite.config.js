@@ -2,12 +2,14 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 
+const viteHost = process.env.VITE_DEV_HOST || 'localhost';
+
 export default defineConfig({
     server: {
-        host: '192.168.1.17',
+        host: viteHost,
         cors: true,
         hmr: {
-            host: '192.168.1.17',
+            host: viteHost,
         },
     },
     plugins: [
