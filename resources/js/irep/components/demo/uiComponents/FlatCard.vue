@@ -8,6 +8,8 @@ import {
   getPrice,
   getRoomCount,
   tr,
+  isVideoMedia,
+  mediaThumbUrl,
 } from "../../../composable/helper";
 import Placeholder from "../../../components/icons/Placeholder.vue";
 import Badge from "./Badge.vue";
@@ -32,11 +34,21 @@ const { hasPriceHistoryAddon } = storeToRefs(globalStore);
 
 const showPriceHistoryModal = ref(false);
 
-const flatImages = computed(() => {
-  return [
-    ...(props.flat.type?.image_3d || []),
-    ...(props.flat.type?.image_2d || []),
-  ].map((i) => i.url);
+const flatMedia = computed(() => [
+  ...(props.flat.type?.image_3d || []),
+  ...(props.flat.type?.image_2d || []),
+]);
+
+// Prefer a real image / YouTube poster for the card thumbnail; fall back to the
+// first media item (e.g. a plain mp4) which is rendered as a <video> instead.
+const cardThumb = computed(() => {
+  for (const item of flatMedia.value) {
+    const url = mediaThumbUrl(item);
+    if (url) return { type: "image" as const, url };
+  }
+  const first = flatMedia.value[0];
+  if (first && isVideoMedia(first)) return { type: "video" as const, url: first.url };
+  return null;
 });
 
 const hasPriceHistory = computed(
@@ -53,9 +65,18 @@ const hasPriceHistory = computed(
       class="irep-flat-card__image-wrapper ire-group ire-relative ire-pt-[70%]"
     >
       <img
-        v-if="flatImages[0]"
-        :src="flatImages[0]"
+        v-if="cardThumb?.type === 'image'"
+        :src="cardThumb.url"
         alt=""
+        class="ire-absolute ire-left-0 ire-top-0 ire-h-full ire-w-full ire-rounded-lg ire-object-cover ire-transition-all ire-duration-700 ire-ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:ire-scale-95"
+      />
+      <video
+        v-else-if="cardThumb?.type === 'video'"
+        :src="cardThumb.url"
+        muted
+        loop
+        playsinline
+        preload="metadata"
         class="ire-absolute ire-left-0 ire-top-0 ire-h-full ire-w-full ire-rounded-lg ire-object-cover ire-transition-all ire-duration-700 ire-ease-[cubic-bezier(0.25,1,0.5,1)] group-hover:ire-scale-95"
       />
       <div v-else class="irep-flat-card__placeholder">

@@ -11,6 +11,7 @@ import {
   getAreaUnitLabel,
   getArea,
   getRoomCount,
+  mediaThumbUrl,
 } from "../../../../composable/helper";
 import FlatsSidebarHeader from "./FlatsSidebarHeader.vue";
 import Area from "../../../../components/icons/Area.vue";
@@ -160,8 +161,17 @@ const types = computed(() => {
   return shortcodeData.value.types;
 });
 
-const flatTypeTeaserImageUrl = (flat: any) =>
-  flat.type?.image_2d?.[0]?.url || flat.type?.image_3d?.[0]?.url || "";
+const flatTypeTeaserImageUrl = (flat: any) => {
+  const media = [
+    ...(flat.type?.image_2d || []),
+    ...(flat.type?.image_3d || []),
+  ];
+  for (const item of media) {
+    const url = mediaThumbUrl(item);
+    if (url) return url;
+  }
+  return "";
+};
 
 const flatFloorNumberLabel = (flat: any) =>
   getFloorById(+flat?.floor_id)?.floor_number?.toString() ?? "";

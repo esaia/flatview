@@ -7,6 +7,7 @@ import {
   getPrice,
   getRoomCount,
   tr,
+  mediaThumbUrl,
 } from "../../../../composable/helper";
 import type {
   BlockItem,
@@ -29,7 +30,11 @@ const props = defineProps<{
 const flatTeaserImageUrl = computed(() => {
   if (props.type !== "flat" || !props.hoveredData) return "";
   const t = props.hoveredData.type as TypeItem | undefined;
-  return t?.image_2d?.[0]?.url || t?.image_3d?.[0]?.url || "";
+  for (const item of [...(t?.image_2d || []), ...(t?.image_3d || [])]) {
+    const url = mediaThumbUrl(item);
+    if (url) return url;
+  }
+  return "";
 });
 
 const floorItem = computed(() =>

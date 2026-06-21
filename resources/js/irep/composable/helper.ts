@@ -335,3 +335,36 @@ export const normalizeRangeOption = (
   }
   return fallback;
 };
+
+// ── Media type detection ──────────────────────────────────────────────────────
+// Media items can come from the editor (YouTube links set `type: "youtube"`) or
+// the media library (mp4 uploads expose neither `mime` nor `type`, only a `.mp4`
+// url). Detection therefore has to fall back to the url itself.
+export const extractYoutubeId = (url?: string): string => {
+  const m = url?.match(
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  );
+  return m ? m[1] : "";
+};
+
+export const isYoutubeMedia = (img: any): boolean =>
+  img?.mime === "youtube" ||
+  img?.type === "youtube" ||
+  /(?:youtube\.com|youtu\.be)/i.test(img?.url || "");
+
+export const isVideoMedia = (img: any): boolean =>
+  (typeof img?.mime === "string" && img.mime.startsWith("video/")) ||
+  img?.type === "video" ||
+  /\.mp4(?:\?|#|$)/i.test(img?.url || "");
+
+// Returns a usable image url for thumbnails (e.g. flat cards). YouTube items
+// resolve to their poster frame; plain videos have no poster so return "".
+export const mediaThumbUrl = (img: any): string => {
+  if (!img) return "";
+  if (isYoutubeMedia(img)) {
+    const id = extractYoutubeId(img.url);
+    return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+  }
+  if (isVideoMedia(img)) return "";
+  return img.url || "";
+};

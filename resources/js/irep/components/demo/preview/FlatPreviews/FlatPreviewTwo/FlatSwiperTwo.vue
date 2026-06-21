@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FlatItem, FloorItem } from "../../../../../types/DemoTypes";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { tr } from "../../../../../composable/helper";
+import { tr, isVideoMedia, isYoutubeMedia, extractYoutubeId } from "../../../../../composable/helper";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import SwiperPagination from "../../../../../components/demo/uiComponents/SwiperPagination.vue";
 import Cube3d from "../../../../../components/icons/Cube3d.vue";
@@ -59,15 +59,8 @@ const goToSlide = (index: number) => {
   swiper.value?.slideTo?.(index);
 };
 
-const isVideo = (img: any) => !!img?.mime?.startsWith("video/");
-const isYoutube = (img: any) => img?.mime === "youtube";
-
-const extractYoutubeId = (url: string): string => {
-  const m = url?.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
-  );
-  return m ? m[1] : "";
-};
+const isVideo = (img: any) => isVideoMedia(img);
+const isYoutube = (img: any) => isYoutubeMedia(img);
 
 const fancyboxOptions = {
   Hash: false,

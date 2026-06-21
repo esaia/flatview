@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { tr } from "../../../composable/helper";
+import { tr, isVideoMedia, isYoutubeMedia, extractYoutubeId } from "../../../composable/helper";
 import type { FlatItem } from "../../../types/DemoTypes";
 import { computed, onMounted, ref, watch } from "vue";
 import FlatIcon from "../../../components/icons/FlatIcon.vue";
@@ -37,18 +37,11 @@ const hasBothPhoto = computed(() => {
   );
 });
 
-const isVideo = (img: any) => !!img?.mime?.startsWith("video/");
-const isYoutube = (img: any) => img?.mime === "youtube";
-
-const extractYoutubeId = (url: string): string => {
-  const m = url?.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
-  );
-  return m ? m[1] : "";
-};
+const isVideo = (img: any) => isVideoMedia(img);
+const isYoutube = (img: any) => isYoutubeMedia(img);
 
 const videoHtml = (img: any) =>
-  `<video controls style="max-height:80vh;max-width:100%;display:block;margin:auto"><source src="${img?.url}" type="${img?.mime}"></video>`;
+  `<video controls style="max-height:80vh;max-width:100%;display:block;margin:auto"><source src="${img?.url}" type="${img?.mime || "video/mp4"}"></video>`;
 
 
 const imagesUrls = computed(() => {
