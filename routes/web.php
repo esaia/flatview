@@ -29,19 +29,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::get('/project/{projectId}', function ($projectId) {
-    $data = IrepShortcode::forProject($projectId);
+Route::get('/project/{slug}', function ($slug) {
+    $data = IrepShortcode::forProject($slug);
 
     abort_if($data === null, 404);
 
     return Inertia::render('IreProject360Page', [
-        'projectId' => $projectId,
+        'projectId' => $slug,
         'projectData' => $data,
     ]);
 })->name('project.show');
 
-Route::get('/irep/shortcode-data/{projectId}', function ($projectId) {
-    $data = IrepShortcode::forProject($projectId);
+Route::get('/irep/shortcode-data/{slug}', function ($slug) {
+    $data = IrepShortcode::forProject($slug);
 
     if ($data === null) {
         return response()->json(['success' => false, 'message' => 'Project not found'], 404);

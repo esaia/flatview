@@ -368,13 +368,13 @@ onMounted(() => {
           <div
             v-for="flat in visibleFlats"
             :key="flat.id"
-            class="irep-flats-sidebar__item ire-relative ire-cursor-pointer ire-overflow-visible ire-rounded-md ire-bg-gray-50 ire-p-2 ire-transition-all hover:ire-bg-gray-100 hover:ire-ring-2 hover:ire-ring-[var(--primary-color)]"
+            class="irep-flats-sidebar__item ire-group ire-relative ire-cursor-pointer ire-overflow-visible ire-rounded-xl ire-border ire-border-gray-200/80 ire-bg-white ire-p-2 ire-shadow-[0_1px_2px_rgba(16,24,40,0.04)] ire-transition-all ire-duration-300 ire-ease-out hover:-ire-translate-y-0.5 hover:ire-border-[var(--primary-color)] hover:ire-shadow-[0_12px_28px_-12px_rgba(16,24,40,0.22)]"
             @click="onFlatCardClick(flat)"
             @keydown.enter.prevent="onFlatCardClick(flat)"
             @keydown.space.prevent="onFlatCardClick(flat)"
           >
             <div
-              class="irep-flats-sidebar__item-focus-btn ire-absolute ire-right-2 ire-top-2 ire-z-10 ire-flex ire-size-8 ire-cursor-pointer ire-justify-center ire-rounded-full ire-bg-white ire-p-2 ire-text-center ire-transition-all hover:ire-bg-gray-300 active:ire-scale-105"
+              class="irep-flats-sidebar__item-focus-btn ire-absolute ire-right-3 ire-top-3 ire-z-10 ire-flex ire-size-8 ire-cursor-pointer ire-items-center ire-justify-center ire-rounded-full ire-border ire-border-gray-200 ire-bg-white/90 ire-text-gray-600 ire-shadow-sm ire-backdrop-blur ire-transition-all hover:ire-border-[var(--primary-color)] hover:ire-bg-white hover:ire-text-[var(--primary-color)] active:ire-scale-95"
               role="button"
               aria-label="Show on 360"
               tabindex="0"
@@ -382,30 +382,38 @@ onMounted(() => {
               @keydown.enter.prevent.stop="focusFlatOnViewer(flat)"
               @keydown.space.prevent.stop="focusFlatOnViewer(flat)"
             >
-              <EyeIcon class="ire-size-6" />
+              <EyeIcon class="ire-size-[1.15rem]" />
             </div>
 
             <div
-              class="irep-flats-sidebar__item-badge ire-absolute ire-left-2 ire-top-2 ire-z-10 ire-w-fit"
+              class="irep-flats-sidebar__item-badge ire-absolute ire-left-3 ire-top-3 ire-z-10 ire-w-fit"
             >
               <Badge v-if="flat.conf" :conf="flat.conf" />
             </div>
 
             <div
-              v-if="flatTypeTeaserImageUrl(flat)"
-              class="irep-flats-sidebar__item-image-wrapper ire-relative ire-w-full ire-pt-[85%]"
+              class="irep-flats-sidebar__item-image-wrapper ire-relative ire-w-full ire-overflow-hidden ire-rounded-lg ire-border ire-border-gray-100 ire-bg-gray-50 ire-pt-[85%]"
             >
               <img
+                v-if="flatTypeTeaserImageUrl(flat)"
                 :src="flatTypeTeaserImageUrl(flat)"
-                class="ire-absolute ire-inset-0 ire-h-full ire-w-full ire-object-cover"
+                class="ire-absolute ire-inset-0 ire-h-full ire-w-full ire-object-cover ire-transition-transform ire-duration-[600ms] ire-ease-out group-hover:ire-scale-[1.045]"
                 alt="Apartment plan"
               />
+              <div
+                v-else
+                class="irep-flats-sidebar__item-placeholder ire-absolute ire-inset-0 ire-flex ire-items-center ire-justify-center ire-text-gray-300"
+              >
+                <HomeIcon class="ire-size-7" />
+              </div>
             </div>
 
             <div
-              class="irep-flats-sidebar__item-info ire-mt-2 ire-flex-1 ire-text-sm"
+              class="irep-flats-sidebar__item-info ire-mt-2.5 ire-flex-1 ire-px-0.5 ire-text-sm"
             >
-              <div class="irep-flats-sidebar__item-number ire-font-semibold">
+              <div
+                class="irep-flats-sidebar__item-number ire-font-semibold ire-tracking-tight ire-text-gray-900 ire-transition-colors group-hover:ire-text-[var(--primary-color)]"
+              >
                 {{ flat.flat_number }}
               </div>
 
@@ -497,3 +505,125 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* ── Apartment card hover choreography ───────────────────────────────────────
+   All effects are :hover-only and additive — at rest the card is untouched,
+   so touch devices (no hover) still show every control. */
+
+/* Soft tinted surface so the white cards lift off the background */
+.irep-flats-sidebar__body {
+  background: linear-gradient(180deg, #f8fafc 0%, #f3f5f8 100%);
+}
+
+.irep-flats-sidebar__item {
+  will-change: transform;
+}
+
+/* Faint accent-tinted background on hover (theme-aware via the primary color) */
+.irep-flats-sidebar__item:hover {
+  background-color: #f4f7ff; /* fallback */
+  background-color: color-mix(in srgb, var(--primary-color) 6%, #ffffff);
+}
+
+/* Depth veil rising from the bottom of the plan */
+.irep-flats-sidebar__item-image-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.12),
+    transparent 42%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.irep-flats-sidebar__item:hover .irep-flats-sidebar__item-image-wrapper::before {
+  opacity: 1;
+}
+
+/* Diagonal sheen that sweeps across the plan once on hover */
+.irep-flats-sidebar__item-image-wrapper::after {
+  content: "";
+  position: absolute;
+  top: -10%;
+  left: 0;
+  z-index: 2;
+  height: 120%;
+  width: 55%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-180%) skewX(-14deg);
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
+}
+.irep-flats-sidebar__item:hover .irep-flats-sidebar__item-image-wrapper::after {
+  animation: irep-card-sheen 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes irep-card-sheen {
+  0% {
+    opacity: 0;
+    transform: translateX(-180%) skewX(-14deg);
+  }
+  16% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(280%) skewX(-14deg);
+  }
+}
+
+/* Eye button: gentle pop + a single accent ring pulse */
+.irep-flats-sidebar__item-focus-btn {
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.irep-flats-sidebar__item:hover .irep-flats-sidebar__item-focus-btn {
+  transform: scale(1.08);
+}
+.irep-flats-sidebar__item-focus-btn::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--primary-color);
+  opacity: 0;
+  pointer-events: none;
+}
+.irep-flats-sidebar__item:hover .irep-flats-sidebar__item-focus-btn::after {
+  animation: irep-eye-ping 1.1s ease-out;
+}
+
+@keyframes irep-eye-ping {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .irep-flats-sidebar__item:hover .irep-flats-sidebar__item-image-wrapper::after,
+  .irep-flats-sidebar__item:hover .irep-flats-sidebar__item-focus-btn::after {
+    animation: none;
+  }
+  .irep-flats-sidebar__item:hover .irep-flats-sidebar__item-focus-btn {
+    transform: none;
+  }
+}
+</style>

@@ -13,10 +13,17 @@ class IrepShortcode
      *
      * Returns null when the project does not exist.
      */
-    public static function forProject(int|string $projectId): ?array
+    public static function forProject(int|string $identifier): ?array
     {
-        $project = Project::with(['meta', 'blocks', 'floors', 'flats.type', 'types', 'tooltips'])
-            ->find($projectId);
+        $with = ['meta', 'blocks', 'floors', 'flats.type', 'types', 'tooltips'];
+
+        // Resolve by slug first; fall back to numeric id so existing
+        // /project/{id} URLs keep working.
+        $project = Project::with($with)->where('slug', $identifier)->first();
+
+        if (! $project && is_numeric($identifier)) {
+            $project = Project::with($with)->find($identifier);
+        }
 
         if (! $project) {
             return null;
