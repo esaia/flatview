@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
+import { Head } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import IreProject360 from '@/irep/shortcodes/IreProject360.vue'
 
@@ -34,6 +35,8 @@ onMounted(() => {
 </script>
 
 <template>
+    <Head title="Flatview" />
+
     <AppLayout active-page="home" :always-visible="true">
         <!-- ── Intro loader ──────────────────────────────────────────── -->
         <div

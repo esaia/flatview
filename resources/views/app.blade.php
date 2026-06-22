@@ -4,7 +4,33 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        @php
+            $seoTitle = config('app.name', 'Flatview');
+            $seoDescription = 'Flatview — interactive real-estate visual experiences. Explore properties, floors and flats in immersive 360° tours.';
+            $seoImage = url('/featured.webp');
+            $seoUrl = url()->current();
+        @endphp
+
+        <title inertia>{{ $seoTitle }}</title>
+
+        <!-- Primary SEO -->
+        <meta name="description" content="{{ $seoDescription }}" inertia="description">
+        <link rel="canonical" href="{{ $seoUrl }}" inertia="canonical">
+
+        <!-- Open Graph -->
+        <meta property="og:type" content="website" inertia="og:type">
+        <meta property="og:site_name" content="{{ $seoTitle }}" inertia="og:site_name">
+        <meta property="og:title" content="{{ $seoTitle }}" inertia="og:title">
+        <meta property="og:description" content="{{ $seoDescription }}" inertia="og:description">
+        <meta property="og:url" content="{{ $seoUrl }}" inertia="og:url">
+        <meta property="og:image" content="{{ $seoImage }}" inertia="og:image">
+        <meta property="og:image:alt" content="{{ $seoTitle }}" inertia="og:image:alt">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" inertia="twitter:card">
+        <meta name="twitter:title" content="{{ $seoTitle }}" inertia="twitter:title">
+        <meta name="twitter:description" content="{{ $seoDescription }}" inertia="twitter:description">
+        <meta name="twitter:image" content="{{ $seoImage }}" inertia="twitter:image">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
