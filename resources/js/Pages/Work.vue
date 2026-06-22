@@ -29,7 +29,7 @@ const isExternal = (url) => /^https?:\/\//i.test(url || '')
 
 <template>
     <AppLayout active-page="work">
-        <div class="max-w-[1400px] mx-auto px-6 md:px-16 pt-14 md:pt-20 pb-20 md:pb-32">
+        <div class="max-w-[1400px] mx-auto px-6 md:px-16 pt-14 md:pt-20 pb-36 md:pb-52">
 
             <!-- ── Header ─────────────────────────────────────────── -->
             <header class="md:flex md:items-end md:justify-between mb-12 md:mb-20">
