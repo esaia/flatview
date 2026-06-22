@@ -21,6 +21,8 @@ class ServicesController extends Controller
             'headline' => $get('services_headline', 'What we do'),
             'intro' => $get('services_intro', 'We build digital products for the construction and real estate sector — from marketing websites to interactive tools that help sell properties faster.'),
 
+            'galleryKicker' => $get('services_gallery_kicker', 'Selected Work'),
+
             'blocks' => $getJson('services_blocks', [
                 ['name' => 'Website development', 'description' => 'Custom websites for construction and real estate companies. WordPress or custom-built. Fast, SEO-ready, mobile-first — designed to convert visitors into clients.'],
                 ['name' => 'Building module', 'description' => 'Interactive building visualizer. Browse floors, select apartments, view availability and pricing — with immersive 360° floor views, embedded directly on your website with no third-party platform needed.'],

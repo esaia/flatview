@@ -34,6 +34,7 @@ class ServicesSettings extends Page
         'services_kicker',
         'services_headline',
         'services_intro',
+        'services_gallery_kicker',
         'services_valueprops_kicker',
         'services_process_kicker',
         'services_process_headline',
@@ -100,6 +101,10 @@ class ServicesSettings extends Page
                         Tab::make('Gallery')
                             ->icon('heroicon-o-photo')
                             ->schema([
+                                TextInput::make('services_gallery_kicker')
+                                    ->label('Section title')
+                                    ->placeholder('Selected Work'),
+
                                 FileUpload::make('services_gallery')
                                     ->label('Selected work images')
                                     ->helperText('Drop multiple images at once and drag to reorder.')

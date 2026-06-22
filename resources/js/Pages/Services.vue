@@ -134,7 +134,7 @@ onUnmounted(() => {
             <!-- ── Selected Work mobile: swipe gallery ───────────────────── -->
             <div v-if="props.gallery.length" class="md:hidden pb-14">
                 <div class="flex items-end justify-between px-6 mb-4">
-                    <span class="text-[11px] tracking-[0.2em] uppercase text-black/45">Selected Work</span>
+                    <span class="text-[11px] tracking-[0.2em] uppercase text-black/45">{{ props.settings.galleryKicker || 'Selected Work' }}</span>
                     <span class="text-[11px] tracking-[0.2em] uppercase text-black/30">{{ props.gallery.length }} —</span>
                 </div>
                 <div class="overflow-x-auto snap-x snap-mandatory flex gap-3 pb-6 px-6 no-bar">
@@ -167,7 +167,7 @@ onUnmounted(() => {
                     <!-- top meta row -->
                     <div class="flex items-center justify-between px-16 pb-8">
                         <span class="text-[11px] tracking-[0.25em] uppercase text-black/45 flex items-center gap-2">
-                            <span class="dot"></span> Selected Work
+                            <span class="dot"></span> {{ props.settings.galleryKicker || 'Selected Work' }}
                         </span>
                         <span class="display text-black/80 tabular-nums" style="font-size: 15px; letter-spacing: .04em;">
                             {{ pad(activeIndex) }} <span class="text-black/30">/ {{ pad(props.gallery.length - 1) }}</span>
