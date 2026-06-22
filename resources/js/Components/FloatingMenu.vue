@@ -29,6 +29,11 @@ let mouseInNav = false
 let currentX = 0  // current (lerped) track translateX
 let targetX = 0   // target translateX from cursor position
 
+function goHome() {
+    closeMenu()
+    router.visit('/')
+}
+
 function navigate(item) {
     closeMenu()
     if (item.external) {
@@ -176,7 +181,19 @@ onUnmounted(() => {
 
         <!-- Bottom bar -->
         <div class="flex items-center justify-between px-4 md:px-8 py-3 md:py-4 border-t border-white/10 flex-shrink-0">
-            <div></div>
+            <div
+                class="flex items-center gap-2 md:gap-2.5 select-none cursor-pointer"
+                @click.stop="goHome"
+            >
+                <img
+                    src="/logo.svg"
+                    alt="FlatView"
+                    class="h-5 md:h-6 w-auto"
+                    style="filter: brightness(0) invert(1);"
+                    draggable="false"
+                />
+                <span class="text-white text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
+            </div>
             <div class="flex items-center gap-3 md:gap-6">
                 <span class="hidden md:inline text-white/30 text-[10px] tracking-widest uppercase select-none">Follow us</span>
                 <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">Instagram</a>

@@ -97,7 +97,14 @@ function reset() {
 <template>
     <AppLayout active-page="contact">
 
-        <div class="flex flex-col md:flex-row h-screen overflow-hidden">
+        <div class="relative flex flex-col md:flex-row h-screen overflow-hidden">
+
+            <!-- Brand logo, top-right -->
+            <div class="absolute top-7 right-8 md:top-10 md:right-16 z-30 flex items-center gap-2 md:gap-2.5 select-none">
+                <img src="/logo.svg" alt="FlatView" class="h-5 md:h-6 w-auto" draggable="false" />
+                <span class="text-black text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
+            </div>
+
 
             <!-- LEFT: 2×2 image grid, edge-to-edge, fixed height -->
             <div class="hidden md:grid md:w-1/2 grid-cols-2 flex-shrink-0" style="gap: 2px;">
