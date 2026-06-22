@@ -16,6 +16,10 @@ const currentPath = computed(() => new URL(page.url, window.location.origin).pat
 
 const menuOpen = ref(false)
 const buttonHovered = ref(false)
+
+// Arc-text ring content: repeated word stretched to the full circumference
+// (textLength) so it reads as a seamless ring around the circle's rim.
+const ringText = computed(() => `${(menuOpen.value ? 'Close' : 'Menu').toUpperCase()} • `.repeat(3))
 const navScrollRef = ref(null)
 const navTrackRef = ref(null)
 let rafId = null
@@ -193,21 +197,34 @@ onUnmounted(() => {
         }"
         :aria-label="menuOpen ? 'Close menu' : 'Open menu'"
     >
-        <!-- Circle -->
+        <!-- Circle (stays full-size so the arc text always has its margin) -->
         <div
-            class="absolute inset-0 rounded-full transition-transform duration-500 group-hover:scale-90"
+            class="absolute inset-0 rounded-full transition-transform duration-500 group-hover:scale-[0.97]"
             style="background-color: #5DCAA5; aspect-ratio: 1/1;"
         ></div>
 
-        <!-- Vertical label: rotated 90° CW, hidden on mobile -->
-        <div class="btn-label-clip hidden md:block" style="left: calc(100% + 10px); width: 18px; height: 52px;">
-            <Transition name="btn-label">
-                <div :key="menuOpen ? 'close' : 'menu'" class="btn-label-slide">
-                    <span class="btn-label-text" :class="menuOpen ? 'text-white' : 'text-black'">
-                        {{ menuOpen ? 'Close' : 'Menu' }}
-                    </span>
-                </div>
-            </Transition>
+        <!-- Arc-text ring — curves "MENU" around the rim; reveals + orbits on
+             hover / while the menu is open. Desktop only (no hover on touch). -->
+        <div
+            class="menu-ring hidden md:block absolute inset-0 pointer-events-none"
+            :class="{ 'menu-ring--active': buttonHovered || menuOpen }"
+            aria-hidden="true"
+        >
+            <svg class="menu-ring__spin h-full w-full" viewBox="0 0 100 100">
+                <defs>
+                    <!-- Full circle, r=37, starting at top → text reads upright clockwise.
+                         Kept inside the rim so glyphs stay on green even at scale-90. -->
+                    <path id="menuRingPath" fill="none" d="M 50,13 A 37,37 0 1 1 49.99,13" />
+                </defs>
+                <text class="menu-ring__text" :fill="menuOpen ? '#ffffff' : '#0b0b0b'">
+                    <textPath
+                        href="#menuRingPath"
+                        startOffset="0"
+                        textLength="232.5"
+                        lengthAdjust="spacingAndGlyphs"
+                    >{{ ringText }}</textPath>
+                </text>
+            </svg>
         </div>
     </button>
 </template>
@@ -247,56 +264,42 @@ onUnmounted(() => {
 }
 
 /*
- * Label layout
+ * Arc-text ring
  * ─────────────────────────────────────────────────────────────────
- * .btn-label-clip   – overflow:hidden window; sized for the *rotated*
- *                     text (width ≈ line-height, height ≈ text width).
- *                     Positioned to the right of the circle.
- * .btn-label-slide  – absolutely fills the clip window; this is the
- *                     element that transitions (translateY in screen-Y).
- * .btn-label-text   – the word; rotate(90deg) makes it read bottom→top.
- *                     Rotation is purely static — never animated.
+ * .menu-ring        – reveal wrapper; fades + scales the ring in when
+ *                     the button is hovered or the menu is open.
+ * .menu-ring__spin  – the <svg>; orbits continuously for a living feel.
+ * .menu-ring__text  – the curved word stamped along the circle path.
  */
-.btn-label-clip {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);   /* vertically centres clip on circle */
-    overflow: hidden;
-    /* width / height set via inline style */
+.menu-ring {
+    opacity: 0;
+    transform: scale(0.82) rotate(-12deg);
+    transform-origin: 50% 50%;
+    transition: opacity 0.4s ease,
+                transform 0.6s cubic-bezier(0.22, 0.9, 0.27, 1);
+    will-change: opacity, transform;
+}
+.menu-ring--active {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
 }
 
-.btn-label-slide {
-    position: absolute;
-    inset: 0;                      /* fills clip window */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.menu-ring__spin {
+    transform-origin: 50% 50%;
+    animation: menu-ring-spin 16s linear infinite;
+}
+@keyframes menu-ring-spin {
+    to { transform: rotate(360deg); }
 }
 
-.btn-label-text {
-    display: block;
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.15em;
+.menu-ring__text {
+    font-size: 9px;
+    font-weight: 700;
     text-transform: uppercase;
-    white-space: nowrap;
-    line-height: 1;
-    transform: rotate(90deg);      /* static — reads bottom-to-top */
+    paint-order: stroke;
 }
 
-/* Enter from screen-top ↓ */
-.btn-label-enter-active {
-    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                opacity   0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+@media (prefers-reduced-motion: reduce) {
+    .menu-ring__spin { animation: none; }
 }
-.btn-label-enter-from { transform: translateY(-100%); opacity: 0; }
-.btn-label-enter-to   { transform: translateY(0);     opacity: 1; }
-
-/* Exit to screen-bottom ↓ */
-.btn-label-leave-active {
-    transition: transform 0.22s cubic-bezier(0.55, 0, 1, 0.45),
-                opacity   0.22s cubic-bezier(0.55, 0, 1, 0.45);
-}
-.btn-label-leave-from { transform: translateY(0);     opacity: 1; }
-.btn-label-leave-to   { transform: translateY(100%);  opacity: 0; }
 </style>
