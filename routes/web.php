@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IrepController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServicesController;
+use App\Http\Controllers\WorkController;
 use App\Support\IrepShortcode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -13,7 +14,7 @@ use Inertia\Inertia;
 use IrepPlugin\FilamentIrep\Models\Reservation;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/work', fn() => Inertia::render('Work'))->name('work');
+Route::get('/work', [WorkController::class, 'index'])->name('work');
 Route::get('/services', [ServicesController::class, 'index'])->name('services');
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');

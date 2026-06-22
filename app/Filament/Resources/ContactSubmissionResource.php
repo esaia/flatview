@@ -28,7 +28,7 @@ class ContactSubmissionResource extends Resource
 
     protected static ?string $navigationLabel = 'Contact Responses';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 7;
 
     protected static ?string $modelLabel = 'response';
 
