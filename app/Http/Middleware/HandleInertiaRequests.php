@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\MenuItem;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,6 +35,13 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'flash' => [
+                'success' => session('success'),
+                'error'   => session('error'),
+            ],
+            'menuItems' => MenuItem::where('is_active', true)
+                ->orderBy('sort_order')
+                ->get(['id', 'label', 'href', 'external', 'image']),
         ];
     }
 }

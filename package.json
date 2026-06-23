@@ -20,13 +20,16 @@
         "vue": "^3.4.0"
     },
     "dependencies": {
+        "@fancyapps/ui": "^5.0.36",
         "@highlightjs/vue-plugin": "^2.1.0",
         "@inertiajs/vue3": "^3.3.1",
         "@vitejs/plugin-vue": "^6.0.7",
         "axios": "^1.17.0",
         "click-outside-vue3": "^4.0.1",
+        "gsap": "^3.15.0",
         "highlight.js": "^11.11.1",
         "pinia": "^3.0.4",
+        "swiper": "^12.2.0",
         "vue": "^3.5.35",
         "vue-awesome-paginate": "^1.2.0",
         "vue-toast-notification": "^3.1.3",
