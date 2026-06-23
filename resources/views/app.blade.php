@@ -7,7 +7,7 @@
         @php
             $seoTitle = config('app.name', 'Flatview');
             $seoDescription = 'Flatview — interactive real-estate visual experiences. Explore properties, floors and flats in immersive 360° tours.';
-            $seoImage = url('/featured.webp');
+            $seoImage = url('/featured.jpg');
             $seoUrl = url()->current();
         @endphp
 
@@ -24,6 +24,9 @@
         <meta property="og:description" content="{{ $seoDescription }}" inertia="og:description">
         <meta property="og:url" content="{{ $seoUrl }}" inertia="og:url">
         <meta property="og:image" content="{{ $seoImage }}" inertia="og:image">
+        <meta property="og:image:type" content="image/jpeg" inertia="og:image:type">
+        <meta property="og:image:width" content="1200" inertia="og:image:width">
+        <meta property="og:image:height" content="637" inertia="og:image:height">
         <meta property="og:image:alt" content="{{ $seoTitle }}" inertia="og:image:alt">
 
         <!-- Twitter -->
