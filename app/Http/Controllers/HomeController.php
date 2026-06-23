@@ -17,7 +17,13 @@ class HomeController extends Controller
         return Inertia::render('Home', [
             'settings' => $settings,
             'demoProjectId' => $demoProjectId,
-            'demoData' => $demoProjectId ? IrepShortcode::forProject($demoProjectId) : null,
+            // Deferred: the 360 demo payload is large (hundreds of flats/floors +
+            // 360° SVGs). Keeping it out of the initial HTML keeps the document
+            // small enough for link-preview crawlers (Twitter/X caps fetch size)
+            // and lets the page paint first. Inertia auto-fetches it after load.
+            'demoData' => $demoProjectId
+                ? Inertia::defer(fn () => IrepShortcode::forProject($demoProjectId))
+                : null,
         ]);
     }
 }

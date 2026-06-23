@@ -62,7 +62,7 @@ onMounted(() => {
             <div class="flex flex-col md:flex-row select-none md:absolute md:inset-0">
                 <!-- Interactive 360 demo panel -->
                 <div class="hero-media relative order-2 w-full h-[60svh] overflow-hidden bg-black md:order-none md:absolute md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full md:z-20">
-                    <IreProject360 v-if="demoProjectId" :project-id="demoProjectId" :data="props.demoData" class="absolute inset-0 h-full w-full" />
+                    <IreProject360 v-if="demoProjectId && props.demoData" :project-id="demoProjectId" :data="props.demoData" class="absolute inset-0 h-full w-full" />
                 </div>
 
                 <!-- Content panel -->
