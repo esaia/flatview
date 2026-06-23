@@ -1,3 +1,76 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* Shared menu motion — content-shift (AppLayout) and panel-slide (FloatingMenu)
+     must use these so they move as one locked motion and never drift. */
+  --menu-duration: 0.8s;
+  --menu-ease: cubic-bezier(0.76, 0, 0.24, 1); /* easeInOutQuart */
+  /* How far page content slides up to reveal the panel. Must track the
+     FloatingMenu panel height (which is a fixed px height, capped by vh) so
+     the shift never exceeds the panel and leaves a gap on tall screens. */
+  --menu-shift: calc(min(400px, 82vh) * -0.82);
+}
+@media (min-width: 768px) {
+  :root { --menu-shift: calc(min(460px, 92vh) * -0.82); }
+}
+@media (min-width: 1536px) {
+  :root { --menu-shift: calc(min(500px, 92vh) * -0.82); }
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 2px; }
+
+/* ── Brand design tokens (shared across all public pages) ── */
+.display { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; }
+
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.dot {
+  width: 6px; height: 6px; border-radius: 9999px;
+  background-color: #5DCAA5; display: inline-block; flex-shrink: 0;
+}
+
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  animation: reveal-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  /* --reveal-base lets the desktop hero hold the text until the video panel
+     has finished shrinking from 100% → 50% (see .hero-content below). */
+  animation-delay: calc(var(--reveal-base, 0s) + var(--d, 0s));
+}
+@keyframes reveal-up { to { opacity: 1; transform: translateY(0); } }
+
+/*
+ * Desktop hero entrance
+ * ─────────────────────────────────────────────────────────────────
+ * On load the video panel fills the full width (it sits above the content
+ * panel via z-index) and shrinks to 50%, wiping to reveal the white content
+ * panel underneath. The text then reveals once the wipe settles.
+ */
+@media (min-width: 768px) {
+  .hero-media {
+    animation: hero-media-expand 1.1s cubic-bezier(0.76, 0, 0.24, 1) both;
+  }
+  .hero-content { --reveal-base: 1s; }
+}
+@keyframes hero-media-expand {
+  from { width: 100%; }
+  to   { width: 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { animation: none; opacity: 1; transform: none; }
+  .hero-media { animation: none; }
+  .hero-content { --reveal-base: 0s; }
+}
