@@ -12,6 +12,8 @@ const emit = defineEmits(['update:menuOpen'])
 
 const page = usePage()
 const menuItems = computed(() => page.props.menuItems || [])
+const socialLabel = computed(() => page.props.siteSocials?.label || 'Follow us')
+const socialLinks = computed(() => page.props.siteSocials?.links || [])
 const currentPath = computed(() => new URL(page.url, window.location.origin).pathname)
 
 const menuOpen = ref(false)
@@ -161,7 +163,7 @@ onUnmounted(() => {
 
                     <!-- preview card -->
                     <div
-                        class="menu-card w-full flex-shrink-0 relative overflow-hidden transition-colors duration-200"
+                        class="menu-card w-full flex-shrink-0 relative overflow-hidden rounded-sm transition-colors duration-200"
                         style="aspect-ratio: 16 / 9; background: #111;"
                     >
                         <img
@@ -194,10 +196,16 @@ onUnmounted(() => {
                 />
                 <span class="text-white text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
             </div>
-            <div class="flex items-center gap-3 md:gap-6">
-                <span class="hidden md:inline text-white/30 text-[10px] tracking-widest uppercase select-none">Follow us</span>
-                <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">Instagram</a>
-                <a href="#" class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200">LinkedIn</a>
+            <div v-if="socialLinks.length" class="flex items-center gap-3 md:gap-6">
+                <span class="hidden md:inline text-white/30 text-[10px] tracking-widest uppercase select-none">{{ socialLabel }}</span>
+                <a
+                    v-for="(social, i) in socialLinks"
+                    :key="i"
+                    :href="social.url || '#'"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200"
+                >{{ social.label }}</a>
             </div>
         </div>
     </div>
