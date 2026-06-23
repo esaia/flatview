@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, defineAsyncComponent } from 'vue'
+import { computed, ref, onMounted, watch, defineAsyncComponent } from 'vue'
 import { Head } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
@@ -29,12 +29,28 @@ const demoProjectId = computed(() => props.demoProjectId)
 const loaderHidden = ref(false)
 const heroReady = ref(false)
 
-onMounted(() => {
+// The loader stays up until the deferred 360 demo data has arrived, so the
+// hero never appears without its interactive panel. It also honours a minimum
+// on-screen time so it doesn't flash by on fast loads. The loader clears when
+// BOTH conditions are met — whichever happens last.
+const minElapsed = ref(false)
+const dataReady = computed(() => !props.demoProjectId || !!props.demoData)
+
+let revealed = false
+function maybeReveal() {
+    if (revealed || !minElapsed.value || !dataReady.value) return
+    revealed = true
     // Give the hero entrance a small head start so the wipe is already in
     // motion the instant the loader clears, then remove the loader.
-    setTimeout(() => { heroReady.value = true }, 800)
-    setTimeout(() => { loaderHidden.value = true }, 1050)
+    heroReady.value = true
+    setTimeout(() => { loaderHidden.value = true }, 250)
+}
+
+onMounted(() => {
+    setTimeout(() => { minElapsed.value = true; maybeReveal() }, 800)
 })
+
+watch(dataReady, maybeReveal)
 </script>
 
 <template>
