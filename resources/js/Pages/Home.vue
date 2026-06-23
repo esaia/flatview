@@ -1,8 +1,11 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, defineAsyncComponent } from 'vue'
 import { Head } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
-import IreProject360 from '@/irep/shortcodes/IreProject360.vue'
+
+// Code-split the heavy 360 viewer (gsap/swiper/viewer ≈ 379 KiB) into its own
+// chunk so the hero text + featured image paint first; it loads after mount.
+const IreProject360 = defineAsyncComponent(() => import('@/irep/shortcodes/IreProject360.vue'))
 
 const props = defineProps({
     settings: {
