@@ -7,6 +7,7 @@ import type {
 } from "../../../types/DemoTypes";
 import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useGlobalStore } from "../../../store/useGlobal";
+import { usePinchZoom } from "../../../composable/usePinchZoom";
 import { useGetConfValue, tr } from "../../../composable/helper";
 import { storeToRefs } from "pinia";
 import ChevronUp from "../../../components/icons/ChevronUp.vue";
@@ -34,6 +35,8 @@ const setFloors360Selection = inject<
 const globalStore = useGlobalStore();
 const getConfValue = useGetConfValue();
 const { openReservedFlat, openSoldFlat } = storeToRefs(globalStore);
+const { containerRef: pinchContainerRef, contentStyle: pinchContentStyle } =
+  usePinchZoom();
 
 const selectedBlockId = ref<string | null>(
   props.blocks.length > 0 ? String(props.blocks[0].id) : null,
@@ -402,28 +405,38 @@ onUnmounted(() => {
       v-if="selectedFloor"
       class="irep-floors-360__canvas ire-relative ire-h-full ire-w-full ire-select-none ire-overflow-hidden"
     >
-      <img
-        v-if="floorRasterImage?.url"
-        :src="floorRasterImage.url"
-        :alt="floorRasterImage.alt || ''"
-        :width="floorRasterIntrinsic?.width"
-        :height="floorRasterIntrinsic?.height"
-        class="ire-block ire-h-full ire-w-full ire-object-contain"
-        decoding="async"
-      />
-
+      <!-- Only the zoomable content (floor image + SVG overlay) is wrapped in
+           the pinch structure; block tabs and the floor picker stay outside so
+           they don't scale. -->
       <div
-        ref="svgRef"
-        v-html="floorSvg"
-        :key="floorSvg ?? ''"
-        class="irep-floors-360__svg-overlay canvas path-color ire-absolute ire-left-0 ire-top-0 ire-h-full ire-w-full"
-        :style="{
-          opacity: pathsVisible === false ? 0 : 1,
-          transition: 'opacity 160ms ease',
-          pointerEvents: pathsVisible === false ? 'none' : 'auto',
-        }"
-        @click="onPathClick"
-      />
+        ref="pinchContainerRef"
+        class="ire-relative ire-h-full ire-w-full ire-overflow-hidden"
+      >
+        <div :style="pinchContentStyle" class="ire-relative ire-h-full ire-w-full">
+          <img
+            v-if="floorRasterImage?.url"
+            :src="floorRasterImage.url"
+            :alt="floorRasterImage.alt || ''"
+            :width="floorRasterIntrinsic?.width"
+            :height="floorRasterIntrinsic?.height"
+            class="ire-block ire-h-full ire-w-full ire-object-contain"
+            decoding="async"
+          />
+
+          <div
+            ref="svgRef"
+            v-html="floorSvg"
+            :key="floorSvg ?? ''"
+            class="irep-floors-360__svg-overlay canvas path-color ire-absolute ire-left-0 ire-top-0 ire-h-full ire-w-full"
+            :style="{
+              opacity: pathsVisible === false ? 0 : 1,
+              transition: 'opacity 160ms ease',
+              pointerEvents: pathsVisible === false ? 'none' : 'auto',
+            }"
+            @click="onPathClick"
+          />
+        </div>
+      </div>
     </div>
 
     <div

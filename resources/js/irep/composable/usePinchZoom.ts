@@ -1,4 +1,4 @@
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onUnmounted, ref, watch } from "vue";
 
 export function usePinchZoom() {
   const containerRef = ref<HTMLElement | null>(null);
@@ -144,21 +144,34 @@ export function usePinchZoom() {
     }
   }
 
-  onMounted(() => {
-    const el = containerRef.value;
-    if (!el) return;
+  function attach(el: HTMLElement) {
     el.style.touchAction = "pan-x pan-y";
     el.addEventListener("touchstart", onTouchStart, { passive: false });
     el.addEventListener("touchmove", onTouchMove, { passive: false });
     el.addEventListener("touchend", onTouchEnd);
-  });
+  }
 
-  onUnmounted(() => {
-    const el = containerRef.value;
-    if (!el) return;
+  function detach(el: HTMLElement) {
     el.removeEventListener("touchstart", onTouchStart);
     el.removeEventListener("touchmove", onTouchMove);
     el.removeEventListener("touchend", onTouchEnd);
+  }
+
+  // Bind via a watcher (not onMounted): some containers are rendered behind a
+  // v-if and only populate the template ref after mount, so onMounted would
+  // bind to null. This is backward-compatible with existing consumers.
+  watch(
+    containerRef,
+    (el, prev) => {
+      if (prev) detach(prev);
+      if (el) attach(el);
+    },
+    { immediate: true },
+  );
+
+  onUnmounted(() => {
+    const el = containerRef.value;
+    if (el) detach(el);
   });
 
   return { containerRef, contentStyle };

@@ -4,6 +4,7 @@ import type {
     ProjectInterface,
 } from "../../../types/DemoTypes";
 import { useProject360 } from "../../../composable/useProject360";
+import { usePinchZoom } from "../../../composable/usePinchZoom";
 import { useGlobalStore } from "../../../store/useGlobal";
 import { storeToRefs } from "pinia";
 import {
@@ -164,6 +165,7 @@ const {
     activePolygonType,
     currentSvg,
     onPointerDown,
+    onTapClick,
     snapToNearestWithPolygons,
     focusFlatOnViewer,
 } = useProject360({
@@ -191,6 +193,9 @@ const {
         }
     },
 });
+
+const { containerRef: pinchContainerRef, contentStyle: pinchContentStyle } =
+    usePinchZoom();
 
 watch(isAnimating, (animating) => {
     if (!animating) isNavigating.value = false;
@@ -352,7 +357,7 @@ provide("focusFlatOnViewer", (flat: { id?: string } | null) => {
                         <div
                             v-show="activeView === '360'"
                             ref="containerRef"
-                            class="irep-project-360-viewer__canvas ire-h-full ire-w-full ire-touch-none ire-select-none"
+                            class="irep-project-360-viewer__canvas ire-h-full ire-w-full ire-select-none"
                             :style="{
                                 cursor: nearUi
                                     ? 'default'
@@ -361,13 +366,54 @@ provide("focusFlatOnViewer", (flat: { id?: string } | null) => {
                                       : 'default',
                             }"
                             @pointerdown="onPointerDown"
+                            @click="onTapClick"
                             @mousemove="onContainerMouseMove"
                             @mouseleave="onContainerMouseLeave"
                         >
-                            <canvas
-                                ref="canvasRef"
-                                class="ire-pointer-events-none ire-block ire-h-full ire-w-full"
-                            />
+                            <!-- Only the zoomable content (canvas + SVG overlay)
+                                 is wrapped in the pinch structure; UI chrome
+                                 (frame indicator, navigation arrows) stays
+                                 outside so it doesn't scale. -->
+                            <div
+                                ref="pinchContainerRef"
+                                class="ire-relative ire-h-full ire-w-full ire-overflow-hidden"
+                            >
+                                <div
+                                    :style="pinchContentStyle"
+                                    class="ire-relative ire-h-full ire-w-full"
+                                >
+                                    <canvas
+                                        ref="canvasRef"
+                                        class="ire-pointer-events-none ire-block ire-h-full ire-w-full"
+                                    />
+                                    <div
+                                        ref="svgRef"
+                                        v-html="currentSvg"
+                                        class="canvas path-color ire-absolute ire-left-0 ire-top-0 ire-h-full ire-w-full"
+                                        :class="{
+                                            'path-hover-fill-only':
+                                                pathsFillOnHoverOnly,
+                                        }"
+                                        :style="{
+                                            opacity:
+                                                isDragging ||
+                                                isAnimating ||
+                                                !pathsVisible
+                                                    ? 0
+                                                    : 1,
+                                            transition: isNavigating
+                                                ? 'none'
+                                                : 'opacity 160ms ease',
+                                            pointerEvents:
+                                                isDragging ||
+                                                isAnimating ||
+                                                !pathsVisible
+                                                    ? 'none'
+                                                    : 'auto',
+                                        }"
+                                    />
+                                </div>
+                            </div>
                             <div
                                 class="irep-project-360-viewer__frame-indicator ire-pointer-events-none ire-absolute ire-left-2 ire-top-2 ire-z-10 ire-size-8"
                             >
@@ -401,32 +447,6 @@ provide("focusFlatOnViewer", (flat: { id?: string } | null) => {
                                 </svg>
                             </div>
 
-                            <div
-                                ref="svgRef"
-                                v-html="currentSvg"
-                                class="canvas path-color ire-absolute ire-left-0 ire-top-0 ire-h-full ire-w-full"
-                                :class="{
-                                    'path-hover-fill-only':
-                                        pathsFillOnHoverOnly,
-                                }"
-                                :style="{
-                                    opacity:
-                                        isDragging ||
-                                        isAnimating ||
-                                        !pathsVisible
-                                            ? 0
-                                            : 1,
-                                    transition: isNavigating
-                                        ? 'none'
-                                        : 'opacity 160ms ease',
-                                    pointerEvents:
-                                        isDragging ||
-                                        isAnimating ||
-                                        !pathsVisible
-                                            ? 'none'
-                                            : 'auto',
-                                }"
-                            />
                             <NavigationArrows
                                 @prev="handleNav(-1)"
                                 @next="handleNav(1)"

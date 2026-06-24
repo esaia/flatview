@@ -721,6 +721,16 @@ export function useProject360(options: UseProject360Options) {
     onPolygonClick?.(p, p.type);
   };
 
+  // Tap-to-open on touch. Because touch skips the pointer-up flow, route taps
+  // through the native click event instead. Native click only fires on a
+  // genuine tap (not a scroll), and usePinchZoom cancels it after a pinch — so
+  // no false opens. Desktop click is gated out (it uses pointer-up), so no
+  // double-handling.
+  const onTapClick = (e: MouseEvent) => {
+    if (lastPointerDownType !== "touch") return;
+    handlePolygonClick(e as unknown as PointerEvent);
+  };
+
   // ---------------------------------------------------------------------------
   // Hover detection for tooltips
   // ---------------------------------------------------------------------------
@@ -783,6 +793,7 @@ export function useProject360(options: UseProject360Options) {
   // ---------------------------------------------------------------------------
 
   let pointerIsDown = false;
+  let lastPointerDownType = "";
 
   const applyDragDelta = () => {
     dragRafId = null;
@@ -870,6 +881,11 @@ export function useProject360(options: UseProject360Options) {
   }
 
   const onPointerDown = (e: PointerEvent) => {
+    lastPointerDownType = e.pointerType;
+    // Touch drag-to-rotate is disabled — rotation is handled by the on-screen
+    // arrow buttons on mobile. Tap-to-open is routed through the native click
+    // event (onTapClick). Mouse/pen drag-rotate stays intact.
+    if (e.pointerType === "touch") return;
     if (e.button !== 0) return;
     e.preventDefault();
 
@@ -1077,6 +1093,7 @@ export function useProject360(options: UseProject360Options) {
     activePolygonType,
     currentSvg,
     onPointerDown,
+    onTapClick,
     snapToNearestWithPolygons,
     focusFlatOnViewer,
   };
