@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, watch, defineAsyncComponent } from 'vue'
+import { computed, ref, onMounted, defineAsyncComponent } from 'vue'
 import { Head } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
@@ -29,16 +29,16 @@ const demoProjectId = computed(() => props.demoProjectId)
 const loaderHidden = ref(false)
 const heroReady = ref(false)
 
-// The loader stays up until the deferred 360 demo data has arrived, so the
-// hero never appears without its interactive panel. It also honours a minimum
-// on-screen time so it doesn't flash by on fast loads. The loader clears when
-// BOTH conditions are met — whichever happens last.
+// The loader clears once a short minimum on-screen time has passed — it is
+// NOT gated on the deferred 360 payload. Gating reveal on that data meant the
+// page held a blank white overlay until a second network round-trip finished,
+// which is what wrecked LCP. The hero text now paints immediately; the 360
+// panel (already lazy + v-if on its data) fills in a moment later on its own.
 const minElapsed = ref(false)
-const dataReady = computed(() => !props.demoProjectId || !!props.demoData)
 
 let revealed = false
 function maybeReveal() {
-    if (revealed || !minElapsed.value || !dataReady.value) return
+    if (revealed || !minElapsed.value) return
     revealed = true
     // Give the hero entrance a small head start so the wipe is already in
     // motion the instant the loader clears, then remove the loader.
@@ -49,8 +49,6 @@ function maybeReveal() {
 onMounted(() => {
     setTimeout(() => { minElapsed.value = true; maybeReveal() }, 800)
 })
-
-watch(dataReady, maybeReveal)
 </script>
 
 <template>

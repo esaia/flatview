@@ -227,14 +227,27 @@ onUnmounted(() => {
                         class="menu-card w-full flex-shrink-0 relative overflow-hidden rounded-sm transition-colors duration-200"
                         style="aspect-ratio: 16 / 9; background: #111;"
                     >
+                        <!-- lazy: the panel is always in the DOM but off-screen
+                             until opened, so these only fetch when revealed —
+                             they must never weigh on initial page load. -->
                         <img
                             v-if="item.image"
                             :src="`/storage/${item.image}`"
+                            :alt="item.label"
+                            width="640"
+                            height="360"
+                            loading="lazy"
+                            decoding="async"
                             class="w-full h-full object-cover opacity-90 transition-opacity duration-200 group-hover:opacity-100"
                         />
                         <img
                             v-else
                             :src="`https://picsum.photos/seed/${item.label}/640/360`"
+                            :alt="item.label"
+                            width="640"
+                            height="360"
+                            loading="lazy"
+                            decoding="async"
                             class="w-full h-full object-cover opacity-80 transition-opacity duration-200 group-hover:opacity-100"
                         />
                     </div>

@@ -1,0 +1,11 @@
+# FlatView
+
+FlatView specializes in providing interactive real estate visualization solutions that transform standard development renders into dynamic SVG maps and 360-degree modules. Their core business model focuses on enhancing real estate websites by enabling potential buyers to explore apartment plans and master plans interactively, thereby facilitating the sales process and improving customer engagement. FlatView's technology helps real estate developers and agencies showcase properties more effectively online, increasing transparency and buyer confidence.
+
+## Pages
+
+- [Home](https://flatview.org/): Overview of FlatView and what the platform offers.
+- [Work](https://flatview.org/work): Portfolio of interactive real-estate projects.
+- [Services](https://flatview.org/services): Services FlatView provides for developers and agencies.
+- [About](https://flatview.org/about): Who FlatView is and the team behind it.
+- [Contact](https://flatview.org/contact): Get in touch about a project.

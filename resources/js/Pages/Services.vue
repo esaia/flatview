@@ -144,7 +144,7 @@ onUnmounted(() => {
                         class="snap-start flex-shrink-0 overflow-hidden relative bg-[#ece8e2]"
                         style="width: 80vw; aspect-ratio: 4 / 3;"
                     >
-                        <img :src="imgSrc(img)" class="w-full h-full object-cover" draggable="false" />
+                        <img :src="imgSrc(img)" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover" draggable="false" />
                     </figure>
                 </div>
             </div>
@@ -187,6 +187,9 @@ onUnmounted(() => {
                         >
                             <img
                                 :src="imgSrc(img)"
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
                                 class="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
                                 draggable="false"
                             />

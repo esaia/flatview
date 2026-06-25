@@ -65,6 +65,7 @@ const isExternal = (url) => /^https?:\/\//i.test(url || '')
                     <div class="relative overflow-hidden rounded-sm aspect-[16/10]"
                          :style="{ background: `radial-gradient(120% 140% at 20% 0%, ${project.from}, ${project.to})` }">
                         <img v-if="project.image" :src="project.image" :alt="project.name"
+                             loading="lazy" decoding="async"
                              class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" />
                         <template v-else>
                             <div class="grain absolute inset-0 opacity-[0.5]"></div>
