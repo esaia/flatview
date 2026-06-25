@@ -29,16 +29,24 @@ const demoProjectId = computed(() => props.demoProjectId)
 const loaderHidden = ref(false)
 const heroReady = ref(false)
 
-// The loader clears once a short minimum on-screen time has passed — it is
-// NOT gated on the deferred 360 payload. Gating reveal on that data meant the
-// page held a blank white overlay until a second network round-trip finished,
-// which is what wrecked LCP. The hero text now paints immediately; the 360
-// panel (already lazy + v-if on its data) fills in a moment later on its own.
+// The loader stays on screen — hiding the black 360 panel behind it — until the
+// demo has painted its first frame AND a short minimum on-screen time has passed.
+// A safety cap (8s) force-clears the loader so a broken/very slow network can
+// never leave it stuck. When there is no demo to render, demoReady is set up
+// front so the loader still clears at the minimum-time mark.
 const minElapsed = ref(false)
+const demoReady = ref(false)
+
+// Only block the loader on the demo when there actually is one. demoProjectId
+// is a plain prop (known up front); demoData is Inertia-deferred and is null on
+// the initial render, so we must NOT key off it here — doing so would mark the
+// demo "ready" before its data has even arrived. When a demo is coming we wait
+// for the viewer's real @ready (first painted frame) instead.
+if (!props.demoProjectId) demoReady.value = true
 
 let revealed = false
-function maybeReveal() {
-    if (revealed || !minElapsed.value) return
+function reveal() {
+    if (revealed) return
     revealed = true
     // Give the hero entrance a small head start so the wipe is already in
     // motion the instant the loader clears, then remove the loader.
@@ -46,8 +54,20 @@ function maybeReveal() {
     setTimeout(() => { loaderHidden.value = true }, 250)
 }
 
+function maybeReveal() {
+    if (minElapsed.value && demoReady.value) reveal()
+}
+
+function onDemoReady() {
+    demoReady.value = true
+    maybeReveal()
+}
+
 onMounted(() => {
     setTimeout(() => { minElapsed.value = true; maybeReveal() }, 800)
+    // Safety cap: never hold the loader longer than 8s, even if the demo
+    // never reports ready.
+    setTimeout(reveal, 8000)
 })
 </script>
 
@@ -76,7 +96,7 @@ onMounted(() => {
             <div class="flex flex-col md:flex-row select-none md:absolute md:inset-0">
                 <!-- Interactive 360 demo panel -->
                 <div class="hero-media relative order-2 w-full h-[60svh] overflow-hidden bg-black md:order-none md:absolute md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full md:z-20">
-                    <IreProject360 v-if="demoProjectId && props.demoData" :project-id="demoProjectId" :data="props.demoData" class="absolute inset-0 h-full w-full" />
+                    <IreProject360 v-if="demoProjectId && props.demoData" :project-id="demoProjectId" :data="props.demoData" @ready="onDemoReady" class="absolute inset-0 h-full w-full" />
                 </div>
 
                 <!-- Content panel -->

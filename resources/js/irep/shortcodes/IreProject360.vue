@@ -9,6 +9,8 @@ const props = defineProps<{
   data?: any;
 }>();
 
+const emit = defineEmits<{ (e: "ready"): void }>();
+
 const shortcodeData = ref<any>(props.data ?? null);
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -56,6 +58,7 @@ onMounted(async () => {
       v-else-if="shortcodeData"
       :data="shortcodeData"
       :ire-plugin="irePlugin"
+      @ready="emit('ready')"
     />
   </div>
 </template>

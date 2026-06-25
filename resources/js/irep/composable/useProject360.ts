@@ -19,6 +19,8 @@ export interface UseProject360Options {
   canvasRef: Ref<HTMLCanvasElement | null>;
   svgRef: Ref<HTMLDivElement | null>;
   onPolygonClick?: (polygon: PolygonDataCollection, type: string) => void;
+  /** Fired once, right after the first frame is painted to the canvas. */
+  onFirstFrame?: () => void;
   /** When true, flat polygons not in `svgVisibleFlatIds` are hidden in the overlay SVG. */
   svgFlatFilterActive?: Ref<boolean>;
   svgVisibleFlatIds?: Ref<ReadonlySet<string>>;
@@ -76,9 +78,12 @@ export function useProject360(options: UseProject360Options) {
     canvasRef,
     svgRef,
     onPolygonClick,
+    onFirstFrame,
     svgFlatFilterActive,
     svgVisibleFlatIds,
   } = options;
+
+  let firstFrameSignalled = false;
 
   const globalStore = useGlobalStore();
   const { shortcodeData, flats: storeFlats } = storeToRefs(globalStore);
@@ -263,6 +268,14 @@ export function useProject360(options: UseProject360Options) {
       Math.round(drawW * dpr),
       Math.round(drawH * dpr),
     );
+
+    // Signal "first frame painted" only once an actual image has hit the canvas
+    // at a real size — this is what the home page waits on to drop its loader,
+    // so it must never fire on an empty/zero-size canvas.
+    if (!firstFrameSignalled && viewW > 1 && viewH > 1) {
+      firstFrameSignalled = true;
+      onFirstFrame?.();
+    }
   };
 
   const syncCanvasSize = () => {

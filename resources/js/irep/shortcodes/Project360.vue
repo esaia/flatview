@@ -19,6 +19,8 @@ const props = defineProps<{
   irePlugin: IrePlagin;
 }>();
 
+const emit = defineEmits<{ (e: "ready"): void }>();
+
 const globalStore = createGlobalStore(`ire-project360-${props.data?.project?.id ?? Math.random()}`)();
 
 globalStore.setData(props.data);
@@ -40,6 +42,7 @@ const pathsFillOnHoverOnly = computed(
       v-if="project?.['360images']?.length"
       :project="project"
       :paths-fill-on-hover-only="pathsFillOnHoverOnly"
+      @ready="emit('ready')"
     />
   </ShortcodeWrapper>
 </template>

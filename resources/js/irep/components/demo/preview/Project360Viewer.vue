@@ -49,6 +49,7 @@ const emit = defineEmits<{
         type: PolygonDataCollection["type"],
         polygon: PolygonDataCollection | null,
     ): void;
+    (e: "ready"): void;
 }>();
 
 const globalStore = useGlobalStore();
@@ -177,6 +178,7 @@ const {
     svgRef,
     svgFlatFilterActive: showOnlyFilteredOnSvg,
     svgVisibleFlatIds: filteredFlatIds,
+    onFirstFrame: () => emit("ready"),
     onPolygonClick(polygon, type) {
         if (type === "flat") {
             activateFlat(hoveredData.value);
