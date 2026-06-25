@@ -13,27 +13,35 @@
 
         <title inertia>{{ $seoTitle }}</title>
 
+        {{-- These SEO tags are intentionally NOT marked with the `inertia`
+             attribute: Inertia's head manager removes any `inertia="..."` tag
+             that the active page's <Head> doesn't re-declare, which was
+             stripping the description/OG/Twitter tags from the DOM after mount
+             (Lighthouse audits the rendered DOM and reported them missing).
+             Left as static tags they persist; each page is server-rendered on
+             a fresh load, so the values are correct per-URL. --}}
+
         <!-- Primary SEO -->
-        <meta name="description" content="{{ $seoDescription }}" inertia="description">
-        <link rel="canonical" href="{{ $seoUrl }}" inertia="canonical">
+        <meta name="description" content="{{ $seoDescription }}">
+        <link rel="canonical" href="{{ $seoUrl }}">
 
         <!-- Open Graph -->
-        <meta property="og:type" content="website" inertia="og:type">
-        <meta property="og:site_name" content="{{ $seoTitle }}" inertia="og:site_name">
-        <meta property="og:title" content="{{ $seoTitle }}" inertia="og:title">
-        <meta property="og:description" content="{{ $seoDescription }}" inertia="og:description">
-        <meta property="og:url" content="{{ $seoUrl }}" inertia="og:url">
-        <meta property="og:image" content="{{ $seoImage }}" inertia="og:image">
-        <meta property="og:image:type" content="image/jpeg" inertia="og:image:type">
-        <meta property="og:image:width" content="1200" inertia="og:image:width">
-        <meta property="og:image:height" content="637" inertia="og:image:height">
-        <meta property="og:image:alt" content="{{ $seoTitle }}" inertia="og:image:alt">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="{{ $seoTitle }}">
+        <meta property="og:title" content="{{ $seoTitle }}">
+        <meta property="og:description" content="{{ $seoDescription }}">
+        <meta property="og:url" content="{{ $seoUrl }}">
+        <meta property="og:image" content="{{ $seoImage }}">
+        <meta property="og:image:type" content="image/jpeg">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="637">
+        <meta property="og:image:alt" content="{{ $seoTitle }}">
 
         <!-- Twitter -->
-        <meta name="twitter:card" content="summary_large_image" inertia="twitter:card">
-        <meta name="twitter:title" content="{{ $seoTitle }}" inertia="twitter:title">
-        <meta name="twitter:description" content="{{ $seoDescription }}" inertia="twitter:description">
-        <meta name="twitter:image" content="{{ $seoImage }}" inertia="twitter:image">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $seoTitle }}">
+        <meta name="twitter:description" content="{{ $seoDescription }}">
+        <meta name="twitter:image" content="{{ $seoImage }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
