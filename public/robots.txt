@@ -1,4 +1,6 @@
 User-agent: *
 Disallow:
 
+Sitemap: https://flatview.org/sitemap.xml
+
 # LLM-readable site guide: /llms.txt
