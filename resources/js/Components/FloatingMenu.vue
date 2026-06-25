@@ -19,6 +19,13 @@ const currentPath = computed(() => new URL(page.url, window.location.origin).pat
 const menuOpen = ref(false)
 const buttonHovered = ref(false)
 
+// Fine pointer = mouse/trackpad → cursor-scrub. Touch → native finger scroll,
+// so the rAF scrub loop must NOT run (it would fight/no-op against the native
+// scroll and just thrash style recalcs every frame).
+const isFinePointer = typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+
 // Arc-text ring content: repeated word stretched to the full circumference
 // (textLength) so it reads as a seamless ring around the circle's rim.
 const ringText = computed(() => `${(menuOpen.value ? 'Close' : 'Menu').toUpperCase()} • `.repeat(3))
@@ -43,6 +50,44 @@ function navigate(item) {
         return
     }
     router.visit(item.href)
+}
+
+// ── Touch tap vs. scroll ──────────────────────────────────────────────
+// On touch, a horizontal swipe to scroll the columns cancels the synthesized
+// `click`, so plain @click navigation silently fails after a scroll. We detect
+// a genuine tap (little movement) on touchend and navigate ourselves, then
+// suppress the ghost click that may follow so we never navigate twice.
+const TAP_MOVE_TOLERANCE = 10 // px of movement still counted as a tap
+let cardTouchX = 0
+let cardTouchY = 0
+let cardTouchMoved = false
+let lastTouchNav = 0
+
+function onCardTouchStart(e) {
+    const t = e.touches[0]
+    cardTouchX = t.clientX
+    cardTouchY = t.clientY
+    cardTouchMoved = false
+}
+
+function onCardTouchMove(e) {
+    const t = e.touches[0]
+    if (Math.abs(t.clientX - cardTouchX) > TAP_MOVE_TOLERANCE
+        || Math.abs(t.clientY - cardTouchY) > TAP_MOVE_TOLERANCE) {
+        cardTouchMoved = true
+    }
+}
+
+function onCardTouchEnd(item) {
+    if (cardTouchMoved) return // was a scroll, not a tap
+    lastTouchNav = Date.now()
+    navigate(item)
+}
+
+function onCardClick(item) {
+    // Ignore the ghost click that trails a touch tap we already handled.
+    if (Date.now() - lastTouchNav < 700) return
+    navigate(item)
 }
 
 function onKey(e) {
@@ -91,6 +136,10 @@ async function openMenu() {
     emit('update:menuOpen', true)
     document.body.style.overflow = 'hidden'
     await nextTick()
+    // Always reopen scrolled to the first column.
+    if (navScrollRef.value) navScrollRef.value.scrollLeft = 0
+    // Cursor-scrub is mouse-only; on touch the columns scroll natively.
+    if (!isFinePointer) return
     currentX = 0
     targetX = 0
     if (rafId) cancelAnimationFrame(rafId)
@@ -105,7 +154,16 @@ function closeMenu() {
     if (rafId) { cancelAnimationFrame(rafId); rafId = null }
 }
 
-function toggleMenu() { menuOpen.value ? closeMenu() : openMenu() }
+// Debounce the toggle so a tap that lands as two events on touch (e.g. a
+// touch-driven event plus a trailing ghost click) can't open then instantly
+// close the panel.
+let lastToggle = 0
+function toggleMenu() {
+    const now = Date.now()
+    if (now - lastToggle < 400) return
+    lastToggle = now
+    menuOpen.value ? closeMenu() : openMenu()
+}
 
 onMounted(() => document.addEventListener('keydown', onKey))
 onUnmounted(() => {
@@ -147,7 +205,10 @@ onUnmounted(() => {
                     v-for="(item, i) in menuItems"
                     :key="item.id"
                     class="menu-col flex-shrink-0 flex flex-col justify-center md:justify-start px-2.5 py-5 md:px-3 md:py-8 cursor-pointer group"
-                    @click.stop="navigate(item)"
+                    @click.stop="onCardClick(item)"
+                    @touchstart.passive="onCardTouchStart"
+                    @touchmove.passive="onCardTouchMove"
+                    @touchend="onCardTouchEnd(item)"
                 >
                     <!-- Page label — dot slides in on hover, always shown when active -->
                     <div class="flex items-center mb-4 md:mb-5 flex-shrink-0">
@@ -215,18 +276,31 @@ onUnmounted(() => {
         @click="toggleMenu"
         @mouseenter="buttonHovered = true"
         @mouseleave="buttonHovered = false"
-        class="fixed bottom-4 md:bottom-16 left-1/2 -translate-x-1/2 z-50 group cursor-pointer w-12 h-12 md:w-[85.51px] md:h-[85.51px]"
+        class="menu-btn fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] md:bottom-16 left-1/2 -translate-x-1/2 z-50 group cursor-pointer w-14 h-14 md:w-[85.51px] md:h-[85.51px]"
         :style="{
             opacity: (alwaysVisible || buttonHovered || menuOpen) ? 1 : 0,
             transition: 'opacity 0.2s ease',
         }"
         :aria-label="menuOpen ? 'Close menu' : 'Open menu'"
     >
-        <!-- Circle (stays full-size so the arc text always has its margin) -->
+        <!-- Circle (stays full-size so the arc text always has its margin).
+             group-active scale gives touch a tactile press in place of hover. -->
         <div
-            class="absolute inset-0 rounded-full transition-transform duration-500 group-hover:scale-[0.97]"
+            class="absolute inset-0 rounded-full transition-transform duration-500 group-hover:scale-[0.97] group-active:scale-[0.9] group-active:duration-150"
             style="background-color: #5DCAA5; aspect-ratio: 1/1;"
         ></div>
+
+        <!-- Mobile affordance — a two-line menu mark that morphs into an X when
+             open, so the circle reads as a labelled control with no hover. The
+             bar color flips dark→white on open, mirroring the desktop arc-text. -->
+        <div
+            class="menu-icon md:hidden absolute inset-0 pointer-events-none"
+            :class="{ 'menu-icon--open': menuOpen }"
+            aria-hidden="true"
+        >
+            <span class="menu-icon__bar menu-icon__bar--top"></span>
+            <span class="menu-icon__bar menu-icon__bar--bottom"></span>
+        </div>
 
         <!-- Arc-text ring — curves "MENU" around the rim; reveals + orbits on
              hover / while the menu is open. Desktop only (no hover on touch). -->
@@ -322,6 +396,42 @@ onUnmounted(() => {
     font-weight: 700;
     text-transform: uppercase;
     paint-order: stroke;
+}
+
+/*
+ * Mobile menu mark (md:hidden)
+ * ─────────────────────────────────────────────────────────────────
+ * Two centered bars sit 5px above/below the circle's middle as a quiet
+ * "menu" glyph, then rotate onto each other to form an X when the panel
+ * opens — the touch counterpart to the desktop MENU/CLOSE arc text.
+ */
+.menu-icon__bar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 2px;
+    border-radius: 2px;
+    background-color: #0b0b0b;
+    transition: transform 0.35s cubic-bezier(0.22, 0.9, 0.27, 1),
+                background-color 0.3s ease;
+}
+.menu-icon__bar--top { transform: translate(-50%, -50%) translateY(-5px) rotate(0deg); }
+.menu-icon__bar--bottom { transform: translate(-50%, -50%) translateY(5px) rotate(0deg); }
+.menu-icon--open .menu-icon__bar { background-color: #ffffff; }
+.menu-icon--open .menu-icon__bar--top { transform: translate(-50%, -50%) translateY(0) rotate(45deg); }
+.menu-icon--open .menu-icon__bar--bottom { transform: translate(-50%, -50%) translateY(0) rotate(-45deg); }
+
+/* Keyboard focus only — never show the ring on a mouse/touch press. */
+.menu-btn:focus { outline: none; }
+.menu-btn:focus-visible {
+    outline: 2px solid #5DCAA5;
+    outline-offset: 4px;
+    border-radius: 9999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .menu-icon__bar { transition: background-color 0.2s ease; }
 }
 
 @media (prefers-reduced-motion: reduce) {
