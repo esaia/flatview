@@ -51,6 +51,7 @@ The IREP data model is a project hierarchy: `Project` hasMany `Block`, `Floor`, 
 
 - **Shared Inertia props** (`app/Http/Middleware/HandleInertiaRequests.php`): `auth.user`, `flash.success`/`flash.error`, and `menuItems` (active `MenuItem` rows ordered by `sort_order`) are available on every public page. The floating nav menu reads `page.props.menuItems`.
 - **Uploaded images** are served from `/storage/...` (public disk symlink); IREP uploads live under `/storage/irep/`. Slide/menu image fields store the path relative to the disk.
+- **Media library picker** (`app/Filament/Support/MediaLibrary.php`) is the "Choose from library" hint action attached to Filament `FileUpload` fields. **Rule: the picker must always be scoped to the target field's own upload directory** — it reads the FileUpload's `->directory(...)` and only lists images from that folder (e.g. `services-gallery`), never the whole public disk. Any new admin upload component that uses `MediaLibrary::pickerAction()` must set a `->directory()` so its library stays folder-scoped.
 - **Tests** use an in-memory SQLite database (`phpunit.xml`); no separate test DB setup needed.
 </content>
 </invoke>

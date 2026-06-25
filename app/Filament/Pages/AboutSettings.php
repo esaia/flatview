@@ -2,20 +2,16 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Support\MediaLibrary;
-use App\Models\AboutGalleryImage;
 use App\Models\AboutStat;
 use App\Models\HomepageSetting;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\Storage;
 
 class AboutSettings extends Page
 {
@@ -48,8 +44,6 @@ class AboutSettings extends Page
         $settings = HomepageSetting::whereIn('key', self::SETTING_KEYS)
             ->pluck('value', 'key')
             ->toArray();
-
-        $settings['gallery'] = AboutGalleryImage::orderBy('sort_order')->pluck('image')->all();
 
         $settings['stats'] = AboutStat::orderBy('sort_order')
             ->get(['value', 'label'])
@@ -99,27 +93,6 @@ class AboutSettings extends Page
                                     ->placeholder('Introduce yourself'),
                             ]),
 
-                        Tab::make('Gallery')
-                            ->icon('heroicon-o-photo')
-                            ->schema([
-                                FileUpload::make('gallery')
-                                    ->label('Gallery images')
-                                    ->helperText('Drop multiple images at once and drag to reorder.')
-                                    ->disk('public')
-                                    ->directory('about-gallery')
-                                    ->visibility('public')
-                                    ->image()
-                                    ->multiple()
-                                    ->reorderable()
-                                    ->appendFiles()
-                                    ->panelLayout('grid')
-                                    ->itemPanelAspectRatio('9:16')
-                                    ->imagePreviewHeight('220')
-                                    ->openable()
-                                    ->downloadable()
-                                    ->hintAction(MediaLibrary::pickerAction()),
-                            ]),
-
                         Tab::make('Stats')
                             ->icon('heroicon-o-chart-bar')
                             ->schema([
@@ -150,45 +123,19 @@ class AboutSettings extends Page
     {
         $data = $this->form->getState();
 
-        $gallery = $data['gallery'] ?? [];
         $stats = $data['stats'] ?? [];
-        unset($data['gallery'], $data['stats']);
+        unset($data['stats']);
 
         foreach ($data as $key => $value) {
             HomepageSetting::updateOrCreate(['key' => $key], ['value' => $value]);
         }
 
-        $this->syncGallery($gallery);
         $this->syncStats($stats);
 
         Notification::make()
             ->title('About page saved')
             ->success()
             ->send();
-    }
-
-    /**
-     * Mirror the uploaded gallery paths into about_gallery_images, keeping
-     * upload order as sort_order and removing any images no longer present.
-     *
-     * @param  array<int, string>  $paths
-     */
-    protected function syncGallery(array $paths): void
-    {
-        $paths = array_values(array_filter($paths));
-
-        $removed = AboutGalleryImage::whereNotIn('image', $paths)->pluck('image');
-        foreach ($removed as $path) {
-            Storage::disk('public')->delete($path);
-        }
-        AboutGalleryImage::whereNotIn('image', $paths)->delete();
-
-        foreach ($paths as $index => $path) {
-            AboutGalleryImage::updateOrCreate(
-                ['image' => $path],
-                ['sort_order' => $index, 'is_active' => true],
-            );
-        }
     }
 
     /**

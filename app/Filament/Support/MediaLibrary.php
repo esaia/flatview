@@ -36,7 +36,7 @@ class MediaLibrary
                 MediaGridField::make('media_selection')
                     ->hiddenLabel()
                     ->multiSelect(static::isMultiple($component))
-                    ->images(fn (): array => static::images()),
+                    ->images(fn (): array => static::images(static::directoryFor($component))),
             ])
             ->action(function (array $data, Field $component): void {
                 $selection = array_values(array_filter((array) ($data['media_selection'] ?? [])));
@@ -72,15 +72,36 @@ class MediaLibrary
     }
 
     /**
-     * Every image currently stored on the public disk, newest first.
+     * The upload directory of the target FileUpload, so the library only shows
+     * images belonging to that field (e.g. `services-gallery`).
+     */
+    protected static function directoryFor(Field $component): ?string
+    {
+        if (! method_exists($component, 'getDirectory')) {
+            return null;
+        }
+
+        $directory = $component->getDirectory();
+
+        return is_string($directory) ? trim($directory, '/') : null;
+    }
+
+    /**
+     * Images stored on the public disk, newest first. When a directory is
+     * given, only images inside that directory are returned so each upload
+     * component's library is scoped to its own folder.
      *
      * @return array<int, array{path: string, url: string, name: string}>
      */
-    public static function images(): array
+    public static function images(?string $directory = null): array
     {
         $disk = Storage::disk('public');
 
-        return collect($disk->allFiles())
+        $files = ($directory !== null && $directory !== '')
+            ? $disk->files($directory)
+            : $disk->allFiles();
+
+        return collect($files)
             ->filter(fn (string $path): bool => in_array(
                 strtolower(pathinfo($path, PATHINFO_EXTENSION)),
                 self::EXTENSIONS,
