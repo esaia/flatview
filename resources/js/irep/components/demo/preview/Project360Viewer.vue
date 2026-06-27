@@ -145,7 +145,12 @@ const actions = computed(() => shortcodeData.value?.actions);
 const containerRef = ref<HTMLDivElement | null>(null);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const svgRef = ref<HTMLDivElement | null>(null);
-const isSidebarOpen = ref(false);
+// Open the sidebar by default on the dedicated project page (e.g. /project/360-module-demo),
+// but keep it closed on the home page.
+const isSidebarOpen = ref(
+    typeof window !== "undefined" &&
+        window.location.pathname.startsWith("/project/"),
+);
 const isNavigating = ref(false);
 
 const frames = computed(() => props.project["360images"] ?? []);
@@ -209,7 +214,7 @@ const handleNav = (dir: -1 | 1) => {
 };
 
 onMounted(() => {
-    isSidebarOpen.value = false;
+    isSidebarOpen.value = window.location.pathname.startsWith("/project/");
 
     const params = new URLSearchParams(window.location.search);
     const flatId = params.get("flatId");

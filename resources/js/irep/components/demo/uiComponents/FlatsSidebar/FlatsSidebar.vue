@@ -293,6 +293,11 @@ watch(
   { deep: true },
 );
 
+const totalFlats = computed(() => flats.value?.length ?? 0);
+const isFiltered = computed(
+  () => filteredFlats.value.length !== totalFlats.value,
+);
+
 const PAGE_SIZE = 20;
 const visibleCount = ref(PAGE_SIZE);
 const visibleFlats = computed(() =>
@@ -310,17 +315,26 @@ onMounted(() => {
 <template>
   <div class="irep-flats-sidebar ire-flex ire-h-full ire-flex-col ire-bg-white">
     <div
-      class="irep-flats-sidebar__header ire-z-10 ire-flex ire-h-14 ire-items-center ire-justify-between ire-gap-2 ire-bg-gray-50 ire-p-4 ire-transition-shadow"
+      class="irep-flats-sidebar__header ire-z-10 ire-flex ire-items-center ire-justify-between ire-gap-3 ire-border-b ire-border-gray-200/70 ire-bg-white ire-px-5 ire-py-4 ire-transition-shadow"
       :class="{
         'ire-shadow-[0px_10px_50px_-10px_rgba(0,_0,_0,_0.1)]': hasScrolled,
       }"
     >
-      <div class="irep-flats-sidebar__count">
-        <span class="ire-text-lg ire-font-medium">
+      <div class="irep-flats-sidebar__count ire-flex ire-items-baseline ire-gap-2">
+        <span
+          class="irep-flats-sidebar__count-num ire-font-semibold ire-leading-none ire-tracking-tight ire-tabular-nums ire-text-gray-900"
+        >
           {{ filteredFlats?.length }}
         </span>
 
-        <span class="ire-ml-1 ire-inline-block ire-text-sm ire-capitalize">
+        <span
+          v-if="isFiltered"
+          class="irep-flats-sidebar__count-of ire-font-medium ire-tabular-nums ire-text-gray-400"
+        >
+          {{ tr("of") }} {{ totalFlats }}
+        </span>
+
+        <span class="ire-text-sm ire-font-medium ire-capitalize ire-text-gray-700">
           {{ tr("apartments") }}
         </span>
       </div>
@@ -351,14 +365,56 @@ onMounted(() => {
         :hide-floor-range="isFloorsView"
       />
 
-      <div
-        v-if="filteredFlats.length === 0"
-        class="irep-flats-sidebar__empty ire-flex ire-flex-col ire-items-center ire-justify-center ire-gap-2 ire-py-16 ire-text-gray-400"
-      >
-        <HomeIcon class="ire-size-8 ire-stroke-black" />
-        <span class="ire-text-sm ire-font-medium ire-text-black">{{
-          tr("no apartments found")
-        }}</span>
+      <div v-if="filteredFlats.length === 0" class="irep-flats-sidebar__empty">
+        <div class="irep-flats-sidebar__empty-art">
+          <svg
+            class="irep-flats-sidebar__empty-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 21h18" />
+            <path d="M6 21V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v16" />
+            <path d="M14 10h3a1 1 0 0 1 1 1v10" />
+            <path d="M9 8h2M9 12h2M9 16h2" />
+          </svg>
+          <span class="irep-flats-sidebar__empty-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+          </span>
+        </div>
+
+        <div class="irep-flats-sidebar__empty-text">
+          <h3 class="irep-flats-sidebar__empty-title">
+            {{ tr("no apartments found") }}
+          </h3>
+          <p class="irep-flats-sidebar__empty-sub">
+            {{
+              hasChanges
+                ? tr("Try widening or clearing your filters to see more homes.")
+                : tr("There are no apartments to show here yet.")
+            }}
+          </p>
+        </div>
+
+        <button
+          v-if="hasChanges"
+          type="button"
+          class="irep-flats-sidebar__empty-reset"
+          @click="resetFilters"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          {{ tr("clear filters") }}
+        </button>
       </div>
 
       <div v-else class="irep-flats-sidebar__list">
@@ -514,6 +570,141 @@ onMounted(() => {
 /* Soft tinted surface so the white cards lift off the background */
 .irep-flats-sidebar__body {
   background: linear-gradient(180deg, #f8fafc 0%, #f3f5f8 100%);
+}
+
+/* Count header — large tabular figure with quiet context, sized here because the
+   frozen utility stylesheet has no arbitrary text-size classes. */
+.irep-flats-sidebar__count-num {
+  font-size: 26px;
+}
+.irep-flats-sidebar__count-of {
+  font-size: 13px;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────────
+   Shown when filters return nothing. Adapts its copy + offers a one-tap reset. */
+.irep-flats-sidebar__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 18px;
+  padding: 64px 28px;
+  animation: irep-empty-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.irep-flats-sidebar__empty-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 24px;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--primary-color) 12%, #ffffff),
+    #ffffff 75%
+  );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 14%, #ffffff),
+    0 10px 22px -16px rgba(16, 24, 40, 0.18);
+}
+.irep-flats-sidebar__empty-icon {
+  width: 36px;
+  height: 36px;
+  stroke: var(--primary-color);
+  color: var(--primary-color);
+}
+/* Small magnifier badge — signals "searched, nothing matched". */
+.irep-flats-sidebar__empty-badge {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  background: var(--primary-color);
+  color: #ffffff;
+  box-shadow:
+    0 0 0 4px #ffffff,
+    0 3px 8px -3px rgba(16, 24, 40, 0.22);
+}
+.irep-flats-sidebar__empty-badge svg {
+  width: 15px;
+  height: 15px;
+}
+
+.irep-flats-sidebar__empty-text {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-width: 264px;
+}
+.irep-flats-sidebar__empty-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #111827;
+  text-transform: capitalize;
+}
+.irep-flats-sidebar__empty-sub {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+.irep-flats-sidebar__empty-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  border: none;
+  border-radius: 9999px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--primary-color);
+  box-shadow: 0 6px 14px -8px color-mix(in srgb, var(--primary-color) 55%, transparent);
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.irep-flats-sidebar__empty-reset svg {
+  width: 15px;
+  height: 15px;
+}
+.irep-flats-sidebar__empty-reset:hover {
+  filter: brightness(0.94);
+  transform: translateY(-1px);
+}
+.irep-flats-sidebar__empty-reset:active {
+  transform: translateY(0);
+}
+
+@keyframes irep-empty-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .irep-flats-sidebar__empty {
+    animation: none;
+  }
+  .irep-flats-sidebar__empty-reset:hover {
+    transform: none;
+  }
 }
 
 .irep-flats-sidebar__item {

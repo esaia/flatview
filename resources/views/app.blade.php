@@ -51,7 +51,9 @@
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
+        @production
         <script defer src="https://umami.flatview.org/script.js" data-website-id="99b67c94-ea1c-4447-9401-6367b57a33c4"></script>
+        @endproduction
     </head>
     <body class="font-sans antialiased">
         @inertia
