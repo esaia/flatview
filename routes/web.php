@@ -69,3 +69,8 @@ Route::post('/irep/reservation', function (Request $request) {
 });
 
 require __DIR__ . '/auth.php';
+
+// Catch unmatched URLs. Routing this through the web group means the Inertia
+// shared props (menuItems, siteSocials, …) are applied before the 404 is
+// rendered, so the floating menu isn't empty on the error page.
+Route::fallback(fn () => abort(404));
