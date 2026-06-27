@@ -37,6 +37,15 @@ class ServicesController extends Controller
                 ['label' => 'Ongoing support', 'detail' => 'Retainer options from day one.'],
             ]),
 
+            'featuresKicker' => $get('services_features_kicker', 'The product, shown'),
+            'featuresHeadline' => $get('services_features_headline', "What used to take a showroom\nnow takes a scroll."),
+            'features' => $getJson('services_features', [
+                ['title' => 'Detailed floor plan for each unit', 'description' => 'Click any unit to see the full picture: floor plan, size, orientation, and price. The whole overview, before construction begins.', 'image' => ''],
+                ['title' => 'Real-time availability', 'description' => 'Statuses update the moment your team does. No outdated PDFs, no confirmation calls — just information that is always accurate.', 'image' => ''],
+                ['title' => 'Lead capture & interest registration', 'description' => 'Prospects register interest in a single unit or the whole project. Every inquiry runs through a predefined workflow.', 'image' => ''],
+                ['title' => 'Smart filtering', 'description' => 'Filter by floor, rooms, size, price, or availability. Instant results, no reloads — the experience your buyers already expect.', 'image' => ''],
+            ]),
+
             'processKicker' => $get('services_process_kicker', 'How we work'),
             'processHeadline' => $get('services_process_headline', 'A clear path from first call to launch day.'),
             'processIntro' => $get('services_process_intro', 'Four steps, no surprises — you always know where your project stands.'),

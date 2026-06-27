@@ -36,6 +36,8 @@ class ServicesSettings extends Page
         'services_intro',
         'services_gallery_kicker',
         'services_valueprops_kicker',
+        'services_features_kicker',
+        'services_features_headline',
         'services_process_kicker',
         'services_process_headline',
         'services_process_intro',
@@ -49,6 +51,7 @@ class ServicesSettings extends Page
     protected const JSON_KEYS = [
         'services_blocks',
         'services_valueprops',
+        'services_features',
         'services_process',
         'services_gallery',
     ];
@@ -169,6 +172,50 @@ class ServicesSettings extends Page
                                     ->collapsible()
                                     ->defaultItems(0)
                                     ->addActionLabel('Add value prop'),
+                            ]),
+
+                        Tab::make('Showcase')
+                            ->icon('heroicon-o-rectangle-group')
+                            ->schema([
+                                TextInput::make('services_features_kicker')
+                                    ->label('Section kicker')
+                                    ->placeholder('The product, shown'),
+
+                                Textarea::make('services_features_headline')
+                                    ->label('Section headline')
+                                    ->rows(2)
+                                    ->helperText('Use a line break to control where the headline wraps.')
+                                    ->placeholder("What used to take a showroom now takes a scroll."),
+
+                                Repeater::make('services_features')
+                                    ->label('Feature cards')
+                                    ->helperText('Each card shows an image with a title and description. Two per row on desktop.')
+                                    ->schema([
+                                        FileUpload::make('image')
+                                            ->label('Image')
+                                            ->disk('public')
+                                            ->directory('services-features')
+                                            ->visibility('public')
+                                            ->image()
+                                            ->imageEditor()
+                                            ->openable()
+                                            ->downloadable()
+                                            ->hintAction(MediaLibrary::pickerAction()),
+
+                                        TextInput::make('title')
+                                            ->required()
+                                            ->placeholder('Detailed floor plan for each unit'),
+
+                                        Textarea::make('description')
+                                            ->required()
+                                            ->rows(3),
+                                    ])
+                                    ->reorderable()
+                                    ->collapsible()
+                                    ->collapsed()
+                                    ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Add feature'),
                             ]),
 
                         Tab::make('Process')

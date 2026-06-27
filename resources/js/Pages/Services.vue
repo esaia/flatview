@@ -14,6 +14,9 @@ const services = computed(() =>
     (props.settings.blocks ?? []).map((b, i) => ({ ...b, number: num(i) }))
 )
 const valueProps = computed(() => props.settings.valueprops ?? [])
+
+// Product feature showcase — each card pairs an admin-uploaded image with copy.
+const features = computed(() => props.settings.features ?? [])
 const process = computed(() =>
     (props.settings.process ?? []).map((p, i) => ({ ...p, step: num(i) }))
 )
@@ -248,6 +251,40 @@ onUnmounted(() => {
                     </div>
                 </div>
 
+                <!-- ── Product showcase ────────────────────────────────────────
+                     Headline + 2×2 grid of feature cards. Each card frames an
+                     admin-uploaded image inside a warm stage, with title + copy. -->
+                <div v-if="features.length" class="mt-24 md:mt-40">
+                    <p class="kicker flex items-center gap-2 mb-6"><span class="dot"></span> {{ settings.featuresKicker }}</p>
+                    <h2 class="display text-black leading-[1.04] mb-12 md:mb-16 max-w-3xl whitespace-pre-line"
+                        style="font-size: clamp(30px, 4.4vw, 60px); font-weight: 300; letter-spacing: -0.02em;">
+                        {{ settings.featuresHeadline }}
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 border-t border-l border-black/10">
+                        <article
+                            v-for="feature in features"
+                            :key="feature.title"
+                            class="border-b border-r border-black/10 p-6 md:p-10 flex flex-col"
+                        >
+                            <div class="fc-stage relative overflow-hidden mb-8 md:mb-10" style="aspect-ratio: 16 / 11;">
+                                <img
+                                    v-if="feature.image"
+                                    :src="imgSrc(feature)"
+                                    :alt="feature.title"
+                                    loading="lazy"
+                                    decoding="async"
+                                    class="absolute inset-0 w-full h-full object-cover"
+                                    draggable="false"
+                                />
+                            </div>
+
+                            <h3 class="display text-xl md:text-2xl text-black mb-3 leading-snug" style="font-weight: 400;">{{ feature.title }}</h3>
+                            <p class="text-sm text-black/45 font-light leading-relaxed">{{ feature.description }}</p>
+                        </article>
+                    </div>
+                </div>
+
                 <!-- How we work -->
                 <div class="mt-24 md:mt-40 grid grid-cols-1 md:grid-cols-12 gap-y-12 md:gap-x-16">
 
@@ -340,4 +377,13 @@ onUnmounted(() => {
 }
 .step-row:last-child .step-index::before { bottom: 0; }   /* don't trail past the final node */
 .step-index .step-node { position: relative; z-index: 1; box-shadow: 0 0 0 4px #fff; }
+
+/* Warm stage panel behind each showcase image — a faint contour wash (a nod
+   to site plans) so empty/transparent images still sit in the brand system. */
+.fc-stage {
+    background-color: #f4f1ec;
+    background-image:
+        radial-gradient(120% 90% at 85% 15%, rgba(93,202,165,0.06), transparent 60%),
+        radial-gradient(100% 80% at 10% 95%, rgba(0,0,0,0.025), transparent 55%);
+}
 </style>
