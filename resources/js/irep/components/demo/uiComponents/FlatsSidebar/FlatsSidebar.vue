@@ -419,7 +419,7 @@ onMounted(() => {
 
       <div v-else class="irep-flats-sidebar__list">
         <div
-          class="irep-flats-sidebar__grid ire-grid ire-grid-cols-2 ire-gap-4 ire-p-4"
+          class="irep-flats-sidebar__grid ire-grid ire-grid-cols-2 ire-gap-2 ire-p-4"
         >
           <div
             v-for="flat in visibleFlats"
@@ -784,6 +784,25 @@ onMounted(() => {
 .irep-flats-sidebar__item:hover .irep-flats-sidebar__item-focus-btn {
   transform: scale(1.08);
 }
+
+/* Eye button hover/active — raised above the card-hover transform (0,2,0) so the
+   button's own pointer feedback actually shows. On hover it fills with the accent
+   to read as the "show on 360" action; on press it dips for tactile feedback. */
+.irep-flats-sidebar__item .irep-flats-sidebar__item-focus-btn:hover,
+.irep-flats-sidebar__item:hover .irep-flats-sidebar__item-focus-btn:hover {
+  border-color: var(--primary-color);
+  background-color: var(--primary-color);
+  color: #ffffff;
+  transform: scale(1.12);
+  box-shadow: 0 6px 16px -6px
+    color-mix(in srgb, var(--primary-color) 55%, transparent);
+}
+.irep-flats-sidebar__item .irep-flats-sidebar__item-focus-btn:active,
+.irep-flats-sidebar__item:hover .irep-flats-sidebar__item-focus-btn:active {
+  transform: scale(0.9);
+  box-shadow: 0 2px 6px -3px
+    color-mix(in srgb, var(--primary-color) 50%, transparent);
+}
 .irep-flats-sidebar__item-focus-btn::after {
   content: "";
   position: absolute;
@@ -814,6 +833,14 @@ onMounted(() => {
     animation: none;
   }
   .irep-flats-sidebar__item:hover .irep-flats-sidebar__item-focus-btn {
+    transform: none;
+  }
+  .irep-flats-sidebar__item .irep-flats-sidebar__item-focus-btn:hover,
+  .irep-flats-sidebar__item:hover .irep-flats-sidebar__item-focus-btn:hover {
+    transform: none;
+  }
+  .irep-flats-sidebar__item .irep-flats-sidebar__item-focus-btn:active,
+  .irep-flats-sidebar__item:hover .irep-flats-sidebar__item-focus-btn:active {
     transform: none;
   }
 }
