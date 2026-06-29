@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGlobalStore } from "../../../../store/useGlobal";
 import { computed } from "vue";
-import PreviewSelect from "../../form/PreviewSelect.vue";
+import StatusSelect from "../../form/StatusSelect.vue";
 import RangeInput from "../../form/Range.vue";
 
 import {
@@ -88,51 +88,64 @@ const confOptions = computed(() => {
 });
 </script>
 <template>
-  <div
-    class="irep-flats-sidebar-header ire-grid ire-gap-2 ire-bg-gray-50 ire-p-4 ire-pt-0 md:ire-grid-cols-2"
-  >
-    <RangeInput
-      v-model="model.areaRange"
-      :min="customAreaOptions?.min || 0"
-      :max="customAreaOptions?.max || 300"
-      :step="customAreaOptions?.step || 1"
-      :unit="`${getAreaUnitLabel()}²`"
-      label="area"
-      class="md:ire-min-w-[unset]"
-    />
-
-    <RangeInput
-      v-if="
-        !props.hideFloorRange &&
-        Number.isFinite(floorsMinMax.min) &&
-        Number.isFinite(floorsMinMax.max)
-      "
-      v-model="model.floorRange"
-      :min="floorsMinMax.min"
-      :max="floorsMinMax.max"
-      :step="1"
-      unit=""
-      label="floor"
-      class="md:ire-min-w-[unset]"
-    />
-
-    <RangeInput
-      v-model="model.roomRange"
-      :min="customRoomOptions?.min || 0"
-      :max="customRoomOptions?.max || 10"
-      :step="customRoomOptions?.step || 1"
-      unit=""
-      label="rooms"
-      class="md:ire-min-w-[unset]"
-    />
-
-    <div class="irep-flats-sidebar-header__select-wrapper ire-flex ire-w-full ire-items-end">
-      <PreviewSelect
-        v-model="model.config"
-        :data="confOptions"
-        :disabled="false"
-        class="irep-flats-list-filters-select"
+  <div class="irep-flats-sidebar-header ire-px-4 ire-pb-4 ire-pt-4">
+    <div
+      class="irep-flats-sidebar-header__panel ire-flex ire-flex-col ire-gap-4 ire-rounded-2xl ire-border ire-border-gray-200/70 ire-bg-white ire-p-4 ire-shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
+    >
+      <RangeInput
+        v-model="model.areaRange"
+        :min="customAreaOptions?.min || 0"
+        :max="customAreaOptions?.max || 300"
+        :step="customAreaOptions?.step || 1"
+        :unit="`${getAreaUnitLabel()}²`"
+        label="area"
       />
+
+      <RangeInput
+        v-if="
+          !props.hideFloorRange &&
+          Number.isFinite(floorsMinMax.min) &&
+          Number.isFinite(floorsMinMax.max)
+        "
+        v-model="model.floorRange"
+        :min="floorsMinMax.min"
+        :max="floorsMinMax.max"
+        :step="1"
+        unit=""
+        label="floor"
+      />
+
+      <RangeInput
+        v-model="model.roomRange"
+        :min="customRoomOptions?.min || 0"
+        :max="customRoomOptions?.max || 10"
+        :step="customRoomOptions?.step || 1"
+        unit=""
+        label="rooms"
+      />
+
+      <div class="irep-flats-sidebar-header__status ire-w-full">
+        <span
+          class="irep-flats-sidebar-header__status-label ire-mb-2 ire-block ire-text-[11px] ire-font-semibold ire-uppercase ire-tracking-[0.14em] ire-text-gray-400"
+        >
+          {{ tr("status") }}
+        </span>
+
+        <StatusSelect
+          v-model="model.config"
+          :data="confOptions"
+          :disabled="false"
+          class="irep-flats-list-filters-select"
+        />
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Tracked micro-label to match the slider labels (arbitrary tracking utilities
+   are absent from the frozen irep stylesheet, so set it here). */
+.irep-flats-sidebar-header__status-label {
+  letter-spacing: 0.14em;
+}
+</style>

@@ -187,27 +187,41 @@ function displayAxisValue(v: number) {
 
 <template>
   <div class="irep-range ire-w-full md:ire-w-auto md:ire-min-w-[200px]">
-    <div class="irep-range__header ire-mb-1 ire-flex ire-items-baseline ire-justify-between">
+    <div class="irep-range__header ire-mb-2 ire-flex ire-items-center ire-justify-between">
       <span
-        class="ire-text-sm ire-font-medium ire-capitalize ire-text-gray-500"
+        class="irep-range__label ire-text-[11px] ire-font-semibold ire-uppercase ire-tracking-[0.14em] ire-text-gray-400"
       >
         {{ tr(label) }}
       </span>
 
-      <div class="irep-range__values ire-flex ire-items-center ire-gap-1">
-        <div
-          class="irep-range__values-inner ire-flex ire-items-baseline ire-gap-1 ire-bg-gray-100 ire-p-1"
+      <div
+        class="irep-range__values ire-inline-flex ire-items-baseline ire-gap-1 ire-rounded-full ire-bg-white ire-px-2.5 ire-py-1 ire-text-sm ire-font-semibold ire-tabular-nums"
+        :class="{ 'is-active': isActive }"
+      >
+        <span
+          :class="
+            isActive
+              ? 'ire-text-[var(--primary-color)]'
+              : 'ire-text-gray-700'
+          "
         >
-          <span class="ire-text-sm ire-font-semibold ire-text-gray-700">
-            {{ displayAxisValue(minVal) }}
-          </span>
-          <span class="ire-text-xs ire-text-gray-500">–</span>
-          <span class="ire-text-sm ire-font-semibold ire-text-gray-700">
-            {{ displayAxisValue(maxVal) }}
-          </span>
-        </div>
-
-        <span class="ire-text-xs ire-text-gray-500">{{ unit }}</span>
+          {{ displayAxisValue(minVal) }}
+        </span>
+        <span class="ire-text-gray-300">–</span>
+        <span
+          :class="
+            isActive
+              ? 'ire-text-[var(--primary-color)]'
+              : 'ire-text-gray-700'
+          "
+        >
+          {{ displayAxisValue(maxVal) }}
+        </span>
+        <span
+          v-if="unit"
+          class="ire-ml-0.5 ire-text-[11px] ire-font-medium ire-text-gray-400"
+          >{{ unit }}</span
+        >
       </div>
     </div>
 
@@ -231,9 +245,9 @@ function displayAxisValue(v: number) {
       />
 
       <div
-        class="irep-range__thumb irep-range__thumb--min ire-absolute ire-z-10 -ire-mt-px ire-size-5 -ire-translate-x-1/2 ire-cursor-grab ire-rounded-full ire-border ire-border-solid ire-border-black/20 ire-bg-white ire-shadow-lg ire-transition-shadow hover:ire-ring-4 hover:ire-ring-blue-500/10 active:ire-cursor-grabbing"
+        class="irep-range__thumb irep-range__thumb--min ire-absolute ire-z-10 -ire-mt-px ire-size-5 -ire-translate-x-1/2 ire-cursor-grab ire-rounded-full ire-border ire-border-solid ire-border-black/20 ire-bg-white ire-shadow-lg ire-transition-shadow hover:ire-ring-4 hover:ire-ring-gray-900/[0.06] active:ire-cursor-grabbing"
         :class="{
-          'ire-cursor-grabbing ire-ring-4 ire-ring-blue-500/20':
+          'ire-cursor-grabbing ire-ring-4 ire-ring-gray-900/10':
             dragging === 'min',
         }"
         :style="thumbMinStyle"
@@ -247,9 +261,9 @@ function displayAxisValue(v: number) {
       </div>
 
       <div
-        class="irep-range__thumb irep-range__thumb--max ire-absolute ire-z-10 -ire-mt-px ire-size-5 -ire-translate-x-1/2 ire-cursor-grab ire-rounded-full ire-border ire-border-solid ire-border-black/20 ire-bg-white ire-shadow-lg ire-transition-shadow hover:ire-ring-4 hover:ire-ring-blue-500/10 active:ire-cursor-grabbing"
+        class="irep-range__thumb irep-range__thumb--max ire-absolute ire-z-10 -ire-mt-px ire-size-5 -ire-translate-x-1/2 ire-cursor-grab ire-rounded-full ire-border ire-border-solid ire-border-black/20 ire-bg-white ire-shadow-lg ire-transition-shadow hover:ire-ring-4 hover:ire-ring-gray-900/[0.06] active:ire-cursor-grabbing"
         :class="{
-          'ire-cursor-grabbing ire-ring-4 ire-ring-blue-500/20':
+          'ire-cursor-grabbing ire-ring-4 ire-ring-gray-900/10':
             dragging === 'max',
         }"
         :style="thumbMaxStyle"
@@ -274,3 +288,27 @@ function displayAxisValue(v: number) {
     </div> -->
   </div>
 </template>
+
+<style scoped>
+.irep-range__label {
+  letter-spacing: 0.14em;
+}
+
+/* Readout pill — neutral ring at rest, brand-tinted ring when the filter is active. */
+.irep-range__values {
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.04),
+    inset 0 0 0 1px #e5e7eb;
+  transition: box-shadow 0.2s ease;
+}
+.irep-range__values.is-active {
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.04),
+    inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 38%, #ffffff);
+}
+
+/* Keep the thumb focus/drag rings neutral slate (theme-agnostic), never default blue. */
+.irep-range__thumb {
+  --tw-ring-color: rgba(17, 24, 39, 0.08);
+}
+</style>
