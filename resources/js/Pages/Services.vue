@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { Link } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
 const props = defineProps({
@@ -215,10 +216,11 @@ onUnmounted(() => {
 
                 <!-- Three service blocks -->
                 <div class="grid grid-cols-1 md:grid-cols-3 md:divide-x divide-black/10 mb-16 md:mb-32">
-                    <div
+                    <Link
                         v-for="service in services"
                         :key="service.number"
-                        class="relative pt-8 pb-10 md:px-10 first:md:pl-0 last:md:pr-0 flex flex-col border-b border-black/10 md:border-b-0 last:border-b-0"
+                        :href="`/services/${service.slug}`"
+                        class="group relative pt-8 pb-10 md:px-10 first:md:pl-0 last:md:pr-0 flex flex-col border-b border-black/10 md:border-b-0 last:border-b-0"
                     >
                         <!-- Faded number -->
                         <span
@@ -231,9 +233,13 @@ onUnmounted(() => {
                         <div class="relative flex flex-col flex-1">
                             <p class="kicker text-black/45 mb-4">{{ service.number }}</p>
                             <h2 class="display text-2xl text-black mb-3 md:mb-4 leading-snug" style="font-weight: 400;">{{ service.name }}</h2>
-                            <p class="text-sm text-black/45 font-light leading-relaxed flex-1">{{ service.description }}</p>
+                            <p class="text-sm text-black/45 font-light leading-relaxed flex-1 mb-6">{{ service.description }}</p>
+                            <span class="inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase text-black/50 group-hover:text-black transition-colors duration-300">
+                                Learn more
+                                <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                            </span>
                         </div>
-                    </div>
+                    </Link>
                 </div>
 
                 <!-- Why Flatview -->

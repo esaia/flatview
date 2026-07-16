@@ -17,6 +17,7 @@ use IrepPlugin\FilamentIrep\Models\Reservation;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/work', [WorkController::class, 'index'])->name('work');
 Route::get('/services', [ServicesController::class, 'index'])->name('services');
+Route::get('/services/{slug}', [ServicesController::class, 'show'])->name('services.show');
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HomepageSetting;
+use App\Models\Service;
 use Inertia\Inertia;
 
 class ServicesController extends Controller
@@ -23,11 +24,10 @@ class ServicesController extends Controller
 
             'galleryKicker' => $get('services_gallery_kicker', 'Selected Work'),
 
-            'blocks' => $getJson('services_blocks', [
-                ['name' => 'Website development', 'description' => 'Custom websites for construction and real estate companies. WordPress or custom-built. Fast, SEO-ready, mobile-first — designed to convert visitors into clients.'],
-                ['name' => 'Building module', 'description' => 'Interactive building visualizer. Browse floors, select apartments, view availability and pricing — with immersive 360° floor views, embedded directly on your website with no third-party platform needed.'],
-                ['name' => 'Maintenance & support', 'description' => 'Ongoing updates, hosting management, and technical support so your digital presence stays fast, secure, and reliable long after launch.'],
-            ]),
+            'blocks' => Service::where('is_active', true)
+                ->orderBy('sort_order')
+                ->get(['name', 'slug', 'description'])
+                ->toArray(),
 
             'valuepropsKicker' => $get('services_valueprops_kicker', 'Why Flatview?'),
             'valueprops' => $getJson('services_valueprops', [
@@ -68,6 +68,29 @@ class ServicesController extends Controller
         );
 
         return Inertia::render('Services', compact('settings', 'gallery'));
+    }
+
+    public function show(string $slug)
+    {
+        $service = Service::where('slug', $slug)->where('is_active', true)->firstOrFail();
+
+        $stored = HomepageSetting::whereIn('key', ['services_cta_kicker', 'services_cta_headline', 'services_cta_button_text', 'services_cta_button_link'])
+            ->pluck('value', 'key')
+            ->toArray();
+
+        $get = fn (string $key, $default = '') => filled($stored[$key] ?? null) ? $stored[$key] : $default;
+
+        $cta = [
+            'kicker' => $get('services_cta_kicker', "Let's talk"),
+            'headline' => $get('services_cta_headline', "Let's make real estate\ndigitally perfect."),
+            'buttonText' => $get('services_cta_button_text', 'Schedule a meeting'),
+            'buttonLink' => $get('services_cta_button_link', '/contact'),
+        ];
+
+        return Inertia::render('ServiceShow', [
+            'service' => $service,
+            'cta' => $cta,
+        ]);
     }
 
     /**

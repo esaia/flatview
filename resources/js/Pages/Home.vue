@@ -118,14 +118,14 @@ onMounted(() => {
 
                         <!-- ctas -->
                         <div class="reveal flex flex-wrap items-center gap-2 md:gap-4" style="--d: .24s">
-                            <a href="/work"
+                            <a :href="props.settings.primary_button_url || '/services'"
                                class="group inline-flex items-center gap-3 bg-black text-white text-[10px] md:text-[11px] tracking-[0.18em] uppercase px-7 py-4 hover:bg-[#5DCAA5] hover:text-black transition-colors duration-300">
-                                View Our Work
+                                {{ props.settings.primary_button_label || 'View Our Services' }}
                                 <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
                             </a>
-                            <a href="/contact"
+                            <a :href="props.settings.secondary_button_url || '/contact'"
                                class="group inline-flex items-center gap-2 text-[10px] md:text-[11px] tracking-[0.18em] uppercase text-black/55 hover:text-black px-4 py-4 transition-colors duration-300">
-                                Get In Touch
+                                {{ props.settings.secondary_button_label || 'Get In Touch' }}
                                 <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
                             </a>
                         </div>

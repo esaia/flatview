@@ -49,7 +49,6 @@ class ServicesSettings extends Page
 
     /** Setting keys whose value is stored as a JSON-encoded array. */
     protected const JSON_KEYS = [
-        'services_blocks',
         'services_valueprops',
         'services_features',
         'services_process',
@@ -124,29 +123,6 @@ class ServicesSettings extends Page
                                     ->openable()
                                     ->downloadable()
                                     ->hintAction(MediaLibrary::pickerAction()),
-                            ]),
-
-                        Tab::make('Services')
-                            ->icon('heroicon-o-squares-2x2')
-                            ->schema([
-                                Repeater::make('services_blocks')
-                                    ->label('Service blocks')
-                                    ->helperText('Numbers (01, 02, …) are generated automatically by position.')
-                                    ->schema([
-                                        TextInput::make('name')
-                                            ->required()
-                                            ->placeholder('Website development'),
-
-                                        Textarea::make('description')
-                                            ->required()
-                                            ->rows(3),
-                                    ])
-                                    ->reorderable()
-                                    ->collapsible()
-                                    ->collapsed()
-                                    ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
-                                    ->defaultItems(0)
-                                    ->addActionLabel('Add service'),
                             ]),
 
                         Tab::make('Why us')

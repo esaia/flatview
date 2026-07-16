@@ -8,6 +8,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use IrepPlugin\FilamentIrep\Models\Project;
 
@@ -31,6 +33,10 @@ class HomepageSettings extends Page
         'headline',
         'subtitle',
         'demo_project_id',
+        'primary_button_label',
+        'primary_button_url',
+        'secondary_button_label',
+        'secondary_button_url',
     ];
 
     public ?array $data = [];
@@ -69,6 +75,43 @@ class HomepageSettings extends Page
                     ->label('Subtitle text')
                     ->rows(3)
                     ->required(),
+
+                Section::make('Hero buttons')
+                    ->description('The two call-to-action buttons shown below the subtitle.')
+                    ->icon('heroicon-o-cursor-arrow-rays')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('primary_button_label')
+                                    ->label('Primary button text')
+                                    ->prefixIcon('heroicon-o-pencil')
+                                    ->default('View Our Services')
+                                    ->placeholder('View Our Services')
+                                    ->required(),
+
+                                TextInput::make('primary_button_url')
+                                    ->label('Primary button link')
+                                    ->prefixIcon('heroicon-o-link')
+                                    ->default('/services')
+                                    ->placeholder('/services')
+                                    ->required(),
+
+                                TextInput::make('secondary_button_label')
+                                    ->label('Secondary button text')
+                                    ->prefixIcon('heroicon-o-pencil')
+                                    ->default('Get In Touch')
+                                    ->placeholder('Get In Touch')
+                                    ->required(),
+
+                                TextInput::make('secondary_button_url')
+                                    ->label('Secondary button link')
+                                    ->prefixIcon('heroicon-o-link')
+                                    ->default('/contact')
+                                    ->placeholder('/contact')
+                                    ->required(),
+                            ]),
+                    ])
+                    ->collapsible(),
             ])
             ->statePath('data');
     }

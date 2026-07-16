@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Service;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
@@ -33,6 +34,20 @@ class SitemapController extends Controller
                     <lastmod>{$lastmod}</lastmod>
                     <changefreq>{$meta['changefreq']}</changefreq>
                     <priority>{$meta['priority']}</priority>
+                </url>
+
+            XML;
+        }
+
+        foreach (Service::where('is_active', true)->get(['slug', 'updated_at']) as $service) {
+            $loc = htmlspecialchars(route('services.show', $service->slug), ENT_XML1);
+            $serviceLastmod = $service->updated_at?->toAtomString() ?? $lastmod;
+            $urls .= <<<XML
+                <url>
+                    <loc>{$loc}</loc>
+                    <lastmod>{$serviceLastmod}</lastmod>
+                    <changefreq>monthly</changefreq>
+                    <priority>0.7</priority>
                 </url>
 
             XML;
