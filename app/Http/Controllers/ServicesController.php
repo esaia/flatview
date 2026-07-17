@@ -87,9 +87,15 @@ class ServicesController extends Controller
             'buttonLink' => $get('services_cta_button_link', '/contact'),
         ];
 
+        $otherServices = Service::where('is_active', true)
+            ->where('id', '!=', $service->id)
+            ->orderBy('sort_order')
+            ->get(['name', 'slug', 'description']);
+
         return Inertia::render('ServiceShow', [
             'service' => $service,
             'cta' => $cta,
+            'otherServices' => $otherServices,
         ]);
     }
 
