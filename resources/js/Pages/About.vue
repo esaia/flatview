@@ -67,7 +67,13 @@ onUnmounted(() => {
 
 <template>
     <AppLayout active-page="about">
-        <div class="about-root overflow-x-hidden">
+        <div class="about-root relative overflow-x-hidden">
+
+            <!-- Brand logo, top-right -->
+            <div class="absolute top-7 right-8 md:top-10 md:right-16 z-30 flex items-center gap-2 md:gap-2.5 select-none">
+                <img src="/logo.svg" alt="FlatView" class="h-5 md:h-6 w-auto" draggable="false" />
+                <span class="text-black text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
+            </div>
 
             <!-- ── Section 1: Hero statement ─────────────────────────────── -->
             <section class="relative flex flex-col justify-start md:justify-center px-6 md:px-16 pt-28 pb-16 md:py-0 min-h-0 md:min-h-[86vh]">
