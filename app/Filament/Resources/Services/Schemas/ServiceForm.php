@@ -129,6 +129,30 @@ class ServiceForm
                                     ->addActionLabel('Add stat'),
                             ]),
 
+                        Block::make('button')
+                            ->label('Button')
+                            ->icon('heroicon-o-cursor-arrow-rays')
+                            ->schema([
+                                TextInput::make('label')
+                                    ->required()
+                                    ->placeholder('Get in touch'),
+
+                                TextInput::make('url')
+                                    ->label('Link')
+                                    ->required()
+                                    ->placeholder('/contact'),
+
+                                Select::make('style')
+                                    ->options(['solid' => 'Solid', 'outline' => 'Outline'])
+                                    ->default('solid')
+                                    ->required(),
+
+                                Select::make('alignment')
+                                    ->options(['left' => 'Left', 'center' => 'Center'])
+                                    ->default('left')
+                                    ->required(),
+                            ]),
+
                         Block::make('feature_list')
                             ->label('Feature list')
                             ->icon('heroicon-o-check-circle')

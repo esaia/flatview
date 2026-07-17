@@ -6,6 +6,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 const props = defineProps({
     service: { type: Object, required: true },
     cta: { type: Object, default: () => ({}) },
+    otherServices: { type: Array, default: () => [] },
 })
 
 const blocks = computed(() => props.service.content_blocks ?? [])
@@ -114,6 +115,24 @@ function imgSrc(path) {
                         </div>
                     </div>
 
+                    <!-- Button -->
+                    <div
+                        v-else-if="block.type === 'button'"
+                        class="flex"
+                        :class="block.data.alignment === 'center' ? 'justify-center' : 'justify-start'"
+                    >
+                        <a
+                            :href="block.data.url"
+                            class="inline-flex items-center gap-3 px-7 py-4 text-[11px] tracking-[0.25em] uppercase transition-colors duration-300 group"
+                            :class="block.data.style === 'outline'
+                                ? 'border border-black/15 text-black hover:bg-black hover:text-white'
+                                : 'bg-black text-white hover:bg-black/85'"
+                        >
+                            <span>{{ block.data.label }}</span>
+                            <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">↗</span>
+                        </a>
+                    </div>
+
                     <!-- Feature list -->
                     <div v-else-if="block.type === 'feature_list'">
                         <p class="kicker flex items-center gap-2 mb-8 md:mb-10"><span class="dot"></span> {{ block.data.heading }}</p>
@@ -130,6 +149,26 @@ function imgSrc(path) {
                     </div>
 
                 </template>
+            </div>
+
+            <!-- Other services -->
+            <div v-if="otherServices.length" class="max-w-[1400px] mx-auto px-6 md:px-16 pb-20 md:pb-32">
+                <p class="kicker flex items-center gap-2 mb-8 md:mb-10"><span class="dot"></span> Other services</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-black/10 border-t border-black/10">
+                    <Link
+                        v-for="other in otherServices"
+                        :key="other.slug"
+                        :href="`/services/${other.slug}`"
+                        class="group relative pt-8 pb-10 sm:px-8 first:sm:pl-0 last:sm:pr-0 flex flex-col border-b border-black/10 sm:border-b-0"
+                    >
+                        <h3 class="display text-xl md:text-2xl text-black mb-2.5 leading-snug" style="font-weight: 400;">{{ other.name }}</h3>
+                        <p class="text-sm text-black/45 font-light leading-relaxed flex-1 mb-6">{{ other.description }}</p>
+                        <span class="inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase text-black/50 group-hover:text-black transition-colors duration-300">
+                            Learn more
+                            <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                        </span>
+                    </Link>
+                </div>
             </div>
 
             <!-- Closing CTA -->
