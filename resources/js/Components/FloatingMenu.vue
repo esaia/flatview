@@ -270,16 +270,37 @@ onUnmounted(() => {
                 />
                 <span class="text-white text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
             </div>
-            <div v-if="socialLinks.length" class="flex items-center gap-3 md:gap-6">
-                <span class="hidden md:inline text-white/30 text-[10px] tracking-widest uppercase select-none">{{ socialLabel }}</span>
-                <a
-                    v-for="(social, i) in socialLinks"
-                    :key="i"
-                    :href="social.url || '#'"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200"
-                >{{ social.label }}</a>
+            <div class="flex items-center gap-6 md:gap-10">
+                <div class="flex items-center gap-3 md:gap-4">
+                    <span class="hidden md:inline text-white/30 text-[10px] tracking-widest uppercase select-none">Partner</span>
+                    <a
+                        href="https://www.ireplugin.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="opacity-60 hover:opacity-100 transition-opacity duration-200"
+                        aria-label="IREP Plugin"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" class="h-5 md:h-6 w-auto">
+                            <g transform="translate(0,500) scale(0.1,-0.1)" fill="#ffffff" stroke="#ffffff">
+                                <path d="M2750 4347 c-521 -241 -603 -282 -621 -312 -18 -29 -19 -93 -19 -1656 0 -1449 -2 -1628 -15 -1639 -23 -19 -180 15 -200 44 -13 18 -15 206 -15 1404 0 1244 -2 1385 -16 1407 -20 31 -70 48 -109 36 -73 -22 -692 -323 -713 -347 l-22 -25 0 -979 c0 -969 0 -979 -20 -990 -13 -7 -26 -7 -38 -1 -29 15 -182 179 -264 282 -81 101 -102 115 -156 100 -17 -5 -117 -75 -222 -156 -105 -80 -199 -145 -208 -144 -55 5 -82 -16 -82 -64 0 -40 9 -54 40 -65 42 -15 78 4 91 49 11 34 34 56 197 180 101 78 192 143 201 145 22 6 27 1 99 -91 94 -120 267 -292 300 -298 15 -3 40 0 57 7 64 27 60 -46 65 1035 l5 986 345 162 c189 90 350 163 357 163 6 0 19 -7 27 -16 14 -14 16 -155 16 -1399 0 -993 3 -1391 11 -1408 14 -32 35 -42 138 -67 94 -24 128 -20 162 16 l24 26 3 1632 c2 1538 3 1634 20 1648 13 12 619 301 680 325 7 3 22 -3 32 -12 20 -18 20 -42 20 -1792 0 -1957 -5 -1809 62 -1832 31 -11 100 -1 139 20 51 27 49 -10 49 1126 0 582 4 1063 8 1069 9 13 668 234 699 234 12 0 27 -9 33 -19 7 -13 10 -323 10 -934 l0 -914 25 -26 c32 -31 71 -39 110 -22 37 15 173 156 279 288 43 53 84 97 92 97 25 0 414 -301 414 -320 0 -57 85 -86 122 -41 41 51 8 116 -58 114 -35 -1 -57 12 -234 146 -108 81 -208 151 -223 155 -44 11 -82 -15 -153 -104 -98 -124 -202 -236 -247 -267 l-39 -27 -19 23 c-18 22 -19 57 -19 938 l0 915 -29 29 c-18 18 -40 29 -57 29 -26 0 -632 -194 -707 -227 -71 -31 -67 43 -67 -1132 0 -1174 5 -1083 -66 -1097 -27 -5 -40 -2 -52 10 -16 15 -17 152 -19 1789 -2 1403 -5 1777 -15 1796 -11 21 -61 51 -85 51 -4 0 -60 -24 -123 -53z" stroke-width="60"/>
+                                <path d="M2496 3648 c-22 -31 -20 -71 4 -93 20 -18 20 -31 20 -1417 0 -1385 0 -1400 -20 -1425 -41 -53 -14 -113 50 -113 64 0 91 60 50 113 -20 25 -20 40 -20 1422 0 1382 0 1397 20 1422 11 14 20 36 20 49 0 58 -92 89 -124 42z" stroke-width="60"/>
+                                <path d="M1430 2973 c-51 -19 -68 -84 -30 -118 20 -18 20 -31 20 -967 0 -935 0 -948 -20 -968 -11 -11 -20 -33 -20 -50 0 -65 79 -94 119 -44 26 34 27 64 1 92 -20 21 -20 35 -20 968 0 931 0 946 20 971 11 14 20 36 20 48 0 42 -52 82 -90 68z" stroke-width="60"/>
+                                <path d="M3487 2462 c-23 -26 -22 -78 3 -99 20 -17 20 -30 20 -643 0 -613 0 -626 -20 -643 -38 -33 -19 -115 28 -118 56 -4 78 9 87 53 5 23 2 38 -14 59 -21 28 -21 34 -21 650 0 606 0 621 20 646 25 33 25 54 -1 87 -25 32 -77 36 -102 8z" stroke-width="60"/>
+                            </g>
+                        </svg>
+                    </a>
+                </div>
+                <div v-if="socialLinks.length" class="flex items-center gap-3 md:gap-6">
+                    <span class="hidden md:inline text-white/30 text-[10px] tracking-widest uppercase select-none">{{ socialLabel }}</span>
+                    <a
+                        v-for="(social, i) in socialLinks"
+                        :key="i"
+                        :href="social.url || '#'"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-white/50 text-[10px] tracking-widest uppercase hover:text-white transition-colors duration-200"
+                    >{{ social.label }}</a>
+                </div>
             </div>
         </div>
     </div>
