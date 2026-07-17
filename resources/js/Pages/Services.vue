@@ -14,6 +14,10 @@ const num = (i) => String(i + 1).padStart(2, '0')
 const services = computed(() =>
     (props.settings.blocks ?? []).map((b, i) => ({ ...b, number: num(i) }))
 )
+
+// Service grid is laid out 2-up so it stays balanced for any count (4 = a clean 2x2).
+const isLastServiceCol = (i) => i % 2 === 1 || i + 1 >= services.value.length
+const isLastServiceRow = (i) => Math.floor(i / 2) === Math.floor((services.value.length - 1) / 2)
 const valueProps = computed(() => props.settings.valueprops ?? [])
 
 // Product feature showcase — each card pairs an admin-uploaded image with copy.
@@ -117,7 +121,13 @@ onUnmounted(() => {
 
 <template>
     <AppLayout active-page="services">
-        <div class="overflow-x-hidden">
+        <div class="relative overflow-x-hidden">
+
+            <!-- Brand logo, top-right -->
+            <div class="absolute top-7 right-8 md:top-10 md:right-16 z-30 flex items-center gap-2 md:gap-2.5 select-none">
+                <img src="/logo.svg" alt="FlatView" class="h-5 md:h-6 w-auto" draggable="false" />
+                <span class="text-black text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
+            </div>
 
             <!-- Hero text -->
             <div class="max-w-[1400px] mx-auto px-6 md:px-16 pt-14 md:pt-20 pb-14 md:pb-24">
@@ -214,25 +224,31 @@ onUnmounted(() => {
 
             <div class="max-w-[1400px] mx-auto px-6 md:px-16 pt-14 md:pt-24 pb-20 md:pb-32">
 
-                <!-- Three service blocks -->
-                <div class="grid grid-cols-1 md:grid-cols-3 md:divide-x divide-black/10 mb-16 md:mb-32">
+                <!-- Service blocks: 2-up grid, balanced for any count (e.g. a clean 2x2 for 4) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 mb-16 md:mb-32">
                     <Link
-                        v-for="service in services"
+                        v-for="(service, i) in services"
                         :key="service.number"
                         :href="`/services/${service.slug}`"
-                        class="group relative pt-8 pb-10 md:px-10 first:md:pl-0 last:md:pr-0 flex flex-col border-b border-black/10 md:border-b-0 last:border-b-0"
+                        class="group relative py-10 md:py-14 px-0 sm:px-10 md:px-14 flex flex-col border-b border-black/10 transition-colors duration-300 hover:bg-black/[0.02]"
+                        :class="[
+                            !isLastServiceCol(i) ? 'sm:border-r sm:border-black/10' : '',
+                            i % 2 === 0 ? 'sm:pl-0' : '',
+                            isLastServiceCol(i) ? 'sm:pr-0' : '',
+                            i === services.length - 1 ? 'border-b-0' : '',
+                            isLastServiceRow(i) ? 'sm:border-b-0' : '',
+                        ]"
                     >
                         <!-- Faded number -->
                         <span
-                            class="display absolute top-0 right-4 md:right-8 text-[6rem] md:text-[7rem] leading-none select-none text-black"
+                            class="display absolute top-0 right-4 md:right-8 text-[6rem] md:text-[8rem] leading-none select-none text-black"
                             style="opacity: 0.05;"
                         >
                             {{ service.number }}
                         </span>
 
-                        <div class="relative flex flex-col flex-1">
-                            <p class="kicker text-black/45 mb-4">{{ service.number }}</p>
-                            <h2 class="display text-2xl text-black mb-3 md:mb-4 leading-snug" style="font-weight: 400;">{{ service.name }}</h2>
+                        <div class="relative flex flex-col flex-1 max-w-md">
+                            <h2 class="display text-2xl md:text-3xl text-black mb-3 md:mb-4 leading-snug" style="font-weight: 400;">{{ service.name }}</h2>
                             <p class="text-sm text-black/45 font-light leading-relaxed flex-1 mb-6">{{ service.description }}</p>
                             <span class="inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase text-black/50 group-hover:text-black transition-colors duration-300">
                                 Learn more
