@@ -1,5 +1,6 @@
 <script setup>
 import FloatingMenu from '@/Components/FloatingMenu.vue'
+import WhatsAppButton from '@/Components/WhatsAppButton.vue'
 import { ref } from 'vue'
 
 defineProps({
@@ -21,5 +22,6 @@ const menuOpen = ref(false)
             <slot />
         </div>
         <FloatingMenu :alwaysVisible="alwaysVisible" @update:menuOpen="menuOpen = $event" />
+        <WhatsAppButton />
     </div>
 </template>
