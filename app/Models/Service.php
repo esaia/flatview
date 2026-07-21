@@ -21,8 +21,6 @@ class Service extends Model
         'is_active' => 'boolean',
     ];
 
-    public function getRouteKeyName(): string
-    {
-        return 'slug';
-    }
+    // No slug-based route key: a slug may be a full external URL, which would
+    // break admin URLs. The public route resolves the slug manually instead.
 }
