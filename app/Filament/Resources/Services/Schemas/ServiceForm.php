@@ -34,7 +34,7 @@ class ServiceForm
                 TextInput::make('slug')
                     ->required()
                     ->unique(ignoreRecord: true)
-                    ->helperText('Used in the page URL: /services/your-slug'),
+                    ->helperText('Used in the page URL: /services/your-slug. Or paste a full URL (https://…) to link the card straight to an external page instead.'),
 
                 Textarea::make('description')
                     ->label('Card description')

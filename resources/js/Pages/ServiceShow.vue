@@ -11,6 +11,10 @@ const props = defineProps({
 
 const blocks = computed(() => props.service.content_blocks ?? [])
 
+// A service "slug" may also be a full external URL — those open in a new tab.
+const isExternal = (slug) => /^https?:\/\//i.test(slug ?? '')
+const serviceHref = (slug) => (isExternal(slug) ? slug : `/services/${slug}`)
+
 function imgSrc(path) {
     if (!path) return ''
     if (path.startsWith('http')) return path
@@ -155,10 +159,13 @@ function imgSrc(path) {
             <div v-if="otherServices.length" class="max-w-[1400px] mx-auto px-6 md:px-16 pb-20 md:pb-32">
                 <p class="kicker flex items-center gap-2 mb-8 md:mb-10"><span class="dot"></span> Other services</p>
                 <div class="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-black/10 border-t border-black/10">
-                    <Link
+                    <component
+                        :is="isExternal(other.slug) ? 'a' : Link"
                         v-for="other in otherServices"
                         :key="other.slug"
-                        :href="`/services/${other.slug}`"
+                        :href="serviceHref(other.slug)"
+                        :target="isExternal(other.slug) ? '_blank' : null"
+                        :rel="isExternal(other.slug) ? 'noopener noreferrer' : null"
                         class="group relative pt-8 pb-10 sm:px-8 first:sm:pl-0 last:sm:pr-0 flex flex-col border-b border-black/10 sm:border-b-0"
                     >
                         <h3 class="display text-xl md:text-2xl text-black mb-2.5 leading-snug" style="font-weight: 400;">{{ other.name }}</h3>
@@ -167,7 +174,7 @@ function imgSrc(path) {
                             Learn more
                             <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
                         </span>
-                    </Link>
+                    </component>
                 </div>
             </div>
 

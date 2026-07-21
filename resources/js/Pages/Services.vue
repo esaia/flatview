@@ -26,6 +26,11 @@ const process = computed(() =>
     (props.settings.process ?? []).map((p, i) => ({ ...p, step: num(i) }))
 )
 
+// A service "slug" may also be a full external URL (e.g. a WordPress plugin page).
+// External ones open in a new tab via a plain <a>, internal ones stay Inertia links.
+const isExternal = (slug) => /^https?:\/\//i.test(slug ?? '')
+const serviceHref = (slug) => (isExternal(slug) ? slug : `/services/${slug}`)
+
 // Resolve a gallery image to a usable URL: pass external URLs through,
 // otherwise serve the stored relative path from the public disk symlink.
 function imgSrc(img) {
@@ -226,10 +231,13 @@ onUnmounted(() => {
 
                 <!-- Service blocks: 2-up grid, balanced for any count (e.g. a clean 2x2 for 4) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 mb-16 md:mb-32">
-                    <Link
+                    <component
+                        :is="isExternal(service.slug) ? 'a' : Link"
                         v-for="(service, i) in services"
                         :key="service.number"
-                        :href="`/services/${service.slug}`"
+                        :href="serviceHref(service.slug)"
+                        :target="isExternal(service.slug) ? '_blank' : null"
+                        :rel="isExternal(service.slug) ? 'noopener noreferrer' : null"
                         class="group relative py-10 md:py-14 px-0 sm:px-10 md:px-14 flex flex-col border-b border-black/10 transition-colors duration-300 hover:bg-black/[0.02]"
                         :class="[
                             !isLastServiceCol(i) ? 'sm:border-r sm:border-black/10' : '',
@@ -255,7 +263,7 @@ onUnmounted(() => {
                                 <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
                             </span>
                         </div>
-                    </Link>
+                    </component>
                 </div>
 
                 <!-- Why Flatview -->
