@@ -17,9 +17,17 @@ function openWhatsApp() {
 <template>
     <button
         @click="openWhatsApp"
-        :class="menuOpen ? 'z-30' : 'z-50'"
-        class="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 md:bottom-8 md:right-8 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-transform duration-300 hover:scale-105 active:scale-95"
-        style="background-color: #25D366;"
+        :style="{
+            backgroundColor: '#25D366',
+            zIndex: menuOpen ? 30 : 50,
+            // Drop behind the panel immediately on open, but wait for the panel
+            // to finish sliding away before coming back on top — otherwise the
+            // button pops in over the still-closing menu.
+            transition: menuOpen
+                ? 'transform 300ms, z-index 0s'
+                : 'transform 300ms, z-index 0s var(--menu-duration)',
+        }"
+        class="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 md:bottom-8 md:right-8 flex items-center justify-center w-14 h-14 rounded-full shadow-lg hover:scale-105 active:scale-95"
         aria-label="Chat with us on WhatsApp"
     >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="relative h-7 w-7 text-white">
