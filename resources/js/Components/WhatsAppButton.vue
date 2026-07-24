@@ -1,4 +1,10 @@
 <script setup>
+defineProps({
+    // While the floating menu is open the panel (z-40) must cover this button,
+    // so drop below it instead of sitting on top at z-50.
+    menuOpen: { type: Boolean, default: false },
+})
+
 const PHONE = '995592246555'
 const DEFAULT_MESSAGE = "Hi! I'd like to know more about FlatView."
 
@@ -11,7 +17,8 @@ function openWhatsApp() {
 <template>
     <button
         @click="openWhatsApp"
-        class="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 md:bottom-8 md:right-8 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-transform duration-300 hover:scale-105 active:scale-95"
+        :class="menuOpen ? 'z-30' : 'z-50'"
+        class="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 md:bottom-8 md:right-8 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-transform duration-300 hover:scale-105 active:scale-95"
         style="background-color: #25D366;"
         aria-label="Chat with us on WhatsApp"
     >

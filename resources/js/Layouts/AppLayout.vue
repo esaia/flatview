@@ -22,6 +22,6 @@ const menuOpen = ref(false)
             <slot />
         </div>
         <FloatingMenu :alwaysVisible="alwaysVisible" @update:menuOpen="menuOpen = $event" />
-        <WhatsAppButton />
+        <WhatsAppButton :menuOpen="menuOpen" />
     </div>
 </template>
