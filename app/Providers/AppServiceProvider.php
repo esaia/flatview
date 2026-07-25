@@ -26,6 +26,17 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
+        // Load Vite-injected CSS non-blocking: browser downloads CSS in parallel
+        // with HTML parsing (preload hints already exist) and applies it on load.
+        // This eliminates render-blocking CSS without FOUC — the Inertia app
+        // renders via JS anyway, so there is no SSR content to flash unstyled.
+        Vite::useStyleTagAttributes(function () {
+            return [
+                'media'  => 'print',
+                'onload' => "this.onload=null;this.media='all'",
+            ];
+        });
+
         $this->optimizeFileUploads();
     }
 

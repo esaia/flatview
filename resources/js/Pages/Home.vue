@@ -7,6 +7,14 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 // chunk so the hero text + featured image paint first; it loads after mount.
 const IreProject360 = defineAsyncComponent(() => import('@/irep/shortcodes/IreProject360.vue'))
 
+// IntersectionObserver ref — points at the media panel wrapper div.
+const viewerContainerEl = ref(null)
+// Becomes true when the media panel enters the viewport (or is visible on mount).
+// On mobile the panel is order-2 (below the fold), so the viewer chunk and its
+// 380 KiB of JS only download once the user scrolls to it, keeping Lighthouse
+// mobile metrics clean. On desktop the panel is visible immediately.
+const viewerInView = ref(false)
+
 const props = defineProps({
     settings: {
         type: Object,
@@ -64,14 +72,27 @@ function onDemoReady() {
 }
 
 onMounted(() => {
-    setTimeout(() => { minElapsed.value = true; maybeReveal() }, 800)
-    // Safety cap: reveal the hero even if the demo hasn't painted yet. Kept
-    // short so LCP isn't held hostage by the heavy 360 demo on slow networks
-    // (the demo's first frame needs the deferred ~3MB payload + a panorama
-    // image, ~7-8s on throttled mobile). On fast connections the demo still
-    // reports ready before this fires, preserving the branded reveal; on slow
-    // ones we reveal the text now and let the 360 panel show its own loader.
-    setTimeout(reveal, 1800)
+    setTimeout(() => { minElapsed.value = true; maybeReveal() }, 1500)
+    // Safety cap: reveal the hero even if the demo hasn't painted yet.
+    // 1600ms is 100ms above the minElapsed mark so the reveal always fires
+    // at ≤1.5s, regardless of network speed or whether the 360 viewer loaded.
+    setTimeout(reveal, 1600)
+
+    // Watch the media panel and only mount IreProject360 when it enters the
+    // viewport. On desktop it is immediately visible (left half of split screen)
+    // so the observer fires on the first paint cycle. On mobile the panel is
+    // below the fold (order-2), so the 380 KiB viewer chunk stays unloaded
+    // until the user scrolls to it — this eliminates it from PageSpeed's
+    // "Reduce unused JavaScript" audit on the mobile report.
+    if (props.demoProjectId && viewerContainerEl.value) {
+        const io = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                viewerInView.value = true
+                io.disconnect()
+            }
+        }, { rootMargin: '200px' })
+        io.observe(viewerContainerEl.value)
+    }
 })
 </script>
 
@@ -87,7 +108,7 @@ onMounted(() => {
             <div class="flex items-center gap-3 md:gap-4 select-none">
                 <!-- Logo mask: mark slides in from the right -->
                 <span class="loader-mask">
-                    <img src="/logo.svg" alt="FlatView" class="loader-logo h-9 md:h-12 w-auto" draggable="false" />
+                    <img src="/logo.svg" alt="FlatView" class="loader-logo h-9 md:h-12 w-auto" width="32" height="36" draggable="false" />
                 </span>
                 <!-- Text mask: wordmark slides in from the left -->
                 <span class="loader-mask">
@@ -99,15 +120,27 @@ onMounted(() => {
         <div class="relative overflow-x-hidden md:h-screen md:overflow-hidden" :class="{ 'hero-ready': heroReady }">
             <div class="flex flex-col md:flex-row select-none md:absolute md:inset-0">
                 <!-- Interactive 360 demo panel -->
-                <div class="hero-media relative order-2 w-full h-[70dvh] overflow-hidden bg-black md:order-none md:absolute md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full md:z-20">
-                    <IreProject360 v-if="demoProjectId && props.demoData" :project-id="demoProjectId" :data="props.demoData" @ready="onDemoReady" class="absolute inset-0 h-full w-full" />
+                <div ref="viewerContainerEl" class="hero-media relative order-2 w-full h-[70dvh] overflow-hidden bg-white md:order-none md:absolute md:inset-y-0 md:left-0 md:right-auto md:w-1/2 md:h-full md:z-20">
+                    <!-- Skeleton placeholder: visible until the viewer paints its first frame -->
+                    <div
+                        v-if="demoProjectId"
+                        class="viewer-placeholder absolute inset-0 flex flex-col items-center justify-center gap-4"
+                        :class="{ 'opacity-0': demoReady }"
+                        aria-hidden="true"
+                    >
+                        <div class="viewer-ring">
+                            <div class="viewer-ring-dot"></div>
+                        </div>
+                        <span class="viewer-label">360° Interactive</span>
+                    </div>
+                    <IreProject360 v-if="demoProjectId && props.demoData && viewerInView" :project-id="demoProjectId" :data="props.demoData" @ready="onDemoReady" class="absolute inset-0 h-full w-full" />
                 </div>
 
                 <!-- Content panel -->
                 <div class="hero-content relative order-1 w-full min-h-[60svh] py-20 bg-white flex flex-col justify-center px-7 md:px-14 lg:px-20 md:py-0 md:order-none md:absolute md:inset-y-0 md:left-auto md:right-0 md:w-1/2 md:h-full md:z-10">
                     <!-- Brand logo, top-right -->
                     <div class="absolute top-7 right-7 md:top-10 md:right-14 lg:right-20 flex items-center gap-2 md:gap-2.5 select-none">
-                        <img src="/logo.svg" alt="FlatView" class="h-5 md:h-6 w-auto" draggable="false" />
+                        <img src="/logo.svg" alt="FlatView" class="h-5 md:h-6 w-auto" width="18" height="20" draggable="false" />
                         <span class="text-black text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
                     </div>
 
@@ -199,5 +232,47 @@ onMounted(() => {
 .hero-media :deep(.irep-project-360-viewer) {
     position: absolute;
     inset: 0;
+}
+
+/* ── Viewer skeleton / placeholder ───────────────────────────────────────────
+ * Shown on the left panel while the 360 viewer is loading.
+ * Fades out (opacity-0 toggled in template) when the viewer fires @ready. */
+.viewer-placeholder {
+    background: #fff;
+    /* Subtle dot grid — architectural / blueprint feel */
+    background-image: radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: -14px -14px;
+    transition: opacity 0.6s ease;
+}
+.viewer-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.viewer-ring-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #5DCAA5;
+    animation: viewer-pulse 2s ease-in-out infinite;
+}
+@keyframes viewer-pulse {
+    0%, 100% { opacity: 0.4; transform: scale(0.85); }
+    50%       { opacity: 1;   transform: scale(1.1); }
+}
+.viewer-label {
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.2);
+    user-select: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .viewer-ring-dot { animation: none; opacity: 0.7; }
 }
 </style>

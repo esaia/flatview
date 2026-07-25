@@ -43,11 +43,24 @@
         <meta name="twitter:description" content="{{ $seoDescription }}">
         <meta name="twitter:image" content="{{ $seoImage }}">
 
-        <!-- Fonts — loaded non-render-blocking: the stylesheet is fetched as
-             `print` (ignored for layout) then flipped to `all` on load, so the
-             page paints in the system fallback and swaps to Inter/Fraunces when
-             ready (display=swap). Removes ~750ms of render-blocking on mobile. -->
+        <!-- Critical CSS: inlined to prevent CLS when the async main stylesheet loads.
+             The non-blocking CSS trick (media=print swap) means the page may render
+             briefly before the stylesheet applies. These minimal rules anchor the
+             font-family and box model so nothing shifts when the full CSS arrives. -->
+        <style>*,::before,::after{box-sizing:border-box}body{margin:0;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}img,svg{display:block}</style>
+
+        <!-- Fonts — critical woff2 files preloaded directly so the browser fetches
+             them in parallel with HTML parsing, eliminating the 2-hop delay of
+             waiting for the font CSS to be parsed before discovery.
+             Fraunces-300 is the hero h1 / LCP font; Inter-400 is the body font.
+             The full font CSS still loads non-blocking for @font-face definitions. -->
         <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+        <link rel="preload" as="font" type="font/woff2"
+              href="https://fonts.bunny.net/fraunces/files/fraunces-latin-300-normal.woff2"
+              crossorigin fetchpriority="high">
+        <link rel="preload" as="font" type="font/woff2"
+              href="https://fonts.bunny.net/inter/files/inter-latin-400-normal.woff2"
+              crossorigin>
         <link href="https://fonts.bunny.net/css?family=inter:300,400,500,700|fraunces:300,400,400i,500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
         <noscript><link href="https://fonts.bunny.net/css?family=inter:300,400,500,700|fraunces:300,400,400i,500&display=swap" rel="stylesheet" /></noscript>
 
