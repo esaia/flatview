@@ -1,6 +1,6 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
-import { useForm, usePage } from '@inertiajs/vue3'
+import { Link, useForm, usePage } from '@inertiajs/vue3'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const props = defineProps({
@@ -100,10 +100,10 @@ function reset() {
         <div class="relative flex flex-col md:flex-row h-screen overflow-hidden">
 
             <!-- Brand logo, top-right -->
-            <div class="absolute top-7 right-8 md:top-10 md:right-16 z-30 flex items-center gap-2 md:gap-2.5 select-none">
+            <Link href="/" class="absolute top-7 right-8 md:top-10 md:right-16 z-30 flex items-center gap-2 md:gap-2.5 select-none cursor-pointer">
                 <img src="/logo.svg" alt="FlatView" class="h-5 md:h-6 w-auto" draggable="false" />
                 <span class="text-black text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
-            </div>
+            </Link>
 
 
             <!-- LEFT: 2×2 image grid, edge-to-edge, fixed height -->

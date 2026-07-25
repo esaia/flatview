@@ -110,7 +110,7 @@ const handleRequestCallbackClick = () => {
 
       <div
         v-if="showCallbackButton"
-        class="irep-flat-preview__form-panel ease-in-out-quint ire-mt-4 ire-h-full ire-w-full ire-flex-[1_0_auto] ire-origin-right ire-px-6 ire-py-4 ire-transition-transform ire-duration-300"
+        class="irep-flat-preview__form-panel ease-in-out-quint ire-h-full ire-w-full ire-flex-[1_0_auto] ire-origin-right ire-px-6 ire-py-4 ire-transition-transform ire-duration-300"
         :class="{
           '!ire-h-0 ire-translate-x-full ire-scale-0': !showForm,
           '-ire-translate-x-full': showForm,

@@ -49,3 +49,15 @@ defineEmits<{
     </div>
   </div>
 </template>
+
+<style scoped>
+/* The site pins a floating menu button to bottom-centre on mobile, exactly
+   where these centred nav arrows sit. Lift the arrows above it (clearing the
+   button height + the device safe-area) on small screens; desktop keeps the
+   default bottom-4 from the utility class. */
+@media (max-width: 767px) {
+  .irep-navigation-arrows {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+}
+</style>
