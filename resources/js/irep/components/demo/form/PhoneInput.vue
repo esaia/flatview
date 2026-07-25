@@ -292,7 +292,7 @@ onBeforeUnmount(() => {
                 inputmode="tel"
                 @focus="focused = true"
                 @blur="focused = false"
-                class="irep-phone__input no-spinner ire-w-full ire-rounded-r-md !ire-border-none ire-bg-transparent ire-pb-2 ire-pr-3 ire-pt-5 ire-text-base !ire-outline-none"
+                class="irep-phone__input no-spinner ire-w-full ire-min-w-0 ire-rounded-r-md !ire-border-none ire-bg-transparent ire-pb-2 ire-pr-3 ire-pt-5 ire-text-base !ire-outline-none"
             />
 
             <!-- Dropdown -->
@@ -345,8 +345,11 @@ onBeforeUnmount(() => {
                                         :class="part.hit ? 'irep-phone__hit' : ''"
                                         >{{ part.text }}</span
                                     ></template
-                                >+{{ c.dial }}
+                                >
                             </span>
+                            <span class="irep-phone__dial ire-text-gray-500"
+                                >+{{ c.dial }}</span
+                            >
                         </li>
                         <li
                             v-if="!filtered.length"
@@ -388,9 +391,12 @@ onBeforeUnmount(() => {
 }
 
 .irep-phone__dropdown {
-    width: max-content;
+    /* Match the field width exactly so the absolutely-positioned dropdown can
+       never overflow to the right — that overflow was shoving the centered
+       modal leftward on narrow (mobile) screens when the list opened. */
+    width: 100%;
     min-width: 100%;
-    max-width: 360px;
+    max-width: 100%;
     max-height: 18rem;
 }
 
