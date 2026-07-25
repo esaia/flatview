@@ -1,10 +1,9 @@
 import '../css/app.css';
-// Fancybox base CSS must load BEFORE irep.css so irep.css's overrides win —
-// notably the lightbox z-index (999999), which must sit above the flat modal
-// (99999). The standalone sheet defaults to z-index 1050 and would otherwise
-// render the lightbox behind the modal.
-import '@fancyapps/ui/dist/fancybox/fancybox.css';
-import '../css/irep.css';
+// NOTE: Fancybox + irep.css (≈87 KiB) are NOT imported here. They used to be
+// global, which bundled them into the render-blocking app.css on every page
+// even though `ire-` classes only appear inside the async-loaded 360 viewer.
+// They now load with that viewer's chunk (see IreProject360.vue), keeping the
+// critical CSS on non-viewer pages small.
 import './bootstrap';
 
 import { createInertiaApp } from '@inertiajs/vue3';
