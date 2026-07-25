@@ -145,9 +145,12 @@ const actions = computed(() => shortcodeData.value?.actions);
 const containerRef = ref<HTMLDivElement | null>(null);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const svgRef = ref<HTMLDivElement | null>(null);
-// Open the sidebar by default on the dedicated project page (e.g. /project/360-module-demo),
-// but keep it closed on the home page.
-const isSidebarOpen = ref(
+// Keep the sidebar closed by default everywhere; the user opens it via the toggle.
+const isSidebarOpen = ref(false);
+// True only on the standalone full-screen /project/<slug> page, where the viewer
+// fills the viewport. Used to pin the navigation arrows to the visual viewport
+// so iOS in-app browsers don't clip them under a persistent bottom toolbar.
+const isStandalonePage = ref(
     typeof window !== "undefined" &&
         window.location.pathname.startsWith("/project/"),
 );
@@ -214,8 +217,6 @@ const handleNav = (dir: -1 | 1) => {
 };
 
 onMounted(() => {
-    isSidebarOpen.value = window.location.pathname.startsWith("/project/");
-
     const params = new URLSearchParams(window.location.search);
     const flatId = params.get("flatId");
     const projectId = params.get("projectId");
@@ -455,6 +456,7 @@ provide("focusFlatOnViewer", (flat: { id?: string } | null) => {
                             </div>
 
                             <NavigationArrows
+                                :pin-to-viewport="isStandalonePage"
                                 @prev="handleNav(-1)"
                                 @next="handleNav(1)"
                                 @mouseenter="nearNav = true"

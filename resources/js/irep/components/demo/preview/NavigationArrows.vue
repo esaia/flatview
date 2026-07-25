@@ -3,11 +3,22 @@ defineEmits<{
   (e: "prev"): void;
   (e: "next"): void;
 }>();
+
+// When the viewer fills the whole screen (standalone /project page), pin the
+// arrows to the visual viewport with `fixed` instead of `absolute`. iOS in-app
+// browsers (e.g. X/WKWebView with a persistent bottom toolbar) can report the
+// viewer's `100svh` height as taller than the visible area, pushing an
+// `absolute` bottom-anchored bar under the toolbar. `fixed` tracks the real
+// viewport — the same reason the site's floating buttons stay visible there.
+withDefaults(defineProps<{ pinToViewport?: boolean }>(), {
+  pinToViewport: false,
+});
 </script>
 
 <template>
   <div
-    class="irep-navigation-arrows ire-absolute ire-bottom-4 ire-left-1/2 ire-z-10 ire-flex -ire-translate-x-1/2 ire-items-center ire-gap-3 ire-rounded-xl ire-bg-white/20 ire-px-6 ire-py-4"
+    class="irep-navigation-arrows ire-bottom-4 ire-left-1/2 ire-z-10 ire-flex -ire-translate-x-1/2 ire-items-center ire-gap-3 ire-rounded-xl ire-bg-white/20 ire-px-6 ire-py-4"
+    :class="pinToViewport ? 'ire-fixed' : 'ire-absolute'"
   >
     <div
       class="irep-navigation-arrows__prev ire-flex ire-h-12 ire-w-12 ire-cursor-pointer ire-items-center ire-justify-center ire-rounded-xl ire-bg-white/70 ire-shadow-md ire-backdrop-blur-sm ire-transition hover:ire-bg-white"

@@ -79,7 +79,7 @@ const handleRequestCallbackClick = () => {
   <transition name="ire-fade-in-out" mode="out-in">
     <div
       v-if="showForm"
-      class="irep-flat-preview-two__form-panel ire-m-4 ire-max-h-[calc(100dvh-5rem)] ire-overflow-y-auto"
+      class="irep-flat-preview-two__form-panel ire-m-4 ire-max-h-[calc(95svh-5rem)] ire-overflow-y-auto"
     >
       <ReservationForm :flat="flat" @hideForm="showForm = false" />
     </div>
@@ -92,7 +92,7 @@ const handleRequestCallbackClick = () => {
       </div>
 
       <div
-        class="irep-flat-preview-two__body ire-max-h-[calc(100dvh-16rem)] ire-min-h-0 ire-overflow-y-auto sm:ire-max-h-[min(700px,calc(100dvh-14rem))]"
+        class="irep-flat-preview-two__body ire-max-h-[calc(95svh-9rem)] ire-min-h-0 ire-overflow-y-auto sm:ire-max-h-[min(700px,calc(95svh-9rem))]"
       >
         <FlatSwiperTwo :flat="flat" :floors="floors" />
 
