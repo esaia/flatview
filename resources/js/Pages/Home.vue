@@ -65,9 +65,13 @@ function onDemoReady() {
 
 onMounted(() => {
     setTimeout(() => { minElapsed.value = true; maybeReveal() }, 800)
-    // Safety cap: never hold the loader longer than 8s, even if the demo
-    // never reports ready.
-    setTimeout(reveal, 8000)
+    // Safety cap: reveal the hero even if the demo hasn't painted yet. Kept
+    // short so LCP isn't held hostage by the heavy 360 demo on slow networks
+    // (the demo's first frame needs the deferred ~3MB payload + a panorama
+    // image, ~7-8s on throttled mobile). On fast connections the demo still
+    // reports ready before this fires, preserving the branded reveal; on slow
+    // ones we reveal the text now and let the 360 panel show its own loader.
+    setTimeout(reveal, 1800)
 })
 </script>
 
@@ -112,7 +116,7 @@ onMounted(() => {
                         <h1 class="reveal display hero-h1 text-black mb-8 md:mb-9 text-balance" style="--d: .08s; line-height: 1.06; font-weight: 300; letter-spacing: -0.022em; white-space: pre-line">{{ props.settings.headline || "Digital\nPresence\nFor Builders." }}</h1>
 
                         <!-- subtitle -->
-                        <p class="reveal border-l border-black/10 pl-5 text-black/50 text-[14px] md:text-[15px] leading-[1.75] max-w-[420px] mb-10 md:mb-12" style="--d: .16s">
+                        <p class="reveal border-l border-black/10 pl-5 text-black/60 text-[14px] md:text-[15px] leading-[1.75] max-w-[420px] mb-10 md:mb-12" style="--d: .16s">
                             {{ props.settings.subtitle || 'Websites and interactive floor plan tools for construction and real estate companies.' }}
                         </p>
 

@@ -13,14 +13,14 @@ const menuOpen = ref(false)
 
 <template>
     <div class="min-h-screen bg-white overflow-hidden">
-        <div
+        <main
             :style="{
                 transform: menuOpen ? 'translateY(var(--menu-shift))' : 'none',
                 transition: 'transform var(--menu-duration) var(--menu-ease)',
             }"
         >
             <slot />
-        </div>
+        </main>
         <FloatingMenu :alwaysVisible="alwaysVisible" @update:menuOpen="menuOpen = $event" />
         <WhatsAppButton :menuOpen="menuOpen" />
     </div>

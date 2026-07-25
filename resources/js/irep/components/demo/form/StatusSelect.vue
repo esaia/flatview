@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useGlobalStore } from "../../../store/useGlobal";
-import { getCustomTypeColor } from "../../../composable/helper";
+import { getCustomTypeColor, tr } from "../../../composable/helper";
 import type { selectDataItem } from "../../../types/DemoTypes";
 
 const props = withDefaults(
@@ -151,6 +151,7 @@ onBeforeUnmount(() => {
       role="combobox"
       aria-haspopup="listbox"
       :aria-expanded="open"
+      :aria-label="selected?.title || tr('Status')"
       @click="toggle"
       @keydown="onTriggerKeydown"
     >
