@@ -5,11 +5,15 @@ defineEmits<{
 }>();
 
 // When the viewer fills the whole screen (standalone /project page), pin the
-// arrows to the visual viewport with `fixed` instead of `absolute`. iOS in-app
-// browsers (e.g. X/WKWebView with a persistent bottom toolbar) can report the
-// viewer's `100svh` height as taller than the visible area, pushing an
-// `absolute` bottom-anchored bar under the toolbar. `fixed` tracks the real
-// viewport — the same reason the site's floating buttons stay visible there.
+// arrows to the visual viewport with `fixed` instead of `absolute` — but only
+// on mobile (`md:ire-absolute` restores canvas-relative centering on desktop).
+// iOS in-app browsers (e.g. X/WKWebView with a persistent bottom toolbar) can
+// report the viewer's `100svh` height as taller than the visible area, pushing
+// an `absolute` bottom-anchored bar under the toolbar; `fixed` tracks the real
+// viewport, like the site's floating buttons. On mobile the sidebar is a
+// full-width overlay so the canvas spans the viewport and `left-1/2` still
+// centers correctly; on desktop the sidebar is inline, so we must stay
+// `absolute` to center within the (narrower) canvas rather than the viewport.
 withDefaults(defineProps<{ pinToViewport?: boolean }>(), {
   pinToViewport: false,
 });
@@ -17,8 +21,8 @@ withDefaults(defineProps<{ pinToViewport?: boolean }>(), {
 
 <template>
   <div
-    class="irep-navigation-arrows ire-bottom-4 ire-left-1/2 ire-z-10 ire-flex -ire-translate-x-1/2 ire-items-center ire-gap-3 ire-rounded-xl ire-bg-white/20 ire-px-6 ire-py-4"
-    :class="pinToViewport ? 'ire-fixed' : 'ire-absolute'"
+    class="irep-navigation-arrows ire-absolute ire-bottom-4 ire-left-1/2 ire-z-10 ire-flex -ire-translate-x-1/2 ire-items-center ire-gap-3 ire-rounded-xl ire-bg-white/20 ire-px-6 ire-py-4"
+    :class="{ 'irep-navigation-arrows--pinned': pinToViewport }"
   >
     <div
       class="irep-navigation-arrows__prev ire-flex ire-h-12 ire-w-12 ire-cursor-pointer ire-items-center ire-justify-center ire-rounded-xl ire-bg-white/70 ire-shadow-md ire-backdrop-blur-sm ire-transition hover:ire-bg-white"
@@ -69,6 +73,16 @@ withDefaults(defineProps<{ pinToViewport?: boolean }>(), {
 @media (max-width: 767px) {
   .irep-navigation-arrows {
     bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  /* On the standalone full-screen project page, pin to the visual viewport so
+     iOS in-app browsers (persistent bottom toolbar) don't clip the arrows under
+     it. Mobile only: the sidebar is a full-width overlay there, so the canvas
+     spans the viewport and `left-1/2` still centres correctly. On desktop the
+     sidebar is inline, so we must stay `absolute` (centred within the narrower
+     canvas) — hence this override lives inside the mobile media query. */
+  .irep-navigation-arrows--pinned {
+    position: fixed;
   }
 }
 </style>
