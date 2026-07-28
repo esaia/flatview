@@ -1,5 +1,6 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
+import CountryDialSelect from '@/Components/CountryDialSelect.vue'
 import { Link, useForm, usePage } from '@inertiajs/vue3'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
@@ -20,10 +21,20 @@ const sent = ref(false)
 const form = useForm({
     name:    '',
     email:   '',
+    phone:   '',
     company: '',
     message: '',
     cf_turnstile_response: '',
 })
+
+/* ── Phone with dial-code prefix ───────────────────── */
+const dialCode = ref('+995')
+const phoneNumber = ref('')
+
+function syncPhone() {
+    const digits = phoneNumber.value.replace(/[^\d]/g, '')
+    form.phone = digits ? `${dialCode.value} ${digits}` : ''
+}
 
 /* ── Cloudflare Turnstile ──────────────────────────── */
 const turnstileEl = ref(null)
@@ -77,9 +88,12 @@ onMounted(renderTurnstile)
 onBeforeUnmount(removeTurnstile)
 
 function submit() {
+    syncPhone()
     form.post('/contact', {
         onSuccess: () => {
             form.reset()
+            phoneNumber.value = ''
+            dialCode.value = '+995'
             sent.value = true
         },
         // Turnstile tokens are single-use — refresh on any failed attempt.
@@ -245,6 +259,28 @@ function reset() {
                                     required
                                 />
                                 <p v-if="form.errors.email" class="text-xs text-red-500 mt-1.5">{{ form.errors.email }}</p>
+                            </div>
+
+                            <div class="border-b border-black/15 pb-4 focus-within:border-black/40 transition-colors duration-300">
+                                <label class="block text-xs font-medium tracking-[0.25em] uppercase text-black/30 mb-2">Phone *</label>
+                                <div class="flex items-center gap-2.5">
+                                    <CountryDialSelect
+                                        v-model="dialCode"
+                                        @update:modelValue="syncPhone"
+                                        class="shrink-0"
+                                    />
+                                    <span class="w-px h-4 bg-black/15 shrink-0"></span>
+                                    <input
+                                        v-model="phoneNumber"
+                                        @input="syncPhone"
+                                        type="tel"
+                                        inputmode="numeric"
+                                        class="flex-1 min-w-0 bg-transparent border-none text-sm text-black placeholder-black/20 outline-none focus:ring-0 p-0 font-light"
+                                        placeholder="555 123 456"
+                                        required
+                                    />
+                                </div>
+                                <p v-if="form.errors.phone" class="text-xs text-red-500 mt-1.5">{{ form.errors.phone }}</p>
                             </div>
 
                             <div class="border-b border-black/15 pb-4 focus-within:border-black/40 transition-colors duration-300">

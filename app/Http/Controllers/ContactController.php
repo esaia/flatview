@@ -68,6 +68,7 @@ class ContactController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:32',
             'company' => 'nullable|string|max:255',
             'message' => 'required|string|max:5000',
             'cf_turnstile_response' => 'required|string',

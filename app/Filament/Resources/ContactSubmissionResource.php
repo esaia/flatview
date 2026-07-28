@@ -57,6 +57,7 @@ class ContactSubmissionResource extends Resource
             InfolistSection::make('Message')->schema([
                 TextEntry::make('name'),
                 TextEntry::make('email')->copyable(),
+                TextEntry::make('phone')->copyable()->placeholder('—'),
                 TextEntry::make('company')->placeholder('—'),
                 TextEntry::make('created_at')->dateTime()->label('Submitted At'),
                 TextEntry::make('message')->columnSpanFull(),
@@ -83,6 +84,12 @@ class ContactSubmissionResource extends Resource
                 TextColumn::make('email')
                     ->searchable()
                     ->copyable(),
+
+                TextColumn::make('phone')
+                    ->searchable()
+                    ->copyable()
+                    ->placeholder('—')
+                    ->toggleable(),
 
                 TextColumn::make('company')
                     ->searchable()
