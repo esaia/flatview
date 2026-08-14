@@ -7,6 +7,7 @@ use App\Http\Controllers\IrepController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\SyncArchiveController;
 use App\Http\Controllers\WorkController;
 use App\Support\IrepShortcode;
 use Illuminate\Http\Request;
@@ -68,6 +69,12 @@ Route::post('/irep/reservation', function (Request $request) {
 
     return response()->json(['success' => true, 'data' => $reservation]);
 });
+
+// Download endpoint for the admin Export / Import page. Kept out of Livewire so
+// large archives stream instead of being encoded into a JSON payload.
+Route::get('/admin/sync/download/{archive}', SyncArchiveController::class)
+    ->middleware('auth')
+    ->name('admin.sync.download');
 
 require __DIR__ . '/auth.php';
 
