@@ -217,8 +217,14 @@ const actionFromQuery = () => {
     `[data-project-id="${projectId}"]`,
   );
 
-  const floor = shortcodeData.value?.floors?.find((i) => i.id === floorId);
-  const flat = shortcodeData.value?.flats?.find((i) => i.id === flatId);
+  // Ids come out of the URL as strings while the payload types them as numbers,
+  // so compare loosely or a shared link never resolves its flat.
+  const floor = shortcodeData.value?.floors?.find(
+    (i) => String(i.id) === String(floorId),
+  );
+  const flat = shortcodeData.value?.flats?.find(
+    (i) => String(i.id) === String(flatId),
+  );
 
   const scrollToProject = () => projectWrapperDiv?.scrollIntoView();
 

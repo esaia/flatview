@@ -83,11 +83,30 @@ export interface ProjectInterface {
   title: string;
   svg: string;
   project_image: imageInterface[];
+  /** Image used below the project's mobile breakpoint, for view 1. */
+  mobile_image?: imageInterface[] | null;
+  /** Label of view 1 in the view switcher. */
+  view_label?: string | null;
+  /** SVG + polygons drawn on view 1's mobile image. */
+  mobile_svg?: string | null;
+  mobile_polygon_data?: PolygonDataCollection[] | null;
+  /** Additional views (2..N), each with its own image and polygons. */
+  views?: ProjectViewInterface[] | null;
   slug: string;
   polygon_data: PolygonDataCollection[];
   ["360images"]: ImageInterface360[];
   created_at: string;
   updated_at: string;
+}
+
+export interface ProjectViewInterface {
+  label: string;
+  image: imageInterface | null;
+  mobile_image: imageInterface | null;
+  svg: string;
+  polygon_data: PolygonDataCollection[];
+  mobile_svg: string;
+  mobile_polygon_data: PolygonDataCollection[];
 }
 
 export interface ImageInterface360 {

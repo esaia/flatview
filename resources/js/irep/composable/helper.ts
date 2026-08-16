@@ -347,6 +347,28 @@ export const extractYoutubeId = (url?: string): string => {
   return m ? m[1] : "";
 };
 
+/**
+ * A media entry is only renderable when it carries a source. Imported projects
+ * can hold bare WordPress attachment ids whose files never made it into the
+ * archive; rendering those produces a broken image instead of nothing.
+ */
+export const isRenderableMedia = (img: any): boolean =>
+  Boolean(img && typeof img === "object" && typeof img.url === "string" && img.url !== "");
+
+/** The same type data with its unrenderable media entries dropped. */
+export const withRenderableMedia = (type: any) => {
+  if (!type || typeof type !== "object") return type;
+
+  const cleaned: Record<string, any> = { ...type };
+  for (const key of ["image_2d", "image_3d", "gallery"]) {
+    if (Array.isArray(cleaned[key])) {
+      cleaned[key] = cleaned[key].filter(isRenderableMedia);
+    }
+  }
+
+  return cleaned;
+};
+
 export const isYoutubeMedia = (img: any): boolean =>
   img?.mime === "youtube" ||
   img?.type === "youtube" ||

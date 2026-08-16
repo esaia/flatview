@@ -6,6 +6,7 @@ import AppLayout from '@/Layouts/AppLayout.vue'
 const props = defineProps({
     gallery: { type: Array, default: () => [] },
     settings: { type: Object, default: () => ({}) },
+    projects: { type: Array, default: () => [] },
 })
 
 const num = (i) => String(i + 1).padStart(2, '0')
@@ -19,6 +20,39 @@ const services = computed(() =>
 const isLastServiceCol = (i) => i % 2 === 1 || i + 1 >= services.value.length
 const isLastServiceRow = (i) => Math.floor(i / 2) === Math.floor((services.value.length - 1) / 2)
 const valueProps = computed(() => props.settings.valueprops ?? [])
+
+// "Why it matters" — three panels, the second one inverted for rhythm.
+const matters = computed(() =>
+    (props.settings.matters ?? []).map((m, i) => ({ ...m, number: num(i) }))
+)
+const isDarkPanel = (i) => i % 2 === 1
+// Light panels alternate between two warm tones so the row reads as a set, not a block.
+const lightPanelBg = (i) => (i % 4 === 0 ? '#eeebe5' : '#f6f4f0')
+
+/* Line-art motifs — geometry is generated so the drawings stay crisp at any size
+   and share one visual language (thin strokes, centred, 100×100 viewBox). */
+const TAU = Math.PI * 2
+const pt = (a, r) => `${(50 + Math.cos(a) * r).toFixed(2)},${(50 + Math.sin(a) * r).toFixed(2)}`
+
+// 01 — radial burst
+const burst = Array.from({ length: 44 }, (_, i) => {
+    const a = (i / 44) * TAU
+    return {
+        x1: 50 + Math.cos(a) * 13, y1: 50 + Math.sin(a) * 13,
+        x2: 50 + Math.cos(a) * 46, y2: 50 + Math.sin(a) * 46,
+    }
+})
+
+// 02 — nested hexagons
+const hexes = [46, 34, 23, 13].map((r) =>
+    Array.from({ length: 6 }, (_, i) => pt((i / 6) * TAU - Math.PI / 2, r)).join(' ')
+)
+
+// 03 — woven lattice: three bands, every top point joined to every bottom point
+const lattice = [[18, 46], [32, 60], [46, 74]].flatMap(([y0, y1]) => {
+    const xs = [22, 40, 60, 78]
+    return xs.flatMap((x1) => xs.map((x2) => ({ x1, y1: y0, x2, y2: y1 })))
+})
 
 // Product feature showcase — each card pairs an admin-uploaded image with copy.
 const features = computed(() => props.settings.features ?? [])
@@ -278,6 +312,130 @@ onUnmounted(() => {
                             <h3 class="display text-lg text-black mb-2.5 md:mb-3 leading-snug" style="font-weight: 400;">{{ prop.label }}</h3>
                             <p class="text-sm text-black/45 font-light leading-relaxed">{{ prop.detail }}</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- ── Live demo projects ──────────────────────────────────────
+                     Each card opens its own /projects/{slug} showcase page with
+                     the interactive site plan and the full unit list. -->
+                <div v-if="props.projects.length" class="mt-24 md:mt-40">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-y-6 md:gap-x-16">
+                        <div class="md:col-span-3">
+                            <p class="kicker flex items-center gap-2"><span class="dot"></span> {{ settings.projectsKicker }}</p>
+                        </div>
+
+                        <div class="md:col-span-9">
+                            <h2 class="display text-black leading-[1.04] whitespace-pre-line"
+                                style="font-size: clamp(30px, 4.4vw, 60px); font-weight: 300; letter-spacing: -0.02em;">
+                                {{ settings.projectsHeadline
+                                }}<span v-if="settings.projectsHeadlineAccent" style="color: #5DCAA5;">{{ ' ' + settings.projectsHeadlineAccent }}</span>
+                            </h2>
+                            <p v-if="settings.projectsIntro"
+                               class="text-sm md:text-base text-black/45 font-light leading-relaxed max-w-2xl mt-8 md:mt-12 whitespace-pre-line">
+                                {{ settings.projectsIntro }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 border-t border-l border-black/10 mt-12 md:mt-20">
+                        <Link
+                            v-for="project in props.projects"
+                            :key="project.slug"
+                            :href="`/projects/${project.slug}`"
+                            class="group border-b border-r border-black/10 p-6 md:p-10 flex flex-col"
+                        >
+                            <div class="fc-stage relative overflow-hidden mb-8 md:mb-10" style="aspect-ratio: 16 / 11;">
+                                <img
+                                    v-if="project.image"
+                                    :src="project.image"
+                                    :alt="project.title"
+                                    loading="lazy"
+                                    decoding="async"
+                                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+                                    draggable="false"
+                                />
+                                <span
+                                    v-if="project.unitCount"
+                                    class="absolute top-4 left-4 bg-white/90 text-black text-[10px] tracking-[0.2em] uppercase px-3 py-1.5"
+                                >
+                                    {{ project.unitCount }} units
+                                </span>
+                            </div>
+
+                            <h3 class="display text-xl md:text-2xl text-black mb-3 leading-snug" style="font-weight: 400;">{{ project.title }}</h3>
+                            <p v-if="project.tagline" class="text-sm text-black/45 font-light leading-relaxed mb-6">{{ project.tagline }}</p>
+
+                            <span class="mt-auto inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase text-black/50 group-hover:text-black transition-colors duration-300">
+                                Open demo
+                                <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                            </span>
+                        </Link>
+                    </div>
+                </div>
+
+                <!-- ── Why it matters ──────────────────────────────────────────
+                     Kicker pinned left, headline + intro offset right, then a
+                     full-width row of panels (every second one inverted). -->
+                <div v-if="matters.length" class="mt-24 md:mt-40">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-y-6 md:gap-x-16">
+                        <div class="md:col-span-3">
+                            <p class="kicker flex items-center gap-2"><span class="dot"></span> {{ settings.mattersKicker }}</p>
+                        </div>
+
+                        <div class="md:col-span-9">
+                            <h2 class="display text-black leading-[1.04] whitespace-pre-line"
+                                style="font-size: clamp(30px, 4.4vw, 60px); font-weight: 300; letter-spacing: -0.02em;">
+                                {{ settings.mattersHeadline
+                                }}<span v-if="settings.mattersHeadlineAccent" style="color: #5DCAA5;">{{ ' ' + settings.mattersHeadlineAccent }}</span>
+                            </h2>
+                            <p v-if="settings.mattersIntro"
+                               class="text-sm md:text-base text-black/45 font-light leading-relaxed max-w-2xl mt-8 md:mt-12 whitespace-pre-line">
+                                {{ settings.mattersIntro }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 mt-12 md:mt-20">
+                        <article
+                            v-for="(item, i) in matters"
+                            :key="item.number"
+                            class="relative flex flex-col justify-between p-8 md:p-10 min-h-[360px] md:min-h-[480px]"
+                            :style="{ backgroundColor: isDarkPanel(i) ? '#0e0e0e' : lightPanelBg(i) }"
+                        >
+                            <!-- motif + index -->
+                            <div class="flex items-start justify-between">
+                                <svg viewBox="0 0 100 100" class="h-20 w-20 md:h-28 md:w-28 shrink-0"
+                                     :style="{ color: isDarkPanel(i) ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.7)' }"
+                                     fill="none" stroke="currentColor" stroke-width="0.6" aria-hidden="true">
+                                    <template v-if="i % 3 === 0">
+                                        <line v-for="(l, k) in burst" :key="k" :x1="l.x1" :y1="l.y1" :x2="l.x2" :y2="l.y2" />
+                                    </template>
+                                    <template v-else-if="i % 3 === 1">
+                                        <polygon v-for="(h, k) in hexes" :key="k" :points="h" />
+                                    </template>
+                                    <template v-else>
+                                        <line v-for="(l, k) in lattice" :key="k" :x1="l.x1" :y1="l.y1" :x2="l.x2" :y2="l.y2" />
+                                    </template>
+                                </svg>
+
+                                <span class="display tabular-nums text-sm leading-none"
+                                      :class="isDarkPanel(i) ? 'text-white/45' : 'text-black/40'">
+                                    {{ item.number }}.
+                                </span>
+                            </div>
+
+                            <div class="mt-14 md:mt-0">
+                                <h3 class="display text-xl md:text-2xl leading-snug mb-3"
+                                    style="font-weight: 400;"
+                                    :class="isDarkPanel(i) ? 'text-white' : 'text-black'">
+                                    {{ item.title }}
+                                </h3>
+                                <p class="text-sm font-light leading-relaxed"
+                                   :class="isDarkPanel(i) ? 'text-white/50' : 'text-black/45'">
+                                    {{ item.description }}
+                                </p>
+                            </div>
+                        </article>
                     </div>
                 </div>
 

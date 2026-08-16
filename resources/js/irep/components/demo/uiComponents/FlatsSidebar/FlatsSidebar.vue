@@ -162,10 +162,13 @@ const types = computed(() => {
 });
 
 const flatTypeTeaserImageUrl = (flat: any) => {
-  const media = [
-    ...(flat.type?.image_2d || []),
-    ...(flat.type?.image_3d || []),
-  ];
+  // Same plan preference as the flat cards in the list.
+  const images2d = flat.type?.image_2d || [];
+  const images3d = flat.type?.image_3d || [];
+  const media =
+    getMetaValue("flat_list_default_plan") === "2d"
+      ? [...images2d, ...images3d]
+      : [...images3d, ...images2d];
   for (const item of media) {
     const url = mediaThumbUrl(item);
     if (url) return url;

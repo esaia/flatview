@@ -99,11 +99,13 @@ watch(
 );
 
 onMounted(() => {
-  if (!flatTypeData.value?.image_2d?.length) {
-    show2dImage.value = false;
-  } else {
-    show2dImage.value = true;
-  }
+  // Open on the project's preferred plan, falling back to the other one when
+  // the preferred plan has no image.
+  const prefers2d = getMetaValue("flat_preview_default_plan") !== "3d";
+  const has2d = Boolean(flatTypeData.value?.image_2d?.length);
+  const has3d = Boolean(flatTypeData.value?.image_3d?.length);
+
+  show2dImage.value = prefers2d ? has2d || !has3d : !has3d;
 });
 </script>
 

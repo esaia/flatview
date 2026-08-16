@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DemoProject;
 use App\Models\Service;
 use Illuminate\Http\Response;
 
@@ -14,11 +15,11 @@ class SitemapController extends Controller
      * @var array<string, array{priority: string, changefreq: string}>
      */
     private array $pages = [
-        'home'     => ['priority' => '1.0', 'changefreq' => 'weekly'],
-        'work'     => ['priority' => '0.8', 'changefreq' => 'weekly'],
+        'home' => ['priority' => '1.0', 'changefreq' => 'weekly'],
+        'work' => ['priority' => '0.8', 'changefreq' => 'weekly'],
         'services' => ['priority' => '0.8', 'changefreq' => 'monthly'],
-        'about'    => ['priority' => '0.6', 'changefreq' => 'monthly'],
-        'contact'  => ['priority' => '0.5', 'changefreq' => 'yearly'],
+        'about' => ['priority' => '0.6', 'changefreq' => 'monthly'],
+        'contact' => ['priority' => '0.5', 'changefreq' => 'yearly'],
     ];
 
     public function index(): Response
@@ -47,6 +48,20 @@ class SitemapController extends Controller
                     <loc>{$loc}</loc>
                     <lastmod>{$serviceLastmod}</lastmod>
                     <changefreq>monthly</changefreq>
+                    <priority>0.7</priority>
+                </url>
+
+            XML;
+        }
+
+        foreach (DemoProject::where('is_active', true)->get(['slug', 'updated_at']) as $project) {
+            $loc = htmlspecialchars(route('demo-project.show', $project->slug), ENT_XML1);
+            $projectLastmod = $project->updated_at?->toAtomString() ?? $lastmod;
+            $urls .= <<<XML
+                <url>
+                    <loc>{$loc}</loc>
+                    <lastmod>{$projectLastmod}</lastmod>
+                    <changefreq>weekly</changefreq>
                     <priority>0.7</priority>
                 </url>
 

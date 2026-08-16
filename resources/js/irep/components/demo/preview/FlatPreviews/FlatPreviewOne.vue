@@ -4,6 +4,7 @@ import type { FlatItem, FloorItem } from "../../../../types/DemoTypes";
 import {
   getNested,
   transformOtherToKeyValue,
+  withRenderableMedia,
 } from "../../../../composable/helper";
 import FlatModalImage from "../../../../components/demo/uiComponents/FlatModalImage.vue";
 import ReservationForm from "../../../../components/demo/uiComponents/ReservationForm.vue";
@@ -28,7 +29,9 @@ const flatPreviewOneStyle = computed(() => getMetaValue("flat_preview_one_style"
 
 const flatTypeData = computed(() => {
   const useType = props.flat?.use_type === true || String(props.flat?.use_type) === "true";
-  return useType ? (props.flat?.type ?? props.flat?.flat_type) : (props.flat?.flat_type ?? props.flat?.type);
+  return withRenderableMedia(
+    useType ? (props.flat?.type ?? props.flat?.flat_type) : (props.flat?.flat_type ?? props.flat?.type),
+  );
 });
 
 const hasImg = computed(() => {

@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DemoProjectController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\IrepController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\SitemapController;
@@ -19,6 +19,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/work', [WorkController::class, 'index'])->name('work');
 Route::get('/services', [ServicesController::class, 'index'])->name('services');
 Route::get('/services/{slug}', [ServicesController::class, 'show'])->name('services.show');
+Route::get('/projects/{slug}', [DemoProjectController::class, 'show'])->name('demo-project.show');
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
@@ -59,9 +60,9 @@ Route::get('/irep/shortcode-data/{slug}', function ($slug) {
 Route::post('/irep/reservation', function (Request $request) {
     $validated = $request->validate([
         'flat_id' => ['required', 'integer', 'exists:flats,id'],
-        'name'    => ['required', 'string', 'max:255'],
-        'phone'   => ['nullable', 'string', 'max:255'],
-        'email'   => ['nullable', 'email', 'max:255'],
+        'name' => ['required', 'string', 'max:255'],
+        'phone' => ['nullable', 'string', 'max:255'],
+        'email' => ['nullable', 'email', 'max:255'],
         'comment' => ['nullable', 'string'],
     ]);
 
@@ -76,7 +77,7 @@ Route::get('/admin/sync/download/{archive}', SyncArchiveController::class)
     ->middleware('auth')
     ->name('admin.sync.download');
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 
 // Catch unmatched URLs. Routing this through the web group means the Inertia
 // shared props (menuItems, siteSocials, …) are applied before the 404 is

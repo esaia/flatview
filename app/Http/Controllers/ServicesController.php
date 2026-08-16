@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DemoProject;
 use App\Models\HomepageSetting;
 use App\Models\Service;
 use Inertia\Inertia;
@@ -37,6 +38,21 @@ class ServicesController extends Controller
                 ['label' => 'Ongoing support', 'detail' => 'Retainer options from day one.'],
             ]),
 
+            'projectsKicker' => $get('services_projects_kicker', 'Live demos'),
+            'projectsHeadline' => $get('services_projects_headline', 'See it working'),
+            'projectsHeadlineAccent' => $get('services_projects_headline_accent', 'on a real project'),
+            'projectsIntro' => $get('services_projects_intro', 'Open a demo and use it exactly as your buyers would — click a unit on the site plan, filter the list, check availability.'),
+
+            'mattersKicker' => $get('services_matters_kicker', 'Why it matters'),
+            'mattersHeadline' => $get('services_matters_headline', "Your clients look\nfor answers"),
+            'mattersHeadlineAccent' => $get('services_matters_headline_accent', 'before they call'),
+            'mattersIntro' => $get('services_matters_intro', 'Most buying decisions start online. Buyers browse available units, check sizes and prices — before contacting the developer. The question is: does your website make this possible?'),
+            'matters' => $getJson('services_matters', [
+                ['title' => 'First impression', 'description' => 'A static image gallery and a PDF table are not enough. Buyers expect a modern experience — the ability to explore the offer on their own, in real time.'],
+                ['title' => 'Time is money', 'description' => 'Every inquiry about unit availability that you handle manually is time lost. Automated statuses and unit pages remove repetitive questions and shorten the sales process.'],
+                ['title' => 'The competition never sleeps', 'description' => 'Large developers invest in advanced sales platforms. Flatview gives you the same capabilities — without a corporate-level budget.'],
+            ]),
+
             'featuresKicker' => $get('services_features_kicker', 'The product, shown'),
             'featuresHeadline' => $get('services_features_headline', "What used to take a showroom\nnow takes a scroll."),
             'features' => $getJson('services_features', [
@@ -67,7 +83,34 @@ class ServicesController extends Controller
             $this->json($stored['services_gallery'] ?? null, []),
         );
 
-        return Inertia::render('Services', compact('settings', 'gallery'));
+        // Demo projects: each links to its own /projects/{slug} showcase page.
+        // `flats_count` is loaded from the linked IREP project so the card can
+        // state the real unit count without loading the whole project tree.
+        // An explicit selection in the admin wins, in the order it was picked;
+        // with none picked the section falls back to every active project.
+        $selected = array_values(array_filter(array_map(
+            'intval',
+            $this->json($stored['services_projects_selected'] ?? null, []),
+        )));
+
+        $projects = DemoProject::where('is_active', true)
+            ->when($selected, fn ($query) => $query->whereIn('id', $selected))
+            ->with(['irepProject' => fn ($query) => $query->withCount('flats')])
+            ->orderBy('sort_order')
+            ->get()
+            ->sortBy(fn (DemoProject $project) => $selected
+                ? array_search($project->id, $selected, true)
+                : $project->sort_order)
+            ->map(fn (DemoProject $project) => [
+                'title' => $project->title,
+                'slug' => $project->slug,
+                'tagline' => $project->tagline,
+                'image' => DemoProjectController::imageUrl($project->card_image ?: $project->hero_image),
+                'unitCount' => $project->irepProject?->flats_count,
+            ])
+            ->values();
+
+        return Inertia::render('Services', compact('settings', 'gallery', 'projects'));
     }
 
     public function show(string $slug)

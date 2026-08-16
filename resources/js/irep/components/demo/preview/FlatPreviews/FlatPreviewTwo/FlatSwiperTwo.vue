@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import type { FlatItem, FloorItem } from "../../../../../types/DemoTypes";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { tr, isVideoMedia, isYoutubeMedia, extractYoutubeId } from "../../../../../composable/helper";
+import {
+  tr,
+  isVideoMedia,
+  isYoutubeMedia,
+  extractYoutubeId,
+  withRenderableMedia,
+} from "../../../../../composable/helper";
+import { useGlobalStore } from "../../../../../store/useGlobal";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import SwiperPagination from "../../../../../components/demo/uiComponents/SwiperPagination.vue";
 import Cube3d from "../../../../../components/icons/Cube3d.vue";
@@ -21,7 +28,9 @@ const key = ref(0);
 
 const flatTypeData = computed(() => {
   const useType = props.flat?.use_type === true || String(props.flat?.use_type) === "true";
-  return useType ? (props.flat?.type ?? props.flat?.flat_type) : (props.flat?.flat_type ?? props.flat?.type);
+  return withRenderableMedia(
+    useType ? (props.flat?.type ?? props.flat?.flat_type) : (props.flat?.flat_type ?? props.flat?.type),
+  );
 });
 
 const hasImg = computed(() => {
@@ -81,11 +90,14 @@ onUnmounted(() => {
 const syncDefaultPlanView = () => {
   const flat = props.flat;
   if (!flat) return;
-  if (!flatTypeData.value?.image_2d?.length) {
-    show2dImage.value = false;
-  } else {
-    show2dImage.value = true;
-  }
+
+  // Open on the project's preferred plan, falling back to the other one when
+  // the preferred plan has no image.
+  const prefers2d = useGlobalStore().getMetaValue("flat_preview_default_plan") !== "3d";
+  const has2d = Boolean(flatTypeData.value?.image_2d?.length);
+  const has3d = Boolean(flatTypeData.value?.image_3d?.length);
+
+  show2dImage.value = prefers2d ? has2d || !has3d : !has3d;
 };
 
 watch(

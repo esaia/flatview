@@ -45,15 +45,93 @@ const hoveredSvg = ref<HTMLElement | null>(null);
 const hoveredData = ref();
 const activePolygon = ref<PolygonDataCollection | null>(null);
 
-const projectSvg = computed(() => {
-  if (!props.project) return;
-
-  return props.project.svg;
+/* ── Additional views ───────────────────────────────────────────────────────
+ * View 1 is the project's own image and polygons; views 2..N come from the
+ * project's `views` array. Each view can carry a separate image for screens
+ * narrower than the project's mobile breakpoint.
+ */
+const mobileBreakpoint = computed(() => {
+  const raw = Number(globalStore.getMetaValue("mobile_breakpoint"));
+  return Number.isFinite(raw) && raw > 0 ? raw : 768;
 });
 
-const projectRasterImage = computed(
-  () => props.project?.project_image?.[0] ?? null,
+const isMobileViewport = ref(false);
+let breakpointQuery: MediaQueryList | null = null;
+const onBreakpointChange = (event: MediaQueryListEvent | MediaQueryList) => {
+  isMobileViewport.value = event.matches;
+};
+
+const bindBreakpointQuery = () => {
+  breakpointQuery?.removeEventListener("change", onBreakpointChange);
+  breakpointQuery = window.matchMedia(
+    `(max-width: ${mobileBreakpoint.value}px)`,
+  );
+  breakpointQuery.addEventListener("change", onBreakpointChange);
+  onBreakpointChange(breakpointQuery);
+};
+
+const views = computed(() => {
+  const project = props.project as any;
+  if (!project) return [];
+
+  const first = {
+    label: project.view_label || "View 1",
+    image: project.project_image?.[0] ?? null,
+    mobile_image: project.mobile_image?.[0] ?? null,
+    svg: project.svg ?? "",
+    polygon_data: project.polygon_data ?? [],
+    mobile_svg: project.mobile_svg ?? "",
+    mobile_polygon_data: project.mobile_polygon_data ?? [],
+  };
+
+  const extra = (Array.isArray(project.views) ? project.views : []).map(
+    (view: any, index: number) => ({
+      label: view?.label || `View ${index + 2}`,
+      image: view?.image ?? null,
+      mobile_image: view?.mobile_image ?? null,
+      svg: view?.svg ?? "",
+      polygon_data: view?.polygon_data ?? [],
+      mobile_svg: view?.mobile_svg ?? "",
+      mobile_polygon_data: view?.mobile_polygon_data ?? [],
+    }),
+  );
+
+  return [first, ...extra.filter((view: any) => view.image?.url)];
+});
+
+const activeViewIndex = ref(0);
+const activeView = computed(
+  () => views.value[activeViewIndex.value] ?? views.value[0],
 );
+
+// A mobile image is usually a different crop, so it brings its own SVG and
+// polygons; an empty mobile SVG falls back to the desktop drawing.
+const showsMobileView = computed(
+  () => isMobileViewport.value && Boolean(activeView.value?.mobile_image?.url),
+);
+
+const projectSvg = computed(() => {
+  const view = activeView.value;
+  if (!view) return "";
+
+  return showsMobileView.value && view.mobile_svg ? view.mobile_svg : view.svg;
+});
+
+const activePolygons = computed(() => {
+  const view = activeView.value;
+  if (!view) return [];
+
+  return showsMobileView.value && view.mobile_svg
+    ? view.mobile_polygon_data ?? []
+    : view.polygon_data ?? [];
+});
+
+const projectRasterImage = computed(() => {
+  const view = activeView.value;
+  if (!view) return null;
+
+  return (showsMobileView.value ? view.mobile_image : view.image) ?? null;
+});
 
 const projectRasterIntrinsic = computed(() => {
   const img = projectRasterImage.value;
@@ -81,7 +159,7 @@ const setPathAttributes = () => {
   gTags.forEach((g: SVGGElement) => {
     const gId = g?.getAttribute("id");
 
-    const findedPolygon = props.project?.polygon_data?.find(
+    const findedPolygon = activePolygons.value?.find(
       (polygon) => polygon?.key === gId,
     );
 
@@ -151,7 +229,7 @@ watch(
       if (!id) return;
 
       activePolygon.value =
-        props.project?.polygon_data?.find((item) => item?.key === id) || null;
+        activePolygons.value?.find((item) => item?.key === id) || null;
       if (!activePolygon.value) return;
       const polygonId = activePolygon.value?.id;
 
@@ -197,18 +275,27 @@ watch(
   },
 );
 
-watch(projectSvg, async () => {
+watch([projectSvg, activeViewIndex], async () => {
   await nextTick();
   setPathAttributes();
 });
 
+// A project whose views changed (or shrank) must not stay on a missing index.
+watch(views, (list) => {
+  if (activeViewIndex.value >= list.length) activeViewIndex.value = 0;
+});
+
+watch(mobileBreakpoint, bindBreakpointQuery);
+
 onMounted(() => {
   document.addEventListener("mousemove", onSvgMouseOver);
+  bindBreakpointQuery();
   setPathAttributes();
 });
 
 onUnmounted(() => {
   document.removeEventListener("mousemove", onSvgMouseOver);
+  breakpointQuery?.removeEventListener("change", onBreakpointChange);
 });
 </script>
 
@@ -233,6 +320,27 @@ onUnmounted(() => {
           class="irep-project-preview__svg-overlay canvas path-color ire-absolute ire-left-0 ire-top-0 ire-h-full ire-w-full"
           @click="onPathClick"
         ></div>
+      </div>
+
+      <!-- View switcher — only when the project has more than one view -->
+      <div
+        v-if="views.length > 1"
+        class="irep-project-preview__views ire-absolute ire-bottom-4 ire-left-1/2 ire-z-10 -ire-translate-x-1/2 ire-flex ire-items-center ire-gap-1 ire-rounded-full ire-bg-white/90 ire-p-1 ire-shadow-lg ire-backdrop-blur-sm"
+      >
+        <button
+          v-for="(view, index) in views"
+          :key="index"
+          type="button"
+          class="irep-project-preview__view-tab ire-cursor-pointer ire-rounded-full ire-px-4 ire-py-1.5 ire-text-sm ire-transition-colors"
+          :class="
+            index === activeViewIndex
+              ? 'ire-bg-white ire-text-black ire-shadow-sm ire-font-medium'
+              : 'ire-text-gray-500 hover:ire-text-black'
+          "
+          @click="activeViewIndex = index"
+        >
+          {{ view.label }}
+        </button>
       </div>
     </div>
   </PreviewLayout>

@@ -34,10 +34,15 @@ const { hasPriceHistoryAddon } = storeToRefs(globalStore);
 
 const showPriceHistoryModal = ref(false);
 
-const flatMedia = computed(() => [
-  ...(props.flat.type?.image_3d || []),
-  ...(props.flat.type?.image_2d || []),
-]);
+// Cards lead with the plan the project prefers, then fall back to the other.
+const flatMedia = computed(() => {
+  const images2d = props.flat.type?.image_2d || [];
+  const images3d = props.flat.type?.image_3d || [];
+
+  return globalStore.getMetaValue("flat_list_default_plan") === "2d"
+    ? [...images2d, ...images3d]
+    : [...images3d, ...images2d];
+});
 
 // Prefer a real image / YouTube poster for the card thumbnail; fall back to the
 // first media item (e.g. a plain mp4) which is rendered as a <video> instead.

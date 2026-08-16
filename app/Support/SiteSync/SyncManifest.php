@@ -33,6 +33,7 @@ class SyncManifest
         'about_stats',
         'about_gallery_images',
         'services',
+        'demo_projects',
         'settings',
         'contact_submissions',
     ];
@@ -53,8 +54,8 @@ class SyncManifest
             'website' => [
                 'label' => 'Website content',
                 'description' => 'Homepage, about, services, work and contact pages, navigation menu and their images.',
-                'tables' => ['homepage_settings', 'homepage_slides', 'menu_items', 'about_stats', 'about_gallery_images', 'services'],
-                'directories' => ['homepage-slides', 'menu', 'about-gallery', 'services', 'services-features', 'services-gallery', 'work', 'contact'],
+                'tables' => ['homepage_settings', 'homepage_slides', 'menu_items', 'about_stats', 'about_gallery_images', 'services', 'demo_projects'],
+                'directories' => ['homepage-slides', 'menu', 'about-gallery', 'services', 'services-features', 'services-gallery', 'demo-projects', 'work', 'contact'],
                 'default' => true,
             ],
             'settings' => [
