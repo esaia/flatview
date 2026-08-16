@@ -47,16 +47,16 @@ class ContactController extends Controller
                 : null,
         ];
 
-        $images = $this->json($stored['contact_images'] ?? null, []);
+        // The page shows one image beside the form. The setting has held an
+        // array since it was a grid, so take the first entry either way.
+        $image = $stored['contact_images'] ?? null;
+        $image = is_string($image) && str_starts_with(trim($image), '[')
+            ? ($this->json($image, [])[0] ?? null)
+            : $image;
 
-        $settings['images'] = count($images)
-            ? array_map(fn (string $path) => Storage::disk('public')->url($path), $images)
-            : [
-                'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80',
-                'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80',
-                'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80',
-                'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
-            ];
+        $settings['images'] = filled($image)
+            ? [Storage::disk('public')->url($image)]
+            : ['/images/services-cta.webp'];
 
         $turnstileSiteKey = config('services.turnstile.site_key');
 

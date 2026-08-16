@@ -80,6 +80,23 @@ class MediaLibrary
             });
     }
 
+    /**
+     * Delete a file a section has stopped using, but only when it lives in that
+     * section's own upload directory. Anything picked from another folder
+     * belongs to another section — the same image is often shared — and must
+     * survive being dropped here.
+     */
+    public static function deleteIfOwned(?string $path, string $directory): void
+    {
+        $path = is_string($path) ? ltrim($path, '/') : null;
+
+        if (blank($path) || ! str_starts_with($path, trim($directory, '/').'/')) {
+            return;
+        }
+
+        Storage::disk('public')->delete($path);
+    }
+
     /** Whether the target FileUpload accepts multiple files. */
     protected static function isMultiple(Field $component): bool
     {

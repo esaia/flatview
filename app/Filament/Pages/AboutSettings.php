@@ -15,7 +15,6 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\Storage;
 
 class AboutSettings extends Page
 {
@@ -219,7 +218,7 @@ class AboutSettings extends Page
         $previous = AboutGalleryImage::pluck('image')->all();
 
         foreach (array_diff($previous, $paths) as $removed) {
-            Storage::disk('public')->delete($removed);
+            MediaLibrary::deleteIfOwned($removed, 'about-gallery');
         }
 
         AboutGalleryImage::query()->delete();

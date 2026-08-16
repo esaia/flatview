@@ -12,7 +12,6 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\Storage;
 
 class ContactSettings extends Page
 {
@@ -42,12 +41,12 @@ class ContactSettings extends Page
         'contact_social_label',
         'contact_whatsapp_label',
         'contact_whatsapp_qr',
+        'contact_images',
     ];
 
     /** Setting keys whose value is stored as a JSON-encoded array. */
     protected const JSON_KEYS = [
         'contact_socials',
-        'contact_images',
     ];
 
     public ?array $data = [];
@@ -68,6 +67,8 @@ class ContactSettings extends Page
             $decoded = json_decode($stored[$key] ?? '[]', true);
             $settings[$key] = is_array($decoded) ? $decoded : [];
         }
+
+        $settings['contact_images'] = static::storedImages()[0] ?? null;
 
         $this->form->fill($settings);
     }
@@ -172,17 +173,14 @@ class ContactSettings extends Page
                             ->icon('heroicon-o-photo')
                             ->schema([
                                 FileUpload::make('contact_images')
-                                    ->label('Image grid')
-                                    ->helperText('Shown as a grid on the left of the contact page. Drag to reorder.')
+                                    ->label('Side image')
+                                    ->helperText('Fills the left half of the contact page. A tall image works best.')
                                     ->disk('public')
                                     ->directory('contact')
                                     ->visibility('public')
                                     ->image()
-                                    ->multiple()
-                                    ->reorderable()
-                                    ->appendFiles()
-                                    ->panelLayout('grid')
-                                    ->imagePreviewHeight('120')
+                                    ->imageEditor()
+                                    ->imagePreviewHeight('180')
                                     ->openable()
                                     ->downloadable()
                                     ->hintAction(MediaLibrary::pickerAction()),
@@ -197,8 +195,8 @@ class ContactSettings extends Page
     {
         $data = $this->form->getState();
 
-        // Drop the previous images that are no longer referenced.
-        $this->pruneImages($data['contact_images'] ?? []);
+        // Drop any previously-stored image the page no longer points at.
+        $this->pruneImages($data['contact_images'] ?? null);
 
         // Delete the old QR code file when it is replaced or cleared.
         $this->pruneSingle('contact_whatsapp_qr', $data['contact_whatsapp_qr'] ?? null);
@@ -222,26 +220,40 @@ class ContactSettings extends Page
     }
 
     /**
-     * Delete previously-stored image files that are absent from the new set.
-     *
-     * @param  array<int, string>  $paths
+     * Delete whichever image files the setting used to hold and the page no
+     * longer points at. The value was an array while the page showed a grid,
+     * so both shapes are handled.
      */
-    protected function pruneImages(array $paths): void
+    protected function pruneImages(?string $path): void
     {
-        $paths = array_values(array_filter($paths));
+        $previous = static::storedImages();
 
-        $previous = json_decode(
-            HomepageSetting::where('key', 'contact_images')->value('value') ?? '[]',
-            true,
-        );
+        foreach (array_diff($previous, array_filter([$path])) as $removed) {
+            MediaLibrary::deleteIfOwned($removed, 'contact');
+        }
+    }
 
-        if (! is_array($previous)) {
-            return;
+    /**
+     * The image paths currently stored for the page, whether the setting holds
+     * a single path or the JSON array it used to.
+     *
+     * @return array<int, string>
+     */
+    protected static function storedImages(): array
+    {
+        $value = HomepageSetting::where('key', 'contact_images')->value('value');
+
+        if (blank($value)) {
+            return [];
         }
 
-        foreach (array_diff($previous, $paths) as $removed) {
-            Storage::disk('public')->delete($removed);
+        if (str_starts_with(trim($value), '[')) {
+            $decoded = json_decode($value, true);
+
+            return is_array($decoded) ? array_values(array_filter($decoded)) : [];
         }
+
+        return [$value];
     }
 
     /**
@@ -252,7 +264,7 @@ class ContactSettings extends Page
         $previous = HomepageSetting::where('key', $key)->value('value');
 
         if (filled($previous) && $previous !== $new) {
-            Storage::disk('public')->delete($previous);
+            MediaLibrary::deleteIfOwned($previous, 'contact');
         }
     }
 }

@@ -13,7 +13,8 @@ const page = usePage()
 const flash = computed(() => page.props.flash)
 
 const settings = computed(() => props.settings ?? {})
-const contactImages = computed(() => settings.value.images ?? [])
+// The panel takes a single image; extra uploads are ignored rather than tiled.
+const contactImage = computed(() => (settings.value.images ?? [])[0] ?? null)
 const socials = computed(() => settings.value.socials ?? [])
 
 const sent = ref(false)
@@ -120,21 +121,14 @@ function reset() {
             </Link>
 
 
-            <!-- LEFT: 2×2 image grid, edge-to-edge, fixed height -->
-            <div class="hidden md:grid md:w-1/2 grid-cols-2 flex-shrink-0" style="gap: 2px;">
-                <div
-                    v-for="(img, i) in contactImages"
-                    :key="i"
-                    class="overflow-hidden"
-                    style="height: 50vh;"
-                >
-                    <img
-                        :src="img"
-                        class="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                        draggable="false"
-                        loading="lazy"
-                    />
-                </div>
+            <!-- LEFT: one full-height image, edge-to-edge -->
+            <div v-if="contactImage" class="hidden md:block md:w-1/2 flex-shrink-0 overflow-hidden sticky top-0 h-screen">
+                <img
+                    :src="contactImage"
+                    alt=""
+                    class="w-full h-full object-cover hover:scale-105 transition-transform duration-[1200ms] ease-out"
+                    draggable="false"
+                />
             </div>
 
             <!-- RIGHT: scrollable content panel -->

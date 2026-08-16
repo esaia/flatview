@@ -15,7 +15,6 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use IrepPlugin\FilamentIrep\Models\Project as IrepProject;
 
@@ -397,7 +396,7 @@ class ServicesSettings extends Page
         }
 
         foreach (array_diff($previous, $paths) as $removed) {
-            Storage::disk('public')->delete($removed);
+            MediaLibrary::deleteIfOwned($removed, 'services-gallery');
         }
     }
 }
