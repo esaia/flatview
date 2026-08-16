@@ -105,7 +105,10 @@ class ServicesController extends Controller
                 'title' => $project->title,
                 'slug' => $project->slug,
                 'tagline' => $project->tagline,
-                'image' => DemoProjectController::imageUrl($project->card_image ?: $project->hero_image),
+                // Fall back to the interactive project's own render, so a card
+                // still shows the development when no artwork was uploaded.
+                'image' => DemoProjectController::imageUrl($project->card_image ?: $project->hero_image)
+                    ?? self::irepProjectImage($project),
                 'unitCount' => $project->irepProject?->flats_count,
             ])
             ->values();
@@ -140,6 +143,23 @@ class ServicesController extends Controller
             'cta' => $cta,
             'otherServices' => $otherServices,
         ]);
+    }
+
+    /**
+     * The main render of the IREP project behind a demo page, if it has one.
+     * Stored image urls may be absolute and captured from another host, so they
+     * are normalized to the local /storage path.
+     */
+    protected static function irepProjectImage(DemoProject $project): ?string
+    {
+        $image = $project->irepProject?->project_image;
+        $url = is_array($image) ? ($image[0]['url'] ?? null) : null;
+
+        if (! is_string($url) || $url === '') {
+            return null;
+        }
+
+        return preg_replace('#^https?://[^/]+/storage/#', '/storage/', $url);
     }
 
     /**

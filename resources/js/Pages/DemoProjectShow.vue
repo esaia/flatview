@@ -30,7 +30,9 @@ const scrollToPlan = () => planSection.value?.scrollIntoView({ behavior: 'smooth
 
             <!-- Brand logo, top-right -->
             <Link href="/" class="absolute top-7 right-8 md:top-10 md:right-16 z-30 flex items-center gap-2 md:gap-2.5 select-none cursor-pointer">
-                <img src="/logo.svg" alt="FlatView" class="h-5 md:h-6 w-auto" draggable="false" />
+                <!-- The mark is black artwork; force it white to match the
+                     wordmark against the dark hero. -->
+                <img src="/logo.svg" alt="FlatView" class="h-5 md:h-6 w-auto brightness-0 invert" draggable="false" />
                 <span class="text-white text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
             </Link>
 
@@ -52,15 +54,23 @@ const scrollToPlan = () => planSection.value?.scrollIntoView({ behavior: 'smooth
                     <div class="h-px bg-white/25 mt-12 md:mt-20"></div>
 
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-y-8 md:gap-x-16 pt-8 md:pt-10">
-                        <div class="md:col-span-5">
+                        <div class="md:col-span-5 flex items-center gap-6">
                             <button
                                 type="button"
                                 aria-label="Scroll to the interactive site plan"
-                                class="h-12 w-12 border border-white/25 flex items-center justify-center text-white/70 hover:text-white hover:border-white/60 transition-colors duration-300"
+                                class="h-12 w-12 shrink-0 border border-white/25 flex items-center justify-center text-white/70 hover:text-white hover:border-white/60 transition-colors duration-300"
                                 @click="scrollToPlan"
                             >
                                 ↓
                             </button>
+
+                            <Link
+                                href="/services"
+                                class="group inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase text-white/50 hover:text-white transition-colors duration-300"
+                            >
+                                <span class="inline-block transition-transform duration-300 group-hover:-translate-x-1">←</span>
+                                Back to services
+                            </Link>
                         </div>
 
                         <div class="md:col-span-7">

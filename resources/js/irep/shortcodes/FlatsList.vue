@@ -182,6 +182,24 @@ const priceLabel = (flat: any) => {
   return `${getPrice(price)} ${currencySymbol()}`;
 };
 
+// "Request price" is a call to action rather than a value, so it takes the
+// project's primary colour like it does in the flat modal.
+const isRequestPrice = (flat: any) => Boolean(flat?.request_price);
+
+const areaLabel = (flat: any) => {
+  const type = flatType(flat);
+  if (!type?.area_m2) return "";
+
+  return `${getArea(type.area_m2_n ?? type.area_m2)} ${getAreaUnitLabel()}`;
+};
+
+const roomsLabel = (flat: any) => {
+  const type = flatType(flat);
+  if (!type?.rooms_count) return "";
+
+  return `${getRoomCount(type.rooms_count)} ${tr("room")}`;
+};
+
 /* ── View mode, sorting, paging ────────────────────────────────────────── */
 const view = ref<"grid" | "list">("grid");
 
@@ -313,14 +331,16 @@ const floors = computed(() => shortcodeData.value?.floors);
         class="group cursor-pointer"
         @click="openFlat(flat)"
       >
-        <div class="relative overflow-hidden bg-[#f4f1ec]" style="aspect-ratio: 4 / 3;">
+        <!-- Floor plans are irregular shapes, so they are fitted whole inside the
+             frame rather than cropped to fill it. -->
+        <div class="relative overflow-hidden bg-[#f4f1ec] p-4" style="aspect-ratio: 4 / 3;">
           <img
             v-if="flatThumb(flat)?.type === 'image'"
             :src="flatThumb(flat)!.url"
             :alt="flat.flat_number"
             loading="lazy"
             decoding="async"
-            class="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+            class="h-full w-full object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
           />
           <video
             v-else-if="flatThumb(flat)?.type === 'video'"
@@ -329,7 +349,7 @@ const floors = computed(() => shortcodeData.value?.floors);
             loop
             playsinline
             preload="metadata"
-            class="h-full w-full object-cover"
+            class="h-full w-full object-contain"
           />
 
           <Badge v-if="flat.conf" :conf="flat.conf" class="absolute left-3 top-3" />
@@ -339,17 +359,23 @@ const floors = computed(() => shortcodeData.value?.floors);
           <h3 class="display text-lg leading-snug text-black" style="font-weight: 400;">
             {{ flat.flat_number }}
           </h3>
-          <span class="text-sm tabular-nums text-black/70">{{ priceLabel(flat) }}</span>
+          <span
+            class="text-sm tabular-nums"
+            :class="isRequestPrice(flat) ? 'font-medium capitalize' : 'text-black/70'"
+            :style="isRequestPrice(flat) ? { color: 'var(--primary-color)' } : undefined"
+          >
+            {{ priceLabel(flat) }}
+          </span>
         </div>
 
         <div class="mt-2 flex items-center gap-5 text-sm font-light text-black/45">
-          <span v-if="flat.type?.area_m2" class="flex items-center gap-1.5">
-            <Area class="size-4 opacity-50" />
-            {{ getArea(flat.type?.area_m2_n) }} {{ getAreaUnitLabel() }}²
+          <span v-if="areaLabel(flat)" class="flex items-center gap-1.5">
+            <Area class="size-5 opacity-50" />
+            {{ areaLabel(flat) }}<sup class="text-[10px]">2</sup>
           </span>
-          <span v-if="flat.type?.rooms_count" class="flex items-center gap-1.5">
+          <span v-if="roomsLabel(flat)" class="flex items-center gap-1.5">
             <Bed class="size-4 opacity-50" />
-            {{ getRoomCount(flat.type?.rooms_count) }} {{ tr("room") }}
+            {{ roomsLabel(flat) }}
           </span>
           <span v-if="flatFloorNumber(flat)" class="flex items-center gap-1.5">
             <Floor class="size-4 opacity-50" />
@@ -402,18 +428,22 @@ const floors = computed(() => shortcodeData.value?.floors);
               </div>
             </td>
             <td class="py-4 text-sm font-light tabular-nums text-black/60">
-              <template v-if="flat.type?.area_m2">
-                {{ getArea(flat.type?.area_m2_n) }} {{ getAreaUnitLabel() }}²
+              <template v-if="areaLabel(flat)">
+                {{ areaLabel(flat) }}<sup class="text-[10px]">2</sup>
               </template>
               <template v-else>—</template>
             </td>
             <td class="py-4 text-sm font-light tabular-nums text-black/60">
-              {{ flat.type?.rooms_count ? getRoomCount(flat.type?.rooms_count) : "—" }}
+              {{ roomsLabel(flat) || "—" }}
             </td>
             <td class="py-4 text-sm font-light tabular-nums text-black/60">
               {{ flatFloorNumber(flat) || "—" }}
             </td>
-            <td class="py-4 text-right text-sm tabular-nums text-black/70">
+            <td
+              class="py-4 text-right text-sm tabular-nums"
+              :class="isRequestPrice(flat) ? 'font-medium capitalize' : 'text-black/70'"
+              :style="isRequestPrice(flat) ? { color: 'var(--primary-color)' } : undefined"
+            >
               {{ priceLabel(flat) || "—" }}
             </td>
           </tr>
