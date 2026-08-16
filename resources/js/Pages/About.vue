@@ -12,10 +12,7 @@ const props = defineProps({
     gallery:    { type: Array,  default: () => [] },
 })
 
-/* ───────────────────────── Studio gallery ─────────────────────────
- * A staggered collage rather than an even grid: the frames cycle through three
- * shapes and offsets so the band reads as an editorial spread at any count.
- */
+/* ───────────────────────── Project gallery ───────────────────────── */
 const galleryImages = computed(() =>
     props.gallery
         .map((item) => (typeof item === 'string' ? item : item?.image))
@@ -23,12 +20,18 @@ const galleryImages = computed(() =>
         .map((path) => (path.startsWith('http') ? path : '/storage/' + path.replace(/^\/+/, ''))),
 )
 
-const FRAME_SHAPES = [
-    { span: 'md:col-span-7', ratio: '4 / 3', offset: '' },
-    { span: 'md:col-span-5', ratio: '3 / 4', offset: 'md:mt-24' },
-    { span: 'md:col-span-6 md:col-start-4', ratio: '16 / 10', offset: 'md:-mt-10' },
-]
-const frame = (i) => FRAME_SHAPES[i % FRAME_SHAPES.length]
+/*
+ * An even two-up grid: same ratio, same rows, no offsets — staggering left
+ * ragged whitespace between the frames. A photo that would sit alone on the
+ * last row spans the full width as a banner instead.
+ */
+const frame = (i) => {
+    const isLastAlone = i === galleryImages.value.length - 1 && i % 2 === 0
+
+    return isLastAlone
+        ? { span: 'md:col-span-2', ratio: '21 / 9' }
+        : { span: '', ratio: '3 / 2' }
+}
 
 /* ───────────────────────── Stats: reveal + count-up ───────────────────────── */
 const statsSection = ref(null)
@@ -99,7 +102,9 @@ onUnmounted(() => {
             </Link>
 
             <!-- ── Section 1: Hero statement ─────────────────────────────── -->
-            <section class="relative flex flex-col justify-start md:justify-center px-6 md:px-16 pt-28 pb-16 md:py-0 min-h-0 md:min-h-[86vh]">
+            <!-- Roomier than a plain content block, but nowhere near the full
+                 viewport: there is only a kicker and a headline to carry. -->
+            <section class="relative w-full max-w-[1400px] mx-auto flex flex-col justify-center px-6 md:px-16 pt-24 md:pt-32 pb-20 md:pb-32 md:min-h-[58vh]">
                 <span class="reveal kicker flex items-center gap-2 text-[11px] tracking-[0.25em] uppercase text-black/45 mb-7" style="--d: 0s;">
                     <span class="dot"></span> About Flatview
                 </span>
@@ -112,7 +117,7 @@ onUnmounted(() => {
 
             <!-- ── Section 2: Warm beige editorial statement ─────────────── -->
             <section style="background: #efe9e1;" class="px-6 md:px-16 py-20 md:py-32">
-                <div class="grid md:grid-cols-12 gap-8 md:gap-12">
+                <div class="max-w-[1400px] mx-auto grid md:grid-cols-12 gap-8 md:gap-12">
                     <span class="md:col-span-3 text-[11px] tracking-[0.25em] uppercase" style="color: #9a8f7e;">Who we are</span>
                     <div class="md:col-span-9 max-w-3xl">
                         <p class="leading-relaxed" style="color: #2a2520; font-size: clamp(19px, 2.4vw, 30px); font-weight: 300; line-height: 1.5;">
@@ -125,14 +130,14 @@ onUnmounted(() => {
                 </div>
             </section>
 
-            <!-- ── Section 3: Studio gallery — staggered collage ─────────── -->
-            <section v-if="galleryImages.length" class="px-6 md:px-16 pt-24 md:pt-36">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+            <!-- ── Section 3: Project gallery — even two-up grid ────────── -->
+            <section v-if="galleryImages.length" class="max-w-[1400px] mx-auto px-6 md:px-16 pt-24 md:pt-36">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                     <figure
                         v-for="(src, i) in galleryImages"
                         :key="src"
                         class="group overflow-hidden bg-[#efe9e1]"
-                        :class="[frame(i).span, frame(i).offset]"
+                        :class="frame(i).span"
                         :style="{ aspectRatio: frame(i).ratio }"
                     >
                         <img
@@ -148,7 +153,7 @@ onUnmounted(() => {
             </section>
 
             <!-- ── Section 4: Stats — left title rail, full-width rows, count-up on reveal ─── -->
-            <section ref="statsSection" class="px-6 md:px-16 pt-28 md:pt-36 pb-28 md:pb-36">
+            <section ref="statsSection" class="max-w-[1400px] mx-auto px-6 md:px-16 pt-28 md:pt-36 pb-28 md:pb-36">
                 <div class="grid md:grid-cols-12 gap-12 md:gap-16">
                     <!-- left: title rail -->
                     <div class="md:col-span-4">
@@ -198,7 +203,7 @@ onUnmounted(() => {
             </section>
 
             <!-- ── Section 4: Why Flatview — value props ─────────────────── -->
-            <section v-if="props.valueprops.length" class="px-6 md:px-16 pt-24 md:pt-36">
+            <section v-if="props.valueprops.length" class="max-w-[1400px] mx-auto px-6 md:px-16 pt-24 md:pt-36">
                 <p class="flex items-center gap-2 mb-8 md:mb-10">
                     <span class="dot"></span>
                     <span class="text-[11px] tracking-[0.25em] uppercase font-medium text-black/45">
@@ -238,7 +243,7 @@ onUnmounted(() => {
                 <!-- Just enough dimming to hold the white type, no more. -->
                 <div class="absolute inset-0 bg-gradient-to-b from-black/45 via-black/30 to-black/55"></div>
 
-                <div class="relative pt-28 md:pt-44 pb-32 md:pb-56 px-6 md:px-16 flex flex-col items-center justify-center text-center">
+                <div class="relative max-w-[1400px] mx-auto pt-28 md:pt-44 pb-32 md:pb-56 px-6 md:px-16 flex flex-col items-center justify-center text-center">
                     <span class="text-[11px] tracking-[0.25em] uppercase text-white/40 mb-8">Let's talk</span>
                     <h2 class="display mb-10" style="font-size: clamp(44px, 9vw, 128px); font-weight: 300; line-height: 0.95; letter-spacing: -0.03em;">
                         {{ props.settings.about_cta_title || 'Work with us' }}
