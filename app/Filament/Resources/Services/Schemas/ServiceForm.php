@@ -54,6 +54,19 @@ class ServiceForm
                     ->hintAction(MediaLibrary::pickerAction())
                     ->nullable(),
 
+                FileUpload::make('hover_image')
+                    ->label('Card hover image')
+                    ->helperText('Revealed behind the card on the /services overview when it is hovered.')
+                    ->disk('public')
+                    ->directory('services')
+                    ->visibility('public')
+                    ->image()
+                    ->imageEditor()
+                    ->openable()
+                    ->downloadable()
+                    ->hintAction(MediaLibrary::pickerAction())
+                    ->nullable(),
+
                 Builder::make('content_blocks')
                     ->label('Page content')
                     ->helperText('Build the service page out of sections, in any order and mix.')

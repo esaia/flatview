@@ -268,7 +268,9 @@ onUnmounted(() => {
                     style="filter: brightness(0) invert(1);"
                     draggable="false"
                 />
-                <span class="text-white text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
+                <!-- Mark alone on mobile: the wordmark crowds the row next to
+                     the close button and the social links. -->
+                <span class="hidden md:inline text-white text-sm md:text-base font-semibold tracking-[0.2em] uppercase">FlatView</span>
             </div>
             <div class="flex items-center gap-6 md:gap-10">
                 <div class="flex items-center gap-3 md:gap-4">

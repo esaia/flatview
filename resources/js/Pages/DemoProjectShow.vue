@@ -106,7 +106,7 @@ const scrollToPlan = () => planSection.value?.scrollIntoView({ behavior: 'smooth
 
                 <div class="max-w-[1600px] mx-auto px-0 md:px-16 mt-12 md:mt-20">
                     <div
-                        class="viewer-stage bg-[#ece8e2] overflow-hidden"
+                        class="viewer-stage overflow-hidden"
                         :class="has360 ? 'viewer-stage--fixed' : ''"
                     >
                         <ProjectViewer />
@@ -137,8 +137,19 @@ const scrollToPlan = () => planSection.value?.scrollIntoView({ behavior: 'smooth
             </IrepProvider>
 
             <!-- Closing CTA -->
-            <section class="bg-[#0e0e0e] text-white">
-                <div class="max-w-[1400px] mx-auto px-6 md:px-16 pt-28 md:pt-44 pb-40 md:pb-56 text-center flex flex-col items-center">
+            <section class="relative bg-[#0e0e0e] text-white overflow-hidden">
+                <img
+                    src="/images/services-cta.webp"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    class="absolute inset-0 w-full h-full object-cover opacity-80"
+                    draggable="false"
+                />
+                <!-- Just enough dimming to hold the white type, no more. -->
+                <div class="absolute inset-0 bg-gradient-to-b from-black/45 via-black/30 to-black/55"></div>
+
+                <div class="relative max-w-[1400px] mx-auto px-6 md:px-16 pt-28 md:pt-44 pb-40 md:pb-56 text-center flex flex-col items-center">
                     <p class="kicker mb-8 md:mb-10" style="color: rgba(255,255,255,0.4);">{{ cta.kicker }}</p>
                     <h2 class="display font-light whitespace-pre-line"
                         style="font-size: clamp(40px, 7vw, 104px); line-height: 1.02; letter-spacing: -0.02em;">

@@ -11,6 +11,7 @@ class Service extends Model
         'slug',
         'description',
         'hero_image',
+        'hover_image',
         'content_blocks',
         'sort_order',
         'is_active',

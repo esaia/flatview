@@ -457,7 +457,9 @@ const floors = computed(() => shortcodeData.value?.floors);
         class="border border-black px-7 py-3 text-[11px] uppercase tracking-[0.25em] transition-colors duration-300 hover:bg-black hover:text-white"
         @click="visibleCount += PAGE_SIZE"
       >
-        Show more <span class="text-black/40">({{ remaining }})</span>
+        <!-- Dimmed by opacity rather than a fixed colour, so the count stays
+             visible once the button inverts on hover. -->
+        Show more <span class="opacity-50">({{ remaining }})</span>
       </button>
     </div>
 

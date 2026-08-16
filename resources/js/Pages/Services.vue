@@ -272,7 +272,7 @@ onUnmounted(() => {
                         :href="serviceHref(service.slug)"
                         :target="isExternal(service.slug) ? '_blank' : null"
                         :rel="isExternal(service.slug) ? 'noopener noreferrer' : null"
-                        class="group relative py-10 md:py-14 px-0 sm:px-10 md:px-14 flex flex-col border-b border-black/10 transition-colors duration-300 hover:bg-black/[0.02]"
+                        class="group relative py-10 md:py-14 px-0 sm:px-10 md:px-14 flex flex-col border-b border-black/10 transition-colors duration-300 hover:bg-black/[0.02] overflow-hidden"
                         :class="[
                             !isLastServiceCol(i) ? 'sm:border-r sm:border-black/10' : '',
                             i % 2 === 0 ? 'sm:pl-0' : '',
@@ -281,6 +281,26 @@ onUnmounted(() => {
                             isLastServiceRow(i) ? 'sm:border-b-0' : '',
                         ]"
                     >
+                        <!-- Hover image: kept faint under a white scrim so the
+                             dark copy stays readable over it. -->
+                        <span
+                            v-if="service.hoverImage"
+                            aria-hidden="true"
+                            class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out pointer-events-none"
+                        >
+                            <img
+                                :src="service.hoverImage"
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                                class="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-[1400ms] ease-out"
+                                draggable="false"
+                            />
+                            <!-- Scrim is heavier on the left, where the copy
+                                 sits, so the image can read strongly elsewhere. -->
+                            <span class="absolute inset-0 bg-gradient-to-r from-white/85 via-white/70 to-white/50"></span>
+                        </span>
+
                         <!-- Faded number -->
                         <span
                             class="display absolute top-0 right-4 md:right-8 text-[6rem] md:text-[8rem] leading-none select-none text-black"
@@ -521,8 +541,19 @@ onUnmounted(() => {
             </div>
 
             <!-- Closing CTA -->
-            <section class="bg-[#0e0e0e] text-white">
-                <div class="max-w-[1400px] mx-auto px-6 md:px-16 pt-28 md:pt-44 pb-40 md:pb-56 text-center flex flex-col items-center">
+            <section class="relative bg-[#0e0e0e] text-white overflow-hidden">
+                <img
+                    src="/images/services-cta.webp"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    class="absolute inset-0 w-full h-full object-cover opacity-80"
+                    draggable="false"
+                />
+                <!-- Just enough dimming to hold the white type, no more. -->
+                <div class="absolute inset-0 bg-gradient-to-b from-black/45 via-black/30 to-black/55"></div>
+
+                <div class="relative max-w-[1400px] mx-auto px-6 md:px-16 pt-28 md:pt-44 pb-40 md:pb-56 text-center flex flex-col items-center">
                     <p class="kicker mb-8 md:mb-10" style="color: rgba(255,255,255,0.4);">{{ settings.ctaKicker }}</p>
                     <h2
                         class="display font-light whitespace-pre-line"

@@ -27,8 +27,14 @@ class ServicesController extends Controller
 
             'blocks' => Service::where('is_active', true)
                 ->orderBy('sort_order')
-                ->get(['name', 'slug', 'description'])
-                ->toArray(),
+                ->get(['name', 'slug', 'description', 'hover_image'])
+                ->map(fn (Service $service) => [
+                    'name' => $service->name,
+                    'slug' => $service->slug,
+                    'description' => $service->description,
+                    'hoverImage' => DemoProjectController::imageUrl($service->hover_image),
+                ])
+                ->all(),
 
             'valuepropsKicker' => $get('services_valueprops_kicker', 'Why Flatview?'),
             'valueprops' => $getJson('services_valueprops', [

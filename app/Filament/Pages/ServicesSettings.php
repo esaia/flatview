@@ -16,6 +16,8 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use IrepPlugin\FilamentIrep\Models\Project as IrepProject;
 
 class ServicesSettings extends Page
 {
@@ -184,11 +186,49 @@ class ServicesSettings extends Page
 
                                 Select::make('services_projects_selected')
                                     ->label('Projects to show')
-                                    ->helperText('Leave empty to show every active demo project. The cards follow the order you pick them in. Projects themselves are managed under Website → Demo Projects.')
+                                    ->helperText('Lists the demo pages from Website → Demo Projects — one per interactive project. Leave empty to show every active page; the cards follow the order you pick them in. Use + to give another interactive project its own page.')
                                     ->multiple()
                                     ->searchable()
                                     ->preload()
-                                    ->options(fn () => DemoProject::orderBy('sort_order')->pluck('title', 'id')),
+                                    ->options(fn () => DemoProject::orderBy('sort_order')->pluck('title', 'id'))
+                                    // Quick-create so an interactive project without a demo
+                                    // page can get one without leaving this tab; the rest of
+                                    // its copy and imagery is edited under Demo Projects.
+                                    ->createOptionForm([
+                                        Select::make('project_id')
+                                            ->label('Interactive project')
+                                            ->options(fn () => IrepProject::whereNotIn('id', DemoProject::whereNotNull('project_id')->pluck('project_id'))
+                                                ->orderBy('title')
+                                                ->pluck('title', 'id'))
+                                            ->searchable()
+                                            ->preload()
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function ($state, callable $set) {
+                                                $title = IrepProject::whereKey($state)->value('title');
+
+                                                if (filled($title)) {
+                                                    $set('title', $title);
+                                                    $set('slug', Str::slug($title));
+                                                }
+                                            })
+                                            ->helperText('Projects that already have a demo page are not listed.'),
+
+                                        TextInput::make('title')
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug((string) $state))),
+
+                                        TextInput::make('slug')
+                                            ->required()
+                                            ->unique(table: DemoProject::class)
+                                            ->helperText('Page URL: /projects/your-slug'),
+
+                                        TextInput::make('tagline')
+                                            ->label('Card tagline')
+                                            ->placeholder('Interactive site plan · live availability'),
+                                    ])
+                                    ->createOptionUsing(fn (array $data) => DemoProject::create($data)->getKey()),
                             ]),
 
                         Tab::make('Why it matters')
