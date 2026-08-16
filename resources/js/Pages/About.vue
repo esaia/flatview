@@ -1,12 +1,34 @@
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Link } from '@inertiajs/vue3'
+import FaqSection from '@/Components/FaqSection.vue'
 
 const props = defineProps({
-    settings: { type: Object, default: () => ({}) },
-    stats:    { type: Array,  default: () => [] },
+    settings:   { type: Object, default: () => ({}) },
+    stats:      { type: Array,  default: () => [] },
+    valueprops: { type: Array,  default: () => [] },
+    faq:        { type: Object, default: () => ({}) },
+    gallery:    { type: Array,  default: () => [] },
 })
+
+/* ───────────────────────── Studio gallery ─────────────────────────
+ * A staggered collage rather than an even grid: the frames cycle through three
+ * shapes and offsets so the band reads as an editorial spread at any count.
+ */
+const galleryImages = computed(() =>
+    props.gallery
+        .map((item) => (typeof item === 'string' ? item : item?.image))
+        .filter(Boolean)
+        .map((path) => (path.startsWith('http') ? path : '/storage/' + path.replace(/^\/+/, ''))),
+)
+
+const FRAME_SHAPES = [
+    { span: 'md:col-span-7', ratio: '4 / 3', offset: '' },
+    { span: 'md:col-span-5', ratio: '3 / 4', offset: 'md:mt-24' },
+    { span: 'md:col-span-6 md:col-start-4', ratio: '16 / 10', offset: 'md:-mt-10' },
+]
+const frame = (i) => FRAME_SHAPES[i % FRAME_SHAPES.length]
 
 /* ───────────────────────── Stats: reveal + count-up ───────────────────────── */
 const statsSection = ref(null)
@@ -86,22 +108,46 @@ onUnmounted(() => {
                     {{ props.settings.about_headline || 'We build digital tools for the built world.' }}
                 </h1>
 
-                <a
-                    :href="props.settings.about_story_link || '#'"
-                    class="reveal story-link group mt-12 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.25em] text-black/50 hover:text-black transition-colors duration-300 w-fit"
-                    style="--d: .18s;"
-                >
-                    Our Story
-                    <span class="story-arrow inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
-                </a>
-
-                <!-- corner index -->
-                <span class="reveal hidden md:block absolute right-16 bottom-16 text-[11px] tracking-[0.2em] uppercase text-black/30" style="--d: .26s;">
-                    Est. — Studio
-                </span>
             </section>
 
-            <!-- ── Section 3: Stats — left title rail, full-width rows, count-up on reveal ─── -->
+            <!-- ── Section 2: Warm beige editorial statement ─────────────── -->
+            <section style="background: #efe9e1;" class="px-6 md:px-16 py-20 md:py-32">
+                <div class="grid md:grid-cols-12 gap-8 md:gap-12">
+                    <span class="md:col-span-3 text-[11px] tracking-[0.25em] uppercase" style="color: #9a8f7e;">Who we are</span>
+                    <div class="md:col-span-9 max-w-3xl">
+                        <p class="leading-relaxed" style="color: #2a2520; font-size: clamp(19px, 2.4vw, 30px); font-weight: 300; line-height: 1.5;">
+                            {{ props.settings.about_beige_text_1 || 'Flatview is a boutique web development agency specialising in digital products for the construction and real estate sector.' }}
+                        </p>
+                        <p class="mt-8 leading-loose" style="color: #6b6155; font-size: clamp(15px, 1.6vw, 18px);">
+                            {{ props.settings.about_beige_text_2 || 'Our flagship product is an interactive floor plan plugin that lets buyers browse buildings, select apartments by floor and status, and view pricing — embedded directly in your website.' }}
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Section 3: Studio gallery — staggered collage ─────────── -->
+            <section v-if="galleryImages.length" class="px-6 md:px-16 pt-24 md:pt-36">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+                    <figure
+                        v-for="(src, i) in galleryImages"
+                        :key="src"
+                        class="group overflow-hidden bg-[#efe9e1]"
+                        :class="[frame(i).span, frame(i).offset]"
+                        :style="{ aspectRatio: frame(i).ratio }"
+                    >
+                        <img
+                            :src="src"
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            class="h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.04]"
+                            draggable="false"
+                        />
+                    </figure>
+                </div>
+            </section>
+
+            <!-- ── Section 4: Stats — left title rail, full-width rows, count-up on reveal ─── -->
             <section ref="statsSection" class="px-6 md:px-16 pt-28 md:pt-36 pb-28 md:pb-36">
                 <div class="grid md:grid-cols-12 gap-12 md:gap-16">
                     <!-- left: title rail -->
@@ -151,38 +197,64 @@ onUnmounted(() => {
                 </div>
             </section>
 
-            <!-- ── Section 4: Warm beige editorial statement ─────────────── -->
-            <section style="background: #efe9e1;" class="px-6 md:px-16 py-20 md:py-32">
-                <div class="grid md:grid-cols-12 gap-8 md:gap-12">
-                    <span class="md:col-span-3 text-[11px] tracking-[0.25em] uppercase" style="color: #9a8f7e;">Who we are</span>
-                    <div class="md:col-span-9 max-w-3xl">
-                        <p class="leading-relaxed" style="color: #2a2520; font-size: clamp(19px, 2.4vw, 30px); font-weight: 300; line-height: 1.5;">
-                            {{ props.settings.about_beige_text_1 || 'Flatview is a boutique web development agency specialising in digital products for the construction and real estate sector.' }}
-                        </p>
-                        <p class="mt-8 leading-loose" style="color: #6b6155; font-size: clamp(15px, 1.6vw, 18px);">
-                            {{ props.settings.about_beige_text_2 || 'Our flagship product is an interactive floor plan plugin that lets buyers browse buildings, select apartments by floor and status, and view pricing — embedded directly in your website.' }}
-                        </p>
+            <!-- ── Section 4: Why Flatview — value props ─────────────────── -->
+            <section v-if="props.valueprops.length" class="px-6 md:px-16 pt-24 md:pt-36">
+                <p class="flex items-center gap-2 mb-8 md:mb-10">
+                    <span class="dot"></span>
+                    <span class="text-[11px] tracking-[0.25em] uppercase font-medium text-black/45">
+                        {{ props.settings.about_valueprops_kicker || 'Why Flatview?' }}
+                    </span>
+                </p>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-black/10">
+                    <div
+                        v-for="prop in props.valueprops"
+                        :key="prop.label"
+                        class="py-6 md:py-8 pr-6 md:pr-10 border-b border-black/10 md:border-b-0"
+                    >
+                        <h3 class="display text-lg text-black mb-2.5 md:mb-3 leading-snug" style="font-weight: 400;">{{ prop.label }}</h3>
+                        <p class="text-sm text-black/45 font-light leading-relaxed">{{ prop.detail }}</p>
                     </div>
                 </div>
             </section>
 
-            <!-- ── Section 5: Work with us CTA ───────────────────────────── -->
-            <section class="cta pt-28 md:pt-44 pb-32 md:pb-56 px-6 md:px-16 flex flex-col items-center justify-center text-center">
-                <span class="text-[11px] tracking-[0.25em] uppercase text-black/35 mb-8">Let's talk</span>
-                <h2 class="display text-black mb-10" style="font-size: clamp(44px, 9vw, 128px); font-weight: 300; line-height: 0.95; letter-spacing: -0.03em;">
-                    {{ props.settings.about_cta_title || 'Work with us' }}
-                </h2>
-                <a
-                    href="/contact"
-                    class="group inline-flex items-center gap-3 text-[11px] tracking-[0.25em] uppercase text-black/50 hover:text-black transition-colors duration-300"
-                >
-                    <span class="relative pb-1">
-                        {{ props.settings.about_cta_link_text || 'Introduce yourself' }}
-                        <span class="absolute left-0 -bottom-px h-px w-full bg-black/20"></span>
-                        <span class="absolute left-0 -bottom-px h-px w-full bg-black origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"></span>
-                    </span>
-                    <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
-                </a>
+            <FaqSection
+                :kicker="props.faq.kicker"
+                :headline="props.faq.headline"
+                :intro="props.faq.intro"
+                :items="props.faq.items ?? []"
+            />
+
+            <!-- ── Section 6: Work with us CTA ───────────────────────────── -->
+            <section class="cta relative bg-[#0e0e0e] text-white overflow-hidden">
+                <img
+                    src="/images/services-cta.webp"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    class="absolute inset-0 w-full h-full object-cover opacity-80"
+                    draggable="false"
+                />
+                <!-- Just enough dimming to hold the white type, no more. -->
+                <div class="absolute inset-0 bg-gradient-to-b from-black/45 via-black/30 to-black/55"></div>
+
+                <div class="relative pt-28 md:pt-44 pb-32 md:pb-56 px-6 md:px-16 flex flex-col items-center justify-center text-center">
+                    <span class="text-[11px] tracking-[0.25em] uppercase text-white/40 mb-8">Let's talk</span>
+                    <h2 class="display mb-10" style="font-size: clamp(44px, 9vw, 128px); font-weight: 300; line-height: 0.95; letter-spacing: -0.03em;">
+                        {{ props.settings.about_cta_title || 'Work with us' }}
+                    </h2>
+                    <a
+                        href="/contact"
+                        class="group inline-flex items-center gap-3 text-[11px] tracking-[0.25em] uppercase text-white/70 hover:text-white transition-colors duration-300"
+                    >
+                        <span class="relative pb-1">
+                            {{ props.settings.about_cta_link_text || 'Introduce yourself' }}
+                            <span class="absolute left-0 -bottom-px h-px w-full bg-white/25"></span>
+                            <span class="absolute left-0 -bottom-px h-px w-full bg-white origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"></span>
+                        </span>
+                        <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                    </a>
+                </div>
             </section>
 
         </div>

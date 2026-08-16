@@ -39,7 +39,6 @@ class ServicesSettings extends Page
         'services_headline',
         'services_intro',
         'services_gallery_kicker',
-        'services_valueprops_kicker',
         'services_projects_kicker',
         'services_projects_headline',
         'services_projects_headline_accent',
@@ -61,7 +60,6 @@ class ServicesSettings extends Page
 
     /** Setting keys whose value is stored as a JSON-encoded array. */
     protected const JSON_KEYS = [
-        'services_valueprops',
         'services_projects_selected',
         'services_matters',
         'services_features',
@@ -137,31 +135,6 @@ class ServicesSettings extends Page
                                     ->openable()
                                     ->downloadable()
                                     ->hintAction(MediaLibrary::pickerAction()),
-                            ]),
-
-                        Tab::make('Why us')
-                            ->icon('heroicon-o-sparkles')
-                            ->schema([
-                                TextInput::make('services_valueprops_kicker')
-                                    ->label('Section kicker')
-                                    ->placeholder('Why Flatview?'),
-
-                                Repeater::make('services_valueprops')
-                                    ->label('Value props')
-                                    ->schema([
-                                        TextInput::make('label')
-                                            ->required()
-                                            ->placeholder('Niche focused'),
-
-                                        TextInput::make('detail')
-                                            ->required()
-                                            ->placeholder('We work exclusively in construction and real estate.'),
-                                    ])
-                                    ->columns(2)
-                                    ->reorderable()
-                                    ->collapsible()
-                                    ->defaultItems(0)
-                                    ->addActionLabel('Add value prop'),
                             ]),
 
                         Tab::make('Demo projects')

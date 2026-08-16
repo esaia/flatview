@@ -13,12 +13,16 @@ class AboutController extends Controller
     {
         $settings = HomepageSetting::whereIn('key', [
             'about_headline',
-            'about_story_link',
             'about_beige_text_1',
             'about_beige_text_2',
             'about_cta_title',
             'about_cta_link_text',
+            'about_valueprops_kicker',
+            'about_valueprops',
         ])->pluck('value', 'key');
+
+        $valueprops = json_decode($settings['about_valueprops'] ?? '[]', true);
+        $valueprops = is_array($valueprops) ? $valueprops : [];
 
         $gallery = AboutGalleryImage::where('is_active', true)
             ->orderBy('sort_order')
@@ -28,6 +32,8 @@ class AboutController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return Inertia::render('About', compact('settings', 'gallery', 'stats'));
+        $faq = $this->faq();
+
+        return Inertia::render('About', compact('settings', 'gallery', 'stats', 'valueprops', 'faq'));
     }
 }

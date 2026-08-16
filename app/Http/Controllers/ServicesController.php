@@ -36,14 +36,6 @@ class ServicesController extends Controller
                 ])
                 ->all(),
 
-            'valuepropsKicker' => $get('services_valueprops_kicker', 'Why Flatview?'),
-            'valueprops' => $getJson('services_valueprops', [
-                ['label' => 'Niche focused', 'detail' => 'We work exclusively in construction and real estate.'],
-                ['label' => 'Fast delivery', 'detail' => 'Typical project turnaround: 3–6 weeks.'],
-                ['label' => 'EU-ready', 'detail' => 'GDPR compliant, multi-language, EU-hosted.'],
-                ['label' => 'Ongoing support', 'detail' => 'Retainer options from day one.'],
-            ]),
-
             'projectsKicker' => $get('services_projects_kicker', 'Live demos'),
             'projectsHeadline' => $get('services_projects_headline', 'See it working'),
             'projectsHeadlineAccent' => $get('services_projects_headline_accent', 'on a real project'),
@@ -119,7 +111,9 @@ class ServicesController extends Controller
             ])
             ->values();
 
-        return Inertia::render('Services', compact('settings', 'gallery', 'projects'));
+        $faq = $this->faq();
+
+        return Inertia::render('Services', compact('settings', 'gallery', 'projects', 'faq'));
     }
 
     public function show(string $slug)

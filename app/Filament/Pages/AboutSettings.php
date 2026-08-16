@@ -2,8 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Support\MediaLibrary;
+use App\Models\AboutGalleryImage;
 use App\Models\AboutStat;
 use App\Models\HomepageSetting;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -12,6 +15,7 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class AboutSettings extends Page
 {
@@ -30,20 +34,34 @@ class AboutSettings extends Page
     /** Setting keys backed by the HomepageSetting key/value store. */
     protected const SETTING_KEYS = [
         'about_headline',
-        'about_story_link',
         'about_beige_text_1',
         'about_beige_text_2',
         'about_cta_title',
         'about_cta_link_text',
+        'about_valueprops_kicker',
+    ];
+
+    /** Setting keys whose value is stored as a JSON-encoded array. */
+    protected const JSON_KEYS = [
+        'about_valueprops',
     ];
 
     public ?array $data = [];
 
     public function mount(): void
     {
-        $settings = HomepageSetting::whereIn('key', self::SETTING_KEYS)
+        $settings = HomepageSetting::whereIn('key', array_merge(self::SETTING_KEYS, self::JSON_KEYS))
             ->pluck('value', 'key')
             ->toArray();
+
+        foreach (self::JSON_KEYS as $key) {
+            $decoded = json_decode($settings[$key] ?? '[]', true);
+            $settings[$key] = is_array($decoded) ? $decoded : [];
+        }
+
+        $settings['gallery'] = AboutGalleryImage::orderBy('sort_order')
+            ->pluck('image')
+            ->all();
 
         $settings['stats'] = AboutStat::orderBy('sort_order')
             ->get(['value', 'label'])
@@ -68,10 +86,6 @@ class AboutSettings extends Page
                                     ->required()
                                     ->helperText('e.g. "We build digital tools for the built world."'),
 
-                                TextInput::make('about_story_link')
-                                    ->label('Story link URL')
-                                    ->placeholder('#our-story'),
-
                                 Textarea::make('about_beige_text_1')
                                     ->label('Beige section — paragraph 1')
                                     ->rows(3)
@@ -91,6 +105,51 @@ class AboutSettings extends Page
                                     ->label('CTA link text')
                                     ->required()
                                     ->placeholder('Introduce yourself'),
+                            ]),
+
+                        Tab::make('Why us')
+                            ->icon('heroicon-o-sparkles')
+                            ->schema([
+                                TextInput::make('about_valueprops_kicker')
+                                    ->label('Section kicker')
+                                    ->placeholder('Why Flatview?'),
+
+                                Repeater::make('about_valueprops')
+                                    ->label('Value props')
+                                    ->schema([
+                                        TextInput::make('label')
+                                            ->required()
+                                            ->placeholder('Niche focused'),
+
+                                        TextInput::make('detail')
+                                            ->required()
+                                            ->placeholder('We work exclusively in construction and real estate.'),
+                                    ])
+                                    ->columns(2)
+                                    ->reorderable()
+                                    ->collapsible()
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Add value prop'),
+                            ]),
+
+                        Tab::make('Gallery')
+                            ->icon('heroicon-o-photo')
+                            ->schema([
+                                FileUpload::make('gallery')
+                                    ->label('Studio photos')
+                                    ->helperText('Shown as a staggered collage under the opening statement. Drag to reorder.')
+                                    ->disk('public')
+                                    ->directory('about-gallery')
+                                    ->visibility('public')
+                                    ->image()
+                                    ->multiple()
+                                    ->reorderable()
+                                    ->appendFiles()
+                                    ->panelLayout('grid')
+                                    ->imagePreviewHeight('180')
+                                    ->openable()
+                                    ->downloadable()
+                                    ->hintAction(MediaLibrary::pickerAction()),
                             ]),
 
                         Tab::make('Stats')
@@ -124,18 +183,54 @@ class AboutSettings extends Page
         $data = $this->form->getState();
 
         $stats = $data['stats'] ?? [];
-        unset($data['stats']);
+        $gallery = $data['gallery'] ?? [];
+        unset($data['stats'], $data['gallery']);
+
+        foreach (self::JSON_KEYS as $key) {
+            HomepageSetting::updateOrCreate(
+                ['key' => $key],
+                ['value' => json_encode(array_values($data[$key] ?? []))],
+            );
+            unset($data[$key]);
+        }
 
         foreach ($data as $key => $value) {
             HomepageSetting::updateOrCreate(['key' => $key], ['value' => $value]);
         }
 
         $this->syncStats($stats);
+        $this->syncGallery($gallery);
 
         Notification::make()
             ->title('About page saved')
             ->success()
             ->send();
+    }
+
+    /**
+     * Replace the gallery rows from the upload field, preserving row order.
+     * Files dropped from the field are removed from disk as well.
+     *
+     * @param  array<int, string>  $paths
+     */
+    protected function syncGallery(array $paths): void
+    {
+        $paths = array_values(array_filter($paths));
+        $previous = AboutGalleryImage::pluck('image')->all();
+
+        foreach (array_diff($previous, $paths) as $removed) {
+            Storage::disk('public')->delete($removed);
+        }
+
+        AboutGalleryImage::query()->delete();
+
+        foreach ($paths as $index => $path) {
+            AboutGalleryImage::create([
+                'image' => $path,
+                'sort_order' => $index,
+                'is_active' => true,
+            ]);
+        }
     }
 
     /**

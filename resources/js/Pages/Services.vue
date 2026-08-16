@@ -2,11 +2,13 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import FaqSection from '@/Components/FaqSection.vue'
 
 const props = defineProps({
     gallery: { type: Array, default: () => [] },
     settings: { type: Object, default: () => ({}) },
     projects: { type: Array, default: () => [] },
+    faq: { type: Object, default: () => ({}) },
 })
 
 const num = (i) => String(i + 1).padStart(2, '0')
@@ -19,7 +21,6 @@ const services = computed(() =>
 // Service grid is laid out 2-up so it stays balanced for any count (4 = a clean 2x2).
 const isLastServiceCol = (i) => i % 2 === 1 || i + 1 >= services.value.length
 const isLastServiceRow = (i) => Math.floor(i / 2) === Math.floor((services.value.length - 1) / 2)
-const valueProps = computed(() => props.settings.valueprops ?? [])
 
 // "Why it matters" — three panels, the second one inverted for rhythm.
 const matters = computed(() =>
@@ -320,21 +321,6 @@ onUnmounted(() => {
                     </component>
                 </div>
 
-                <!-- Why Flatview -->
-                <div>
-                    <p class="kicker flex items-center gap-2 mb-8 md:mb-10"><span class="dot"></span> {{ settings.valuepropsKicker }}</p>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-black/10">
-                        <div
-                            v-for="prop in valueProps"
-                            :key="prop.label"
-                            class="py-6 md:py-8 pr-6 md:pr-10 border-b border-black/10 md:border-b-0"
-                        >
-                            <h3 class="display text-lg text-black mb-2.5 md:mb-3 leading-snug" style="font-weight: 400;">{{ prop.label }}</h3>
-                            <p class="text-sm text-black/45 font-light leading-relaxed">{{ prop.detail }}</p>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- ── Live demo projects ──────────────────────────────────────
                      Each card opens its own /projects/{slug} showcase page with
                      the interactive site plan and the full unit list. -->
@@ -539,6 +525,13 @@ onUnmounted(() => {
                 </div>
 
             </div>
+
+            <FaqSection
+                :kicker="props.faq.kicker"
+                :headline="props.faq.headline"
+                :intro="props.faq.intro"
+                :items="props.faq.items ?? []"
+            />
 
             <!-- Closing CTA -->
             <section class="relative bg-[#0e0e0e] text-white overflow-hidden">
