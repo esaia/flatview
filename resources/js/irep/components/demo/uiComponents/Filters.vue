@@ -60,6 +60,12 @@ function normalizeRangeOption(
 }
 
 const floorsMinMax = computed(() => {
+  // An explicit floor range from Manage filters wins over the project's floors.
+  const configured = filterOptions.value.floor_filter_options;
+  if (configured) {
+    return normalizeRangeOption(configured, { min: 0, max: 16, step: 1 });
+  }
+
   const floors = globalStore.shortcodeData?.floors ?? [];
   const floorNumbers = floors
     .map((floor) => Number(floor.floor_number))

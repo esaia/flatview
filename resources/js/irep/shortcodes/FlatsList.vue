@@ -54,7 +54,34 @@ const roomOptions = normalizeRangeOption(filterOptions.rooms_filter_options, {
   step: 1,
 });
 
+// Statuses switched off in Manage filters are dropped from the list entirely,
+// not just from the dropdown.
+const hiddenStatuses = Array.isArray(filterOptions.hidden_statuses)
+  ? (filterOptions.hidden_statuses as string[])
+  : [];
+
+const isHiddenStatus = (flat: any) => {
+  if (!hiddenStatuses.length) return false;
+
+  // No status means "available"; a custom status is stored by value but shown
+  // by title, so match either.
+  if (!flat?.conf) return hiddenStatuses.includes("available");
+
+  const customTypes = getMetaValue("custom_types");
+  const customType = Array.isArray(customTypes)
+    ? customTypes.find((t: any) => t.title === flat.conf || t.value === flat.conf)
+    : null;
+
+  return hiddenStatuses.includes(customType?.value ?? flat.conf);
+};
+
+const configuredFloorOptions = filterOptions.floor_filter_options
+  ? normalizeRangeOption(filterOptions.floor_filter_options, { min: 0, max: 16, step: 1 })
+  : null;
+
 const floorsMinMax = computed(() => {
+  if (configuredFloorOptions) return configuredFloorOptions;
+
   const floorNumbers = (shortcodeData.value?.floors ?? [])
     .map((floor: any) => Number(floor.floor_number))
     .filter((value: number) => Number.isFinite(value));
@@ -86,7 +113,21 @@ const flatType = (flat: any) => {
   );
 };
 
-const flatPrice = (flat: any) => Number(flat?.offer_price ?? flat?.price_n ?? flat?.price);
+// An offer price of "0.00" means "no offer", so take the first *positive*
+// value rather than the first non-null one — `??` would stop at the zero.
+const flatPrice = (flat: any) => {
+  const candidates = [
+    flat?.offer_price_n ?? flat?.offer_price,
+    flat?.price_n ?? flat?.price,
+  ];
+
+  for (const candidate of candidates) {
+    const value = Number(candidate);
+    if (Number.isFinite(value) && value > 0) return value;
+  }
+
+  return 0;
+};
 const flatArea = (flat: any) => {
   const type = flatType(flat);
   return Number(type?.area_m2_n ?? type?.area_m2);
@@ -142,7 +183,14 @@ const filteredFlats = computed(() => {
         }
       }
 
-      return priceMatch && areaMatch && floorMatch && roomMatch && configMatch;
+      return (
+        !isHiddenStatus(flat) &&
+        priceMatch &&
+        areaMatch &&
+        floorMatch &&
+        roomMatch &&
+        configMatch
+      );
     })
     .map((flat: any) => {
       const customType = Array.isArray(customTypes)
@@ -176,7 +224,9 @@ const flatThumb = (flat: any) => {
 const priceLabel = (flat: any) => {
   if (flat?.request_price) return tr("request price");
 
-  const price = Number(flat?.offer_price ?? flat?.price_n);
+  // Same resolution as the filters use: `price_n` is a WordPress-era field and
+  // is null here, so the plain `price` has to be the fallback.
+  const price = flatPrice(flat);
   if (!Number.isFinite(price) || price <= 0) return "";
 
   return `${getPrice(price)} ${currencySymbol()}`;
@@ -185,6 +235,23 @@ const priceLabel = (flat: any) => {
 // "Request price" is a call to action rather than a value, so it takes the
 // project's primary colour like it does in the flat modal.
 const isRequestPrice = (flat: any) => Boolean(flat?.request_price);
+
+// A discounted unit shows its old price struck through above the new one, and
+// the new one in the project's primary colour — same as the flat modal.
+const hasOfferPrice = (flat: any) => {
+  const offer = Number(flat?.offer_price_n ?? flat?.offer_price);
+  const original = Number(flat?.price_n ?? flat?.price);
+
+  return Number.isFinite(offer) && offer > 0 && Number.isFinite(original) && original > 0;
+};
+
+const originalPriceLabel = (flat: any) => {
+  const original = Number(flat?.price_n ?? flat?.price);
+
+  return `${getPrice(original)} ${currencySymbol()}`;
+};
+
+const isHighlightedPrice = (flat: any) => isRequestPrice(flat) || hasOfferPrice(flat);
 
 const areaLabel = (flat: any) => {
   const type = flatType(flat);
@@ -362,13 +429,22 @@ const floors = computed(() => shortcodeData.value?.floors);
           <!-- A reserved or sold unit shows its status where the price would
                be: the price no longer means anything to a buyer. -->
           <Badge v-if="flat.conf" :conf="flat.conf" />
-          <span
-            v-else
-            class="text-sm tabular-nums"
-            :class="isRequestPrice(flat) ? 'font-medium capitalize' : 'text-black/70'"
-            :style="isRequestPrice(flat) ? { color: 'var(--primary-color)' } : undefined"
-          >
-            {{ priceLabel(flat) }}
+          <span v-else class="shrink-0 text-right leading-tight">
+            <span
+              v-if="hasOfferPrice(flat)"
+              class="block text-sm tabular-nums text-black/35 line-through"
+            >
+              {{ originalPriceLabel(flat) }}
+            </span>
+            <!-- Prices carry the project's primary colour, as they do in the
+                 flat modal; a discounted one is emphasised further. -->
+            <span
+              class="block text-lg md:text-xl tabular-nums"
+              :class="isHighlightedPrice(flat) ? 'font-medium' : ''"
+              style="color: var(--primary-color);"
+            >
+              <span :class="isRequestPrice(flat) ? 'capitalize' : ''">{{ priceLabel(flat) }}</span>
+            </span>
           </span>
         </div>
 
@@ -424,12 +500,9 @@ const floors = computed(() => shortcodeData.value?.floors);
             @click="openFlat(flat)"
           >
             <td class="py-4">
-              <div class="flex items-center gap-3">
-                <span class="display text-base text-black" style="font-weight: 400;">
-                  {{ flat.flat_number }}
-                </span>
-                <Badge v-if="flat.conf" :conf="flat.conf" />
-              </div>
+              <span class="display text-base text-black" style="font-weight: 400;">
+                {{ flat.flat_number }}
+              </span>
             </td>
             <td class="py-4 text-sm font-light tabular-nums text-black/60">
               <template v-if="areaLabel(flat)">
@@ -443,12 +516,24 @@ const floors = computed(() => shortcodeData.value?.floors);
             <td class="py-4 text-sm font-light tabular-nums text-black/60">
               {{ flatFloorNumber(flat) || "—" }}
             </td>
-            <td
-              class="py-4 text-right text-sm tabular-nums"
-              :class="isRequestPrice(flat) ? 'font-medium capitalize' : 'text-black/70'"
-              :style="isRequestPrice(flat) ? { color: 'var(--primary-color)' } : undefined"
-            >
-              {{ flat.conf ? "—" : priceLabel(flat) || "—" }}
+            <td class="py-4 text-right leading-tight">
+              <!-- Status takes the price column, as it does on the cards. -->
+              <Badge v-if="flat.conf" :conf="flat.conf" />
+              <template v-else>
+                <span
+                  v-if="hasOfferPrice(flat)"
+                  class="block text-xs tabular-nums text-black/35 line-through"
+                >
+                  {{ originalPriceLabel(flat) }}
+                </span>
+                <span
+                  class="block text-lg tabular-nums"
+                  :class="isHighlightedPrice(flat) ? 'font-medium capitalize' : ''"
+                  style="color: var(--primary-color);"
+                >
+                  {{ priceLabel(flat) || "—" }}
+                </span>
+              </template>
             </td>
           </tr>
         </tbody>

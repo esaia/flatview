@@ -55,7 +55,46 @@ class IrepShortcode
         $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $json = preg_replace('#https?://[^/"\\\\]+/storage/#', '/storage/', $json);
 
-        return json_decode($json, true);
+        // Enrich after the round-trip, where models have become plain arrays.
+        return self::withNumericFields(json_decode($json, true));
+    }
+
+    /**
+     * The viewer reads `price_n` / `area_m2_n` — numeric siblings of the
+     * decimal-string columns, a WordPress-era convention several components
+     * still rely on. Nothing here produces them, so derive them once.
+     */
+    protected static function withNumericFields(array $data): array
+    {
+        $number = fn ($value) => is_numeric($value) ? (float) $value : null;
+
+        $withTypeNumbers = function ($type) use ($number) {
+            if (! is_array($type)) {
+                return $type;
+            }
+
+            $type['area_m2_n'] = $number($type['area_m2'] ?? null);
+            $type['rooms_count_n'] = $number($type['rooms_count'] ?? null);
+
+            return $type;
+        };
+
+        $data['types'] = array_map($withTypeNumbers, (array) ($data['types'] ?? []));
+
+        $data['flats'] = array_map(function ($flat) use ($number, $withTypeNumbers) {
+            $flat['price_n'] = $number($flat['price'] ?? null);
+            $flat['offer_price_n'] = $number($flat['offer_price'] ?? null);
+
+            foreach (['type', 'flat_type'] as $key) {
+                if (isset($flat[$key])) {
+                    $flat[$key] = $withTypeNumbers($flat[$key]);
+                }
+            }
+
+            return $flat;
+        }, (array) ($data['flats'] ?? []));
+
+        return $data;
     }
 
     /**

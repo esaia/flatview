@@ -43,7 +43,7 @@ const selectId = `irep-select-${Math.random().toString(36).substring(2, 9)}`;
         :id="selectId"
         v-model="selectModel"
         :aria-label="label || placeholder"
-        class="no-spinner ring-inset ire-w-full ire-cursor-pointer ire-appearance-none ire-rounded-lg !ire-border-none ire-bg-white ire-py-2.5 ire-pl-3.5 ire-pr-10 ire-text-sm ire-font-medium ire-text-gray-700 !ire-outline-none !ire-ring-[1px] !ire-ring-gray-200 ire-transition-all hover:!ire-ring-gray-300 focus:!ire-ring-2 focus:!ire-ring-black"
+        class="no-spinner ring-inset rounded-lg border-0 outline-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black ire-w-full ire-cursor-pointer ire-appearance-none ire-rounded-lg !ire-border-none ire-bg-white ire-py-2.5 ire-pl-3.5 ire-pr-10 ire-text-sm ire-font-medium ire-text-gray-700 !ire-outline-none !ire-ring-[1px] !ire-ring-gray-200 ire-transition-all hover:!ire-ring-gray-300"
       >
         <option
           v-for="item in data"

@@ -80,6 +80,11 @@ const inquiryLink = computed<string>(() => {
   return `https://wa.me/${w.phone.replace(/\D/g, "")}?text=${encoded}`;
 });
 
+// Projects can hide the per-area price entirely (project meta).
+const hidePricePerArea = computed<boolean>(
+  () => globalStore.getMetaValue("hide_price_per_area") === "true",
+);
+
 const pricePerM2 = computed<number>(() => {
   const areaM2 = Number(props.flat?.type?.area_m2);
   const selectedPrice = Number(props.flat?.offer_price || props.flat?.price);
@@ -171,7 +176,7 @@ const pricePerM2 = computed<number>(() => {
     </div>
 
     <div
-      v-if="pricePerM2 > 0 && !flat.request_price && !flat.conf"
+      v-if="!hidePricePerArea && pricePerM2 > 0 && !flat.request_price && !flat.conf"
       class="irep-price__per-m2 ire-pt-2 ire-text-base ire-text-gray-700"
     >
       {{ getPrice(pricePerM2) }}
