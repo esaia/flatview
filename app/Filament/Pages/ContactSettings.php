@@ -18,11 +18,11 @@ class ContactSettings extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Website';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pages';
 
     protected static ?string $navigationLabel = 'Contact Page';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
 
     protected static ?string $title = 'Contact Page';
 

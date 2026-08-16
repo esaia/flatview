@@ -14,12 +14,12 @@ use Filament\Support\Colors\Color;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-use IrepPlugin\FilamentIrep\FilamentIrepPlugin;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use IrepPlugin\FilamentIrep\FilamentIrepPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -34,6 +34,10 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
             ])
             ->navigationGroups([
+                NavigationGroup::make('Pages'),
+                NavigationGroup::make('Content'),
+                NavigationGroup::make('Site'),
+                NavigationGroup::make('Inbox'),
                 NavigationGroup::make('Real Estate'),
                 NavigationGroup::make('Configuration'),
             ])

@@ -23,7 +23,7 @@ class ServicesSettings extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-wrench-screwdriver';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Website';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pages';
 
     protected static ?string $navigationLabel = 'Services Page';
 

@@ -19,11 +19,11 @@ class WorkSettings extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Website';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pages';
 
     protected static ?string $navigationLabel = 'Work Page';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $title = 'Work Page';
 

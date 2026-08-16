@@ -17,11 +17,11 @@ class FaqSettings extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-question-mark-circle';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Website';
+    protected static string|\UnitEnum|null $navigationGroup = 'Content';
 
     protected static ?string $navigationLabel = 'FAQ';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $title = 'FAQ';
 

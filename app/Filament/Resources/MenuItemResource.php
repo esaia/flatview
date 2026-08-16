@@ -8,13 +8,13 @@ use App\Models\MenuItem;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Illuminate\Support\Facades\Storage;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 
 class MenuItemResource extends Resource
 {
@@ -22,11 +22,11 @@ class MenuItemResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-bars-3';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Website';
+    protected static string|\UnitEnum|null $navigationGroup = 'Site';
 
     protected static ?string $navigationLabel = 'Navigation Menu';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {
@@ -101,9 +101,9 @@ class MenuItemResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListMenuItems::route('/'),
+            'index' => Pages\ListMenuItems::route('/'),
             'create' => Pages\CreateMenuItem::route('/create'),
-            'edit'   => Pages\EditMenuItem::route('/{record}/edit'),
+            'edit' => Pages\EditMenuItem::route('/{record}/edit'),
         ];
     }
 }

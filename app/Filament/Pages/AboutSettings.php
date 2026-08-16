@@ -21,7 +21,7 @@ class AboutSettings extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Website';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pages';
 
     protected static ?string $navigationLabel = 'About Page';
 

@@ -4,8 +4,8 @@ namespace App\Filament\Pages;
 
 use App\Models\HomepageSetting;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
@@ -17,7 +17,7 @@ class HomepageSettings extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-home';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Website';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pages';
 
     protected static ?string $navigationLabel = 'Homepage';
 
