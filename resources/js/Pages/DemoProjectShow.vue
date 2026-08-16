@@ -12,6 +12,10 @@ const props = defineProps({
     cta: { type: Object, default: () => ({}) },
 })
 
+// Projects without their own hero image fall back to a shipped render, so the
+// page never opens on a flat black band.
+const heroImage = computed(() => props.project.heroImage || '/images/demo-project-hero.webp')
+
 // The 360 viewer sizes itself against its container, so it needs a stage with a
 // definite height; the polygon viewer sizes itself from its own image instead.
 const has360 = computed(() => Boolean(props.projectData?.project?.['360images']?.length))
@@ -33,10 +37,9 @@ const scrollToPlan = () => planSection.value?.scrollIntoView({ behavior: 'smooth
             <!-- ── Hero ───────────────────────────────────────────────────── -->
             <section class="relative bg-[#0e0e0e] text-white overflow-hidden">
                 <img
-                    v-if="project.heroImage"
-                    :src="project.heroImage"
+                    :src="heroImage"
                     :alt="project.title"
-                    class="absolute inset-0 w-full h-full object-cover opacity-60"
+                    class="absolute inset-0 w-full h-full object-cover opacity-70"
                     draggable="false"
                 />
                 <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/70"></div>

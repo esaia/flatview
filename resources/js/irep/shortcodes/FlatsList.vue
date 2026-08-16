@@ -2,25 +2,33 @@
 /**
  * Filterable list of every unit in a project, for use inside <IrepProvider>.
  *
- * Reuses the plugin's own Filters / FlatCard / FlatsTable pieces so the
- * filtering, badges and price formatting behave exactly like they do inside the
- * viewer; only the section chrome around them belongs to the site.
+ * Filtering, price/area formatting and status badges come from the plugin, but
+ * the layout is the site's own: the plugin's card and table markup relies on
+ * `ire-` utilities that its prebuilt stylesheet does not actually ship, so they
+ * fall apart outside the editor.
  */
 import { computed, provide, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import Filters from "../components/demo/uiComponents/Filters.vue";
-import FlatCard from "../components/demo/uiComponents/FlatCard.vue";
-import FlatsTable from "../components/demo/uiComponents/FlatsTable.vue";
+import Badge from "../components/demo/uiComponents/Badge.vue";
 import PreviewModal from "../components/demo/uiComponents/PreviewModal.vue";
 import FlatPreview from "../components/demo/preview/FlatPreview.vue";
-import GridIcon from "../components/icons/GridIcon.vue";
-import TableIcon from "../components/icons/TableIcon.vue";
+import Area from "../components/icons/Area.vue";
+import Bed from "../components/icons/Bed.vue";
+import Floor from "../components/icons/Floor.vue";
 import {
-  getNested,
+  currencySymbol,
+  getArea,
+  getAreaUnitLabel,
+  getPrice,
+  getRoomCount,
+  isVideoMedia,
+  mediaThumbUrl,
   normalizeFilterOptionsMeta,
   normalizeRangeOption,
   tr,
   useGetFloorById,
+  withRenderableMedia,
 } from "../composable/helper";
 import { useGlobalStore } from "../store/useGlobal";
 
@@ -69,8 +77,23 @@ const filtersObject = ref({
 const isUntouched = (range: [number, number], bounds: { min: number; max: number }) =>
   range[0] === bounds.min && range[1] === bounds.max;
 
-const flatPrice = (flat: any) =>
-  Number(flat?.offer_price ?? flat?.price_n ?? flat?.price);
+// A flat either points at a shared type or carries its own inline one, exactly
+// as the flat modal resolves it.
+const flatType = (flat: any) => {
+  const useType = flat?.use_type === true || String(flat?.use_type) === "true";
+  return withRenderableMedia(
+    useType ? (flat?.type ?? flat?.flat_type) : (flat?.flat_type ?? flat?.type),
+  );
+};
+
+const flatPrice = (flat: any) => Number(flat?.offer_price ?? flat?.price_n ?? flat?.price);
+const flatArea = (flat: any) => {
+  const type = flatType(flat);
+  return Number(type?.area_m2_n ?? type?.area_m2);
+};
+const flatRooms = (flat: any) =>
+  parseFloat(String(flatType(flat)?.rooms_count ?? "").replace(",", "."));
+const flatFloorNumber = (flat: any) => getFloorById(flat?.floor_id)?.floor_number ?? "";
 
 const filteredFlats = computed(() => {
   const list = flats.value ?? [];
@@ -92,9 +115,9 @@ const filteredFlats = computed(() => {
   return list
     .filter((flat: any) => {
       const price = flatPrice(flat);
-      const area = Number(flat.type?.area_m2_n ?? flat.type?.area_m2);
-      const floor = Number(getFloorById(flat.floor_id)?.floor_number);
-      const rooms = parseFloat(String(flat.type?.rooms_count ?? "0").replace(",", "."));
+      const area = flatArea(flat);
+      const floor = Number(flatFloorNumber(flat));
+      const rooms = flatRooms(flat);
 
       const priceMatch =
         !priceTouched || (Number.isFinite(price) && price >= pMin && price <= pMax);
@@ -130,34 +153,95 @@ const filteredFlats = computed(() => {
     });
 });
 
+/* ── Card media ────────────────────────────────────────────────────────── */
+// Cards lead with the plan the project prefers, then fall back to the other.
+const flatThumb = (flat: any) => {
+  const type = flatType(flat) ?? {};
+  const media =
+    getMetaValue("flat_list_default_plan") === "2d"
+      ? [...(type.image_2d ?? []), ...(type.image_3d ?? [])]
+      : [...(type.image_3d ?? []), ...(type.image_2d ?? [])];
+
+  for (const item of media) {
+    const url = mediaThumbUrl(item);
+    if (url) return { type: "image" as const, url };
+  }
+
+  const first = media[0];
+  if (first && isVideoMedia(first)) return { type: "video" as const, url: first.url };
+
+  return null;
+};
+
+const priceLabel = (flat: any) => {
+  if (flat?.request_price) return tr("request price");
+
+  const price = Number(flat?.offer_price ?? flat?.price_n);
+  if (!Number.isFinite(price) || price <= 0) return "";
+
+  return `${getPrice(price)} ${currencySymbol()}`;
+};
+
 /* ── View mode, sorting, paging ────────────────────────────────────────── */
 const view = ref<"grid" | "list">("grid");
-const sort = ref<{ field: string; order: "" | "asc" | "desc" }>({ field: "", order: "" });
+
+type SortField = "flat_number" | "area" | "rooms" | "floor" | "price";
+const sort = ref<{ field: SortField; order: "asc" | "desc" }>({
+  field: "flat_number",
+  order: "asc",
+});
+
+const columns: { field: SortField; label: string; align?: string }[] = [
+  { field: "flat_number", label: "unit" },
+  { field: "area", label: "area" },
+  { field: "rooms", label: "rooms" },
+  { field: "floor", label: "floor" },
+  { field: "price", label: "price", align: "text-right" },
+];
+
+const sortValue = (flat: any, field: SortField) => {
+  switch (field) {
+    case "area":
+      return flatArea(flat);
+    case "rooms":
+      return flatRooms(flat);
+    case "floor":
+      return Number(flatFloorNumber(flat));
+    case "price":
+      return flatPrice(flat);
+    default:
+      return String(flat?.flat_number ?? "");
+  }
+};
 
 const sortedFlats = computed(() => {
-  const list = [...filteredFlats.value];
-  if (!sort.value.field || !sort.value.order) return list;
-
   const direction = sort.value.order === "asc" ? 1 : -1;
 
-  return list.sort((a: any, b: any) => {
-    const left = getNested(a, sort.value.field);
-    const right = getNested(b, sort.value.field);
-    const leftNum = Number(left);
-    const rightNum = Number(right);
+  return [...filteredFlats.value].sort((a: any, b: any) => {
+    const left = sortValue(a, sort.value.field);
+    const right = sortValue(b, sort.value.field);
 
-    if (Number.isFinite(leftNum) && Number.isFinite(rightNum)) {
-      return (leftNum - rightNum) * direction;
+    if (typeof left === "number" && typeof right === "number") {
+      const leftValue = Number.isFinite(left) ? left : Number.NEGATIVE_INFINITY;
+      const rightValue = Number.isFinite(right) ? right : Number.NEGATIVE_INFINITY;
+      return (leftValue - rightValue) * direction;
     }
 
-    return String(left ?? "").localeCompare(String(right ?? "")) * direction;
+    return String(left).localeCompare(String(right), undefined, { numeric: true }) * direction;
   });
 });
+
+const toggleSort = (field: SortField) => {
+  sort.value =
+    sort.value.field === field
+      ? { field, order: sort.value.order === "asc" ? "desc" : "asc" }
+      : { field, order: "asc" };
+};
 
 const PAGE_SIZE = 12;
 const visibleCount = ref(PAGE_SIZE);
 const visibleFlats = computed(() => sortedFlats.value.slice(0, visibleCount.value));
-const hasMore = computed(() => visibleCount.value < sortedFlats.value.length);
+const remaining = computed(() => Math.max(0, sortedFlats.value.length - visibleCount.value));
 
 watch([filtersObject, view], () => (visibleCount.value = PAGE_SIZE), { deep: true });
 
@@ -165,9 +249,7 @@ watch([filtersObject, view], () => (visibleCount.value = PAGE_SIZE), { deep: tru
 const activeFlat = ref<any>(null);
 const showFlatModal = ref(false);
 
-const openFlat = (flatId: string) => {
-  const flat = sortedFlats.value.find((item: any) => String(item.id) === String(flatId));
-  if (!flat) return;
+const openFlat = (flat: any) => {
   activeFlat.value = flat;
   showFlatModal.value = true;
 };
@@ -186,72 +268,168 @@ const floors = computed(() => shortcodeData.value?.floors);
 </script>
 
 <template>
-  <div class="irep-flats-list ire-text-base">
-    <div class="ire-mb-8 ire-flex ire-flex-wrap ire-items-center ire-justify-between ire-gap-4">
-      <p class="ire-text-sm ire-uppercase ire-tracking-[0.2em] ire-text-black/45">
-        {{ filteredFlats.length }} / {{ flats?.length ?? 0 }} {{ tr("units") }}
+  <div class="irep-flats-list">
+    <!-- Header: count + view switch -->
+    <div class="flex flex-wrap items-end justify-between gap-4 border-b border-black/10 pb-5">
+      <p class="text-[11px] uppercase tracking-[0.2em] text-black/45">
+        <span class="text-black">{{ filteredFlats.length }}</span>
+        / {{ flats?.length ?? 0 }} units
       </p>
 
-      <div class="ire-flex ire-items-center ire-gap-0 ire-border ire-border-black/10">
+      <div class="flex items-center border border-black/10">
         <button
+          v-for="mode in (['grid', 'list'] as const)"
+          :key="mode"
           type="button"
-          class="ire-flex ire-items-center ire-gap-2 ire-px-4 ire-py-2 ire-text-xs ire-uppercase ire-tracking-[0.15em] ire-transition-colors"
-          :class="view === 'grid' ? 'ire-bg-black ire-text-white' : 'ire-text-black/50 hover:ire-text-black'"
-          @click="view = 'grid'"
+          class="px-5 py-2 text-[11px] uppercase tracking-[0.2em] transition-colors duration-300"
+          :class="view === mode ? 'bg-black text-white' : 'text-black/45 hover:text-black'"
+          @click="view = mode"
         >
-          <GridIcon class="ire-size-4" /> {{ tr("grid") }}
-        </button>
-        <button
-          type="button"
-          class="ire-flex ire-items-center ire-gap-2 ire-px-4 ire-py-2 ire-text-xs ire-uppercase ire-tracking-[0.15em] ire-transition-colors"
-          :class="view === 'list' ? 'ire-bg-black ire-text-white' : 'ire-text-black/50 hover:ire-text-black'"
-          @click="view = 'list'"
-        >
-          <TableIcon class="ire-size-4" /> {{ tr("list") }}
+          {{ mode }}
         </button>
       </div>
     </div>
 
-    <Filters v-model:filters-object="filtersObject" class="ire-mb-10" />
+    <!-- Filters (plugin component: ranges + status select) -->
+    <div class="irep-flats-list__filters border-b border-black/10 py-6">
+      <Filters v-model:filters-object="filtersObject" />
+    </div>
 
     <div
       v-if="!filteredFlats.length"
-      class="ire-border ire-border-black/10 ire-py-16 ire-text-center ire-text-sm ire-text-black/45"
+      class="py-20 text-center text-sm font-light text-black/45"
     >
-      {{ tr("no results") }}
+      No units match these filters.
     </div>
 
-    <template v-else>
-      <div
-        v-if="view === 'grid'"
-        class="ire-grid ire-grid-cols-1 ire-gap-x-6 ire-gap-y-10 sm:ire-grid-cols-2 lg:ire-grid-cols-3"
+    <!-- Grid -->
+    <div
+      v-else-if="view === 'grid'"
+      class="mt-10 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      <article
+        v-for="flat in visibleFlats"
+        :key="flat.id"
+        class="group cursor-pointer"
+        @click="openFlat(flat)"
       >
-        <FlatCard
-          v-for="flat in visibleFlats"
-          :key="flat.id"
-          :flat="flat"
-          @open-flat="openFlat"
-        />
-      </div>
+        <div class="relative overflow-hidden bg-[#f4f1ec]" style="aspect-ratio: 4 / 3;">
+          <img
+            v-if="flatThumb(flat)?.type === 'image'"
+            :src="flatThumb(flat)!.url"
+            :alt="flat.flat_number"
+            loading="lazy"
+            decoding="async"
+            class="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+          />
+          <video
+            v-else-if="flatThumb(flat)?.type === 'video'"
+            :src="flatThumb(flat)!.url"
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            class="h-full w-full object-cover"
+          />
 
-      <FlatsTable
-        v-else
-        :flats="visibleFlats"
-        @open-flat="openFlat"
-        @sort-column="(field, order) => (sort = { field, order })"
-      />
+          <Badge v-if="flat.conf" :conf="flat.conf" class="absolute left-3 top-3" />
+        </div>
 
-      <div v-if="hasMore" class="ire-mt-12 ire-flex ire-justify-center">
-        <button
-          type="button"
-          class="ire-border ire-border-black ire-px-7 ire-py-3 ire-text-xs ire-uppercase ire-tracking-[0.25em] ire-transition-colors hover:ire-bg-black hover:ire-text-white"
-          @click="visibleCount += PAGE_SIZE"
-        >
-          {{ tr("show more") }}
-          <span class="ire-text-black/40">({{ sortedFlats.length - visibleCount }})</span>
-        </button>
-      </div>
-    </template>
+        <div class="mt-4 flex items-baseline justify-between gap-3">
+          <h3 class="display text-lg leading-snug text-black" style="font-weight: 400;">
+            {{ flat.flat_number }}
+          </h3>
+          <span class="text-sm tabular-nums text-black/70">{{ priceLabel(flat) }}</span>
+        </div>
+
+        <div class="mt-2 flex items-center gap-5 text-sm font-light text-black/45">
+          <span v-if="flat.type?.area_m2" class="flex items-center gap-1.5">
+            <Area class="size-4 opacity-50" />
+            {{ getArea(flat.type?.area_m2_n) }} {{ getAreaUnitLabel() }}²
+          </span>
+          <span v-if="flat.type?.rooms_count" class="flex items-center gap-1.5">
+            <Bed class="size-4 opacity-50" />
+            {{ getRoomCount(flat.type?.rooms_count) }} {{ tr("room") }}
+          </span>
+          <span v-if="flatFloorNumber(flat)" class="flex items-center gap-1.5">
+            <Floor class="size-4 opacity-50" />
+            {{ flatFloorNumber(flat) }}
+          </span>
+        </div>
+      </article>
+    </div>
+
+    <!-- List -->
+    <div v-else class="mt-10 overflow-x-auto">
+      <table class="w-full min-w-[640px] border-collapse text-left">
+        <thead>
+          <tr class="border-b border-black/10">
+            <th
+              v-for="column in columns"
+              :key="column.field"
+              scope="col"
+              class="pb-3 text-[11px] uppercase tracking-[0.2em] text-black/45"
+              :class="column.align"
+            >
+              <button
+                type="button"
+                class="inline-flex items-center gap-1.5 transition-colors hover:text-black"
+                :class="sort.field === column.field ? 'text-black' : ''"
+                @click="toggleSort(column.field)"
+              >
+                {{ column.label }}
+                <span v-if="sort.field === column.field" class="text-[9px]">
+                  {{ sort.order === "asc" ? "▲" : "▼" }}
+                </span>
+              </button>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr
+            v-for="flat in visibleFlats"
+            :key="flat.id"
+            class="cursor-pointer border-b border-black/10 transition-colors duration-300 hover:bg-black/[0.02]"
+            @click="openFlat(flat)"
+          >
+            <td class="py-4">
+              <div class="flex items-center gap-3">
+                <span class="display text-base text-black" style="font-weight: 400;">
+                  {{ flat.flat_number }}
+                </span>
+                <Badge v-if="flat.conf" :conf="flat.conf" />
+              </div>
+            </td>
+            <td class="py-4 text-sm font-light tabular-nums text-black/60">
+              <template v-if="flat.type?.area_m2">
+                {{ getArea(flat.type?.area_m2_n) }} {{ getAreaUnitLabel() }}²
+              </template>
+              <template v-else>—</template>
+            </td>
+            <td class="py-4 text-sm font-light tabular-nums text-black/60">
+              {{ flat.type?.rooms_count ? getRoomCount(flat.type?.rooms_count) : "—" }}
+            </td>
+            <td class="py-4 text-sm font-light tabular-nums text-black/60">
+              {{ flatFloorNumber(flat) || "—" }}
+            </td>
+            <td class="py-4 text-right text-sm tabular-nums text-black/70">
+              {{ priceLabel(flat) || "—" }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div v-if="remaining" class="mt-12 flex justify-center">
+      <button
+        type="button"
+        class="border border-black px-7 py-3 text-[11px] uppercase tracking-[0.25em] transition-colors duration-300 hover:bg-black hover:text-white"
+        @click="visibleCount += PAGE_SIZE"
+      >
+        Show more <span class="text-black/40">({{ remaining }})</span>
+      </button>
+    </div>
 
     <teleport to="body">
       <Transition name="ire-fade-in-out" appear>
@@ -262,3 +440,22 @@ const floors = computed(() => shortcodeData.value?.floors);
     </teleport>
   </div>
 </template>
+
+<style scoped>
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The plugin's filter row is built for its own dense admin layout; give it the
+   page's rhythm and typography without touching the component itself. */
+.irep-flats-list__filters :deep(.irep-flats-list-filters) {
+  gap: 2.5rem 2rem;
+}
+.irep-flats-list__filters :deep(label),
+.irep-flats-list__filters :deep(.irep-flats-list-filters > div > p) {
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.45);
+}
+</style>
