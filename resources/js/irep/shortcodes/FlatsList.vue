@@ -34,7 +34,7 @@ import { useGlobalStore } from "../store/useGlobal";
 
 const globalStore = useGlobalStore();
 const { getMetaValue } = globalStore;
-const { flats, shortcodeData } = storeToRefs(globalStore);
+const { flats, shortcodeData, openReservedFlat, openSoldFlat } = storeToRefs(globalStore);
 const getFloorById = useGetFloorById();
 
 const filterOptions = normalizeFilterOptionsMeta(getMetaValue("filter_options"));
@@ -334,7 +334,26 @@ watch([filtersObject, view], () => (visibleCount.value = PAGE_SIZE), { deep: tru
 const activeFlat = ref<any>(null);
 const showFlatModal = ref(false);
 
+/**
+ * Whether a unit's modal may be opened at all — the same rules the viewer
+ * applies to a polygon click: reserved and sold units can be closed off, and a
+ * custom status can opt out of the modal entirely.
+ */
+const canOpenFlat = (flat: any) => {
+  if (flat?.conf === "reserved" && !openReservedFlat.value) return false;
+  if (flat?.conf === "sold" && !openSoldFlat.value) return false;
+
+  const customTypes = getMetaValue("custom_types");
+  const customType = Array.isArray(customTypes)
+    ? customTypes.find((t: any) => t.title === flat?.conf || t.value === flat?.conf)
+    : null;
+
+  return customType ? Boolean(customType.open_flat_modal) : true;
+};
+
 const openFlat = (flat: any) => {
+  if (!canOpenFlat(flat)) return;
+
   activeFlat.value = flat;
   showFlatModal.value = true;
 };
@@ -395,7 +414,8 @@ const floors = computed(() => shortcodeData.value?.floors);
       <article
         v-for="flat in visibleFlats"
         :key="flat.id"
-        class="group cursor-pointer"
+        class="group"
+        :class="canOpenFlat(flat) ? 'cursor-pointer' : 'cursor-default'"
         @click="openFlat(flat)"
       >
         <!-- Floor plans are irregular shapes, so they are fitted whole inside the
@@ -496,7 +516,12 @@ const floors = computed(() => shortcodeData.value?.floors);
           <tr
             v-for="flat in visibleFlats"
             :key="flat.id"
-            class="cursor-pointer border-b border-black/10 transition-colors duration-300 hover:bg-black/[0.02]"
+            class="border-b border-black/10 transition-colors duration-300"
+            :class="
+              canOpenFlat(flat)
+                ? 'cursor-pointer hover:bg-black/[0.02]'
+                : 'cursor-default'
+            "
             @click="openFlat(flat)"
           >
             <td class="py-4">

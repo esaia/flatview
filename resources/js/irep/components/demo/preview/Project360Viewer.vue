@@ -60,6 +60,25 @@ const { shortcodeData, flats, openReservedFlat, openSoldFlat } =
 const activeView = ref<"360" | "floors">("360");
 const pathsVisible = ref(true);
 
+/* ── Project 360 settings (Project Configs → 360 view mode) ─────────────── */
+const isMetaOn = (key: string, fallback: boolean) => {
+    const raw = getMetaValue(key);
+    if (raw === undefined || raw === null || raw === "") return fallback;
+    return String(raw) === "true" || String(raw) === "1";
+};
+
+const loop360 = computed(() => isMetaOn("is_360_loop", true));
+const reverse360 = computed(() => isMetaOn("is_360_reverse", false));
+
+// "Image change speed" is a 1–100 dial in the admin; a higher number means a
+// shorter drag per frame, so it maps inversely onto the drag sensitivity.
+const dragSensitivity = computed(() => {
+    const speed = Number(getMetaValue("image_change_speed"));
+    if (!Number.isFinite(speed) || speed <= 0) return props.sensitivity;
+
+    return Math.max(4, Math.round(200 - Math.min(100, speed) * 1.8));
+});
+
 const cursor360 = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='36' viewBox='0 0 120 36'%3E%3Ctext x='60' y='26' text-anchor='middle' font-family='Arial,sans-serif' font-size='22' font-weight='700' fill='white'%3E%E2%80%B9 360%C2%B0 %E2%80%BA%3C/text%3E%3C/svg%3E") 60 18, auto`;
 
 const nearToggle = ref(false);
@@ -146,7 +165,13 @@ const containerRef = ref<HTMLDivElement | null>(null);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const svgRef = ref<HTMLDivElement | null>(null);
 // Keep the sidebar closed by default everywhere; the user opens it via the toggle.
-const isSidebarOpen = ref(false);
+// The sidebar can start open on desktop; on small screens it always starts
+// collapsed, since it would cover the viewer.
+const isSidebarOpen = ref(
+    isMetaOn("sidebar_open_default", false) &&
+        typeof window !== "undefined" &&
+        window.innerWidth >= 1024,
+);
 // True only on the standalone full-screen /project/<slug> page, where the viewer
 // fills the viewport. Used to pin the navigation arrows to the visual viewport
 // so iOS in-app browsers don't clip them under a persistent bottom toolbar.
@@ -179,7 +204,9 @@ const {
     focusFlatOnViewer,
 } = useProject360({
     frames,
-    sensitivity: toRef(props, "sensitivity"),
+    sensitivity: dragSensitivity,
+    loop: loop360,
+    reverse: reverse360,
     snapDurationMs: toRef(props, "snapDurationMs"),
     containerRef,
     canvasRef,

@@ -12,6 +12,13 @@ withDefaults(
     clearable?: boolean;
     required?: boolean;
     disabled?: boolean;
+    /**
+     * Grey out options whose title carries a reserved/sold status, for pickers
+     * that navigate into something (the floor picker). The status *filter*
+     * must stay fully selectable — you can always filter by a status even when
+     * its flats cannot be opened.
+     */
+    disableRestrictedOptions?: boolean;
   }>(),
   {
     placeholder: "Choose",
@@ -50,8 +57,9 @@ const selectId = `irep-select-${Math.random().toString(36).substring(2, 9)}`;
           :key="item.value"
           :value="item.value"
           :disabled="
-            (item?.title?.includes('reserved') && !openReservedFlat) ||
-            (item?.title?.includes('sold') && !openSoldFlat) ||
+            (disableRestrictedOptions &&
+              ((item?.title?.includes('reserved') && !openReservedFlat) ||
+                (item?.title?.includes('sold') && !openSoldFlat))) ||
             disabled
           "
           class="ire-text-base"

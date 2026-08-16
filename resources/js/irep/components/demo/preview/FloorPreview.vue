@@ -260,7 +260,11 @@ onUnmounted(() => {
       <div
         class="irep-floor-preview__select-wrapper ire-w-fit ire-max-w-[150px] ire-bg-white md:ire-max-w-[unset]"
       >
-        <PreviewSelect v-model="selectedFloor" :data="floorsSelect" />
+        <PreviewSelect
+          v-model="selectedFloor"
+          :data="floorsSelect"
+          disable-restricted-options
+        />
       </div>
     </template>
 

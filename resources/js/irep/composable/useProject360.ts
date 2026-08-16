@@ -21,6 +21,10 @@ export interface UseProject360Options {
   onPolygonClick?: (polygon: PolygonDataCollection, type: string) => void;
   /** Fired once, right after the first frame is painted to the canvas. */
   onFirstFrame?: () => void;
+  /** Wrap around at the ends of the image set instead of stopping there. */
+  loop?: Ref<boolean>;
+  /** Flip which way dragging and the arrows rotate, for reversed image sets. */
+  reverse?: Ref<boolean>;
   /** When true, flat polygons not in `svgVisibleFlatIds` are hidden in the overlay SVG. */
   svgFlatFilterActive?: Ref<boolean>;
   svgVisibleFlatIds?: Ref<ReadonlySet<string>>;
@@ -67,6 +71,8 @@ const mod = (n: number, m: number) => {
   return ((n % m) + m) % m;
 };
 
+const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
+
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 export function useProject360(options: UseProject360Options) {
@@ -79,6 +85,8 @@ export function useProject360(options: UseProject360Options) {
     svgRef,
     onPolygonClick,
     onFirstFrame,
+    loop,
+    reverse,
     svgFlatFilterActive,
     svgVisibleFlatIds,
   } = options;
@@ -378,7 +386,10 @@ export function useProject360(options: UseProject360Options) {
   // Polygon-aware snapping
   // ---------------------------------------------------------------------------
 
-  const snapToNearestWithPolygons = (direction: -1 | 0 | 1) => {
+  const snapToNearestWithPolygons = (requestedDirection: -1 | 0 | 1) => {
+    // A reversed image set turns the arrows around too, so "next" keeps meaning
+    // the same visual direction.
+    const direction = (reverse?.value ? -requestedDirection : requestedDirection) as -1 | 0 | 1;
     const arr = frames.value;
     const here = frame.value;
     const len = total.value;
@@ -816,8 +827,12 @@ export function useProject360(options: UseProject360Options) {
     const sens = sensitivity.value > 0 ? sensitivity.value : 12;
     const len = total.value;
     if (len <= 0) return;
-    const steps = Math.round(-dx / sens);
-    frame.value = mod(dragStartIdx.value + steps, len);
+    const direction = reverse?.value ? -1 : 1;
+    const steps = Math.round((-dx * direction) / sens);
+    const target = dragStartIdx.value + steps;
+
+    // Without looping the set stops at its ends rather than wrapping around.
+    frame.value = loop?.value === false ? clamp(target, 0, len - 1) : mod(target, len);
   };
 
   const onPointerMove = (e: PointerEvent) => {

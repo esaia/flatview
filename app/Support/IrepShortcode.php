@@ -18,8 +18,10 @@ class IrepShortcode
         $with = ['meta', 'blocks', 'floors', 'flats.type', 'types', 'tooltips'];
 
         // Resolve by slug first; fall back to numeric id so existing
-        // /project/{id} URLs keep working.
-        $project = Project::with($with)->where('slug', $identifier)->first();
+        // /project/{id} URLs keep working. The slug is compared as a string on
+        // purpose: given an integer, MySQL casts the column to a number and
+        // "2-view" would match the id 2.
+        $project = Project::with($with)->where('slug', (string) $identifier)->first();
 
         if (! $project && is_numeric($identifier)) {
             $project = Project::with($with)->find($identifier);
