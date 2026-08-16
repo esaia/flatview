@@ -50,7 +50,11 @@ const mouseY = inject<number>("mouseY");
 
 const floorStatsVisible = computed(() => {
   if (!floorItem.value) return false;
-  const available = statusConf.value ? 0 : (floorItem.value.counts?.available ?? 0);
+  // A floor with a status of its own is fully reserved or sold — the
+  // available/sold/reserved breakdown only repeats what the badge says.
+  if (statusConf.value) return false;
+
+  const available = floorItem.value.counts?.available ?? 0;
   const sold = statusConf.value === "sold" ? floorItem.value.flats?.length || 0 : (floorItem.value.counts?.sold ?? 0);
   const reserved = statusConf.value === "reserved" ? floorItem.value.flats?.length || 0 : (floorItem.value.counts?.reserved ?? 0);
   return available !== 0 || sold !== 0 || reserved !== 0;
@@ -92,7 +96,10 @@ const floorStatsVisible = computed(() => {
             >
               {{ statusConf }}
             </div>
-            <div v-else class="irep-tooltip-4__floor-price-section ire-min-w-0 ire-text-right">
+            <div
+              v-else-if="+(floorItem.counts?.minimum_price || 0) > 0"
+              class="irep-tooltip-4__floor-price-section ire-min-w-0 ire-text-right"
+            >
               <div class="irep-tooltip-4__floor-starting-label ire-text-xs ire-font-medium ire-text-gray-500">
                 {{ tr("starting from") }}
               </div>

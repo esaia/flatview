@@ -52,7 +52,7 @@ export const createGlobalStore = (id: string) =>
     return shortcodeData.value?.flats?.map((flat) => {
       const flatType =
         flat?.use_type || !flat?.type
-          ? (shortcodeData.value?.types?.find((t) => t.id === flat?.type_id) ??
+          ? (shortcodeData.value?.types?.find((t) => String(t.id) === String(flat?.type_id)) ??
             flat?.type)
           : flat?.type;
 

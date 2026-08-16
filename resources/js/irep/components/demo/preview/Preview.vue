@@ -35,21 +35,22 @@ const floors = computed(() => {
   if (!shortcodeData.value) return;
 
   shortcodeData.value.floors?.forEach((floor) => {
+    // Ids come back typed differently depending on where they were stored —
+    // polygons keep them as strings, the payload types them as numbers — so
+    // every comparison here goes through String() rather than a strict ===.
+    const sameId = (a, b) => a != null && b != null && String(a) === String(b);
+
     const flats = shortcodeData.value?.flats?.filter((flat) => {
-      if (flat?.floor_id !== floor?.id?.toString()) {
+      if (!sameId(flat?.floor_id, floor?.id)) {
         return false;
       }
 
       if (floor?.polygon_data) {
         const matchesPolygon = Object?.values(floor?.polygon_data).some(
           (polygon) => {
-            if (
-              polygon?.type &&
-              polygon?.type === "flat" &&
-              polygon?.id === flat?.id
-            ) {
+            if (polygon?.type === "flat" && sameId(polygon?.id, flat?.id)) {
               if (floor?.block_id) {
-                return flat?.block_id === floor?.block_id?.toString();
+                return sameId(flat?.block_id, floor?.block_id);
               } else {
                 return !flat?.block_id;
               }
@@ -106,7 +107,9 @@ const flats = computed(() => {
 
   return shortcodeData.value?.flats?.map((flat) => {
     if (flat?.use_type || !flat?.type) {
-      const flatType = types.value?.find((type) => type?.id === flat?.type_id);
+      const flatType = types.value?.find(
+        (type) => String(type?.id) === String(flat?.type_id),
+      );
       if (flatType) {
         flat.type = flatType;
       }

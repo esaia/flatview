@@ -253,7 +253,7 @@ const filteredFlats = computed(() => {
     .map((flat: any) => {
       if (flat?.use_type || !flat?.type) {
         const flatType = types.value?.find(
-          (type) => type?.id === flat?.type_id,
+          (type) => String(type?.id) === String(flat?.type_id),
         );
         if (flatType) {
           flat.type = flatType;

@@ -9,8 +9,10 @@ use Illuminate\Http\Response;
 class SitemapController extends Controller
 {
     /**
-     * Public marketing pages, keyed by route name with a crawl priority and
-     * change frequency. Auth/admin/demo routes are intentionally excluded.
+     * Fixed public pages, keyed by route name with a crawl priority and change
+     * frequency. Service pages and demo project pages are appended from the
+     * database below; auth, admin and the bare project viewer are excluded —
+     * the demo project page is the canonical URL for a project.
      *
      * @var array<string, array{priority: string, changefreq: string}>
      */
@@ -40,7 +42,14 @@ class SitemapController extends Controller
             XML;
         }
 
-        foreach (Service::where('is_active', true)->get(['slug', 'updated_at']) as $service) {
+        // A service "slug" may be a full external URL (e.g. the plugin's page
+        // on wordpress.org). Those cards link straight out, so there is no page
+        // of ours to list.
+        $services = Service::where('is_active', true)
+            ->get(['slug', 'updated_at'])
+            ->reject(fn (Service $service) => str_starts_with((string) $service->slug, 'http'));
+
+        foreach ($services as $service) {
             $loc = htmlspecialchars(route('services.show', $service->slug), ENT_XML1);
             $serviceLastmod = $service->updated_at?->toAtomString() ?? $lastmod;
             $urls .= <<<XML

@@ -352,14 +352,18 @@ const floors = computed(() => shortcodeData.value?.floors);
             class="h-full w-full object-contain"
           />
 
-          <Badge v-if="flat.conf" :conf="flat.conf" class="absolute left-3 top-3" />
         </div>
 
         <div class="mt-4 flex items-baseline justify-between gap-3">
           <h3 class="display text-lg leading-snug text-black" style="font-weight: 400;">
             {{ flat.flat_number }}
           </h3>
+
+          <!-- A reserved or sold unit shows its status where the price would
+               be: the price no longer means anything to a buyer. -->
+          <Badge v-if="flat.conf" :conf="flat.conf" />
           <span
+            v-else
             class="text-sm tabular-nums"
             :class="isRequestPrice(flat) ? 'font-medium capitalize' : 'text-black/70'"
             :style="isRequestPrice(flat) ? { color: 'var(--primary-color)' } : undefined"
@@ -444,7 +448,7 @@ const floors = computed(() => shortcodeData.value?.floors);
               :class="isRequestPrice(flat) ? 'font-medium capitalize' : 'text-black/70'"
               :style="isRequestPrice(flat) ? { color: 'var(--primary-color)' } : undefined"
             >
-              {{ priceLabel(flat) || "—" }}
+              {{ flat.conf ? "—" : priceLabel(flat) || "—" }}
             </td>
           </tr>
         </tbody>
