@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import DemoProjectsSection from '@/Components/DemoProjectsSection.vue'
 
 const props = defineProps({
     service: { type: Object, required: true },
@@ -118,6 +119,17 @@ function imgSrc(path) {
                             </a>
                         </div>
                     </div>
+
+                    <!-- Live demo projects, the same section the services
+                         overview uses. -->
+                    <DemoProjectsSection
+                        v-else-if="block.type === 'demo_projects'"
+                        :kicker="block.data.kicker"
+                        :headline="block.data.headline"
+                        :headline-accent="block.data.headline_accent"
+                        :intro="block.data.intro"
+                        :projects="block.data.projects ?? []"
+                    />
 
                     <!-- Quote -->
                     <blockquote v-else-if="block.type === 'quote'" class="border-l-2 border-black/10 pl-6 md:pl-10 max-w-2xl">

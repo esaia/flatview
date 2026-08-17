@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Services\Schemas;
 
 use App\Filament\Support\MediaLibrary;
+use App\Models\DemoProject;
 use App\Support\RichText;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
@@ -134,6 +135,39 @@ class ServiceForm
                                 Toggle::make('button_new_tab')
                                     ->label('Open in a new tab')
                                     ->default(false),
+                            ]),
+
+                        // The same "live demos" section the services overview
+                        // shows. Only the picked ids are stored; the cards are
+                        // built when the page is served.
+                        Block::make('demo_projects')
+                            ->label('Live demo projects')
+                            ->icon('heroicon-o-building-office-2')
+                            ->schema([
+                                TextInput::make('kicker')
+                                    ->label('Section kicker')
+                                    ->default('Live demos'),
+
+                                TextInput::make('headline')
+                                    ->placeholder('Try it the way'),
+
+                                TextInput::make('headline_accent')
+                                    ->label('Headline accent')
+                                    ->helperText('Continues the headline in the brand green.')
+                                    ->placeholder('your buyers will'),
+
+                                Textarea::make('intro')
+                                    ->rows(3)
+                                    ->helperText('Optional paragraph under the headline.'),
+
+                                Select::make('project_ids')
+                                    ->label('Projects')
+                                    ->helperText('Leave empty to show every active demo project.')
+                                    ->multiple()
+                                    ->options(fn (): array => DemoProject::where('is_active', true)
+                                        ->orderBy('sort_order')
+                                        ->pluck('title', 'id')
+                                        ->all()),
                             ]),
 
                         Block::make('quote')

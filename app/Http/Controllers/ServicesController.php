@@ -6,6 +6,7 @@ use App\Models\DemoProject;
 use App\Models\HomepageSetting;
 use App\Models\Service;
 use App\Support\RichText;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 
 class ServicesController extends Controller
@@ -82,35 +83,10 @@ class ServicesController extends Controller
             $this->json($stored['services_gallery'] ?? null, []),
         );
 
-        // Demo projects: each links to its own /projects/{slug} showcase page.
-        // `flats_count` is loaded from the linked IREP project so the card can
-        // state the real unit count without loading the whole project tree.
-        // An explicit selection in the admin wins, in the order it was picked;
-        // with none picked the section falls back to every active project.
-        $selected = array_values(array_filter(array_map(
+        $projects = self::demoProjectCards(array_map(
             'intval',
             $this->json($stored['services_projects_selected'] ?? null, []),
-        )));
-
-        $projects = DemoProject::where('is_active', true)
-            ->when($selected, fn ($query) => $query->whereIn('id', $selected))
-            ->with(['irepProject' => fn ($query) => $query->withCount('flats')])
-            ->orderBy('sort_order')
-            ->get()
-            ->sortBy(fn (DemoProject $project) => $selected
-                ? array_search($project->id, $selected, true)
-                : $project->sort_order)
-            ->map(fn (DemoProject $project) => [
-                'title' => $project->title,
-                'slug' => $project->slug,
-                'tagline' => $project->tagline,
-                // Fall back to the interactive project's own render, so a card
-                // still shows the development when no artwork was uploaded.
-                'image' => DemoProjectController::imageUrl($project->card_image ?: $project->hero_image)
-                    ?? self::irepProjectImage($project),
-                'unitCount' => $project->irepProject?->flats_count,
-            ])
-            ->values();
+        ));
 
         $faq = $this->faq();
 
@@ -142,6 +118,15 @@ class ServicesController extends Controller
                     $block['data']['text'] = RichText::fromPlain($block['data']['text'] ?? null);
                 }
 
+                // The block stores only which projects were picked; the cards
+                // themselves are built here, as on the services overview.
+                if (($block['type'] ?? null) === 'demo_projects') {
+                    $block['data']['projects'] = self::demoProjectCards(array_map(
+                        'intval',
+                        (array) ($block['data']['project_ids'] ?? []),
+                    ));
+                }
+
                 return $block;
             })
             ->all();
@@ -156,6 +141,44 @@ class ServicesController extends Controller
             'cta' => $cta,
             'otherServices' => $otherServices,
         ]);
+    }
+
+    /**
+     * Demo project cards for the "live demos" section, wherever it is used —
+     * the services overview and the demo-projects content block both render the
+     * same card. Each links to its own /projects/{slug} showcase page.
+     *
+     * `flats_count` comes from the linked IREP project so a card can state the
+     * real unit count without loading the whole project tree. An explicit
+     * selection wins, in the order it was picked; with none picked the section
+     * falls back to every active project.
+     *
+     * @param  array<int, int>  $selected
+     * @return Collection<int, array<string, mixed>>
+     */
+    protected static function demoProjectCards(array $selected = [])
+    {
+        $selected = array_values(array_filter($selected));
+
+        return DemoProject::where('is_active', true)
+            ->when($selected, fn ($query) => $query->whereIn('id', $selected))
+            ->with(['irepProject' => fn ($query) => $query->withCount('flats')])
+            ->orderBy('sort_order')
+            ->get()
+            ->sortBy(fn (DemoProject $project) => $selected
+                ? array_search($project->id, $selected, true)
+                : $project->sort_order)
+            ->map(fn (DemoProject $project) => [
+                'title' => $project->title,
+                'slug' => $project->slug,
+                'tagline' => $project->tagline,
+                // Fall back to the interactive project's own render, so a card
+                // still shows the development when no artwork was uploaded.
+                'image' => DemoProjectController::imageUrl($project->card_image ?: $project->hero_image)
+                    ?? self::irepProjectImage($project),
+                'unitCount' => $project->irepProject?->flats_count,
+            ])
+            ->values();
     }
 
     /**

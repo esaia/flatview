@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import FaqSection from '@/Components/FaqSection.vue'
+import DemoProjectsSection from '@/Components/DemoProjectsSection.vue'
 
 const props = defineProps({
     gallery: { type: Array, default: () => [] },
@@ -324,60 +325,15 @@ onUnmounted(() => {
                 <!-- ── Live demo projects ──────────────────────────────────────
                      Each card opens its own /projects/{slug} showcase page with
                      the interactive site plan and the full unit list. -->
-                <div v-if="props.projects.length" class="mt-24 md:mt-40">
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-y-6 md:gap-x-16">
-                        <div class="md:col-span-3">
-                            <p class="kicker flex items-center gap-2"><span class="dot"></span> {{ settings.projectsKicker }}</p>
-                        </div>
-
-                        <div class="md:col-span-9">
-                            <h2 class="display text-black leading-[1.04] whitespace-pre-line"
-                                style="font-size: clamp(30px, 4.4vw, 60px); font-weight: 300; letter-spacing: -0.02em;">
-                                {{ settings.projectsHeadline
-                                }}<span v-if="settings.projectsHeadlineAccent" style="color: #5DCAA5;">{{ ' ' + settings.projectsHeadlineAccent }}</span>
-                            </h2>
-                            <p v-if="settings.projectsIntro"
-                               class="text-sm md:text-base text-black/45 font-light leading-relaxed max-w-2xl mt-8 md:mt-12 whitespace-pre-line">
-                                {{ settings.projectsIntro }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 border-t border-l border-black/10 mt-12 md:mt-20">
-                        <Link
-                            v-for="project in props.projects"
-                            :key="project.slug"
-                            :href="`/projects/${project.slug}`"
-                            class="group border-b border-r border-black/10 p-6 md:p-10 flex flex-col"
-                        >
-                            <div class="fc-stage relative overflow-hidden mb-8 md:mb-10" style="aspect-ratio: 16 / 11;">
-                                <img
-                                    v-if="project.image"
-                                    :src="project.image"
-                                    :alt="project.title"
-                                    loading="lazy"
-                                    decoding="async"
-                                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
-                                    draggable="false"
-                                />
-                                <span
-                                    v-if="project.unitCount"
-                                    class="absolute top-4 left-4 bg-white/90 text-black text-[10px] tracking-[0.2em] uppercase px-3 py-1.5"
-                                >
-                                    {{ project.unitCount }} units
-                                </span>
-                            </div>
-
-                            <h3 class="display text-xl md:text-2xl text-black mb-3 leading-snug" style="font-weight: 400;">{{ project.title }}</h3>
-                            <p v-if="project.tagline" class="text-sm text-black/45 font-light leading-relaxed mb-6">{{ project.tagline }}</p>
-
-                            <span class="mt-auto inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase text-black/50 group-hover:text-black transition-colors duration-300">
-                                Open demo
-                                <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
-                            </span>
-                        </Link>
-                    </div>
-                </div>
+                <DemoProjectsSection
+                    v-if="props.projects.length"
+                    class="mt-24 md:mt-40"
+                    :kicker="settings.projectsKicker"
+                    :headline="settings.projectsHeadline"
+                    :headline-accent="settings.projectsHeadlineAccent"
+                    :intro="settings.projectsIntro"
+                    :projects="props.projects"
+                />
 
                 <!-- ── Why it matters ──────────────────────────────────────────
                      Kicker pinned left, headline + intro offset right, then a
