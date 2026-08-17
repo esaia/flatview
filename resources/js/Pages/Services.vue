@@ -312,7 +312,7 @@ onUnmounted(() => {
 
                         <div class="relative flex flex-col flex-1 max-w-md">
                             <h2 class="display text-2xl md:text-3xl text-black mb-3 md:mb-4 leading-snug" style="font-weight: 400;">{{ service.name }}</h2>
-                            <p class="text-sm text-black/45 font-light leading-relaxed flex-1 mb-6">{{ service.description }}</p>
+                            <p class="text-sm text-black/45 group-hover:text-black/75 transition-colors duration-300 font-light leading-relaxed flex-1 mb-6">{{ service.description }}</p>
                             <span class="inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase text-black/50 group-hover:text-black transition-colors duration-300">
                                 Learn more
                                 <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>

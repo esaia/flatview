@@ -153,7 +153,10 @@ onUnmounted(() => {
             </section>
 
             <!-- ── Section 4: Stats — left title rail, full-width rows, count-up on reveal ─── -->
-            <section ref="statsSection" class="max-w-[1400px] mx-auto px-6 md:px-16 pt-28 md:pt-36 pb-28 md:pb-36">
+            <!-- No bottom padding: like every other section here, the gap below
+                 is owned by the next section's own top padding. Setting both
+                 stacked them into a band of empty page. -->
+            <section ref="statsSection" class="max-w-[1400px] mx-auto px-6 md:px-16 pt-28 md:pt-36">
                 <div class="grid md:grid-cols-12 gap-12 md:gap-16">
                     <!-- left: title rail -->
                     <div class="md:col-span-4">
