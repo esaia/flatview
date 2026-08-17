@@ -76,6 +76,7 @@ class ServicesController extends Controller
             'ctaHeadline' => $get('services_cta_headline', "Let's make real estate\ndigitally perfect."),
             'ctaButtonText' => $get('services_cta_button_text', 'Schedule a meeting'),
             'ctaButtonLink' => $get('services_cta_button_link', '/contact'),
+            'ctaBackground' => DemoProjectController::imageUrl($get('services_cta_background', null)),
         ];
 
         $gallery = array_map(
@@ -97,7 +98,7 @@ class ServicesController extends Controller
     {
         $service = Service::where('slug', $slug)->where('is_active', true)->firstOrFail();
 
-        $stored = HomepageSetting::whereIn('key', ['services_cta_kicker', 'services_cta_headline', 'services_cta_button_text', 'services_cta_button_link'])
+        $stored = HomepageSetting::whereIn('key', ['services_cta_kicker', 'services_cta_headline', 'services_cta_button_text', 'services_cta_button_link', 'services_cta_background'])
             ->pluck('value', 'key')
             ->toArray();
 
@@ -108,6 +109,10 @@ class ServicesController extends Controller
             'headline' => $get('services_cta_headline', "Let's make real estate\ndigitally perfect."),
             'buttonText' => $get('services_cta_button_text', 'Schedule a meeting'),
             'buttonLink' => $get('services_cta_button_link', '/contact'),
+            // This service's own image wins; the shared one covers the rest.
+            'background' => DemoProjectController::imageUrl(
+                $service->cta_background ?: $get('services_cta_background', null)
+            ),
         ];
 
         // The image+text block's copy became a rich editor; blocks saved before

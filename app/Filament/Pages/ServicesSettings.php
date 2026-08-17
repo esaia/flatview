@@ -55,6 +55,7 @@ class ServicesSettings extends Page
         'services_cta_headline',
         'services_cta_button_text',
         'services_cta_button_link',
+        'services_cta_background',
     ];
 
     /** Setting keys whose value is stored as a JSON-encoded array. */
@@ -345,6 +346,19 @@ class ServicesSettings extends Page
                                 TextInput::make('services_cta_button_link')
                                     ->label('Button link URL')
                                     ->placeholder('/contact'),
+
+                                FileUpload::make('services_cta_background')
+                                    ->label('Background image')
+                                    ->helperText('Sits behind this CTA, darkened so the white text stays readable. Used on this overview page and on every service page that has no background image of its own. Leave empty to keep the built-in photo.')
+                                    ->disk('public')
+                                    ->directory('services-cta')
+                                    ->visibility('public')
+                                    ->image()
+                                    ->imageEditor()
+                                    ->imagePreviewHeight('180')
+                                    ->openable()
+                                    ->downloadable()
+                                    ->hintAction(MediaLibrary::pickerAction()),
                             ]),
                     ])
                     ->persistTabInQueryString(),
@@ -358,6 +372,7 @@ class ServicesSettings extends Page
 
         // Drop the previous gallery images that are no longer referenced.
         $this->pruneGallery($data['services_gallery'] ?? []);
+        $this->pruneCtaBackground($data['services_cta_background'] ?? null);
 
         foreach (self::JSON_KEYS as $key) {
             HomepageSetting::updateOrCreate(
@@ -397,6 +412,16 @@ class ServicesSettings extends Page
 
         foreach (array_diff($previous, $paths) as $removed) {
             MediaLibrary::deleteIfOwned($removed, 'services-gallery');
+        }
+    }
+
+    /** Replacing the CTA background leaves the old upload behind otherwise. */
+    protected function pruneCtaBackground(?string $new): void
+    {
+        $previous = HomepageSetting::where('key', 'services_cta_background')->value('value');
+
+        if (filled($previous) && $previous !== $new) {
+            MediaLibrary::deleteIfOwned($previous, 'services-cta');
         }
     }
 }

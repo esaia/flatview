@@ -12,6 +12,7 @@ class Service extends Model
         'description',
         'hero_image',
         'hover_image',
+        'cta_background',
         'content_blocks',
         'sort_order',
         'is_active',

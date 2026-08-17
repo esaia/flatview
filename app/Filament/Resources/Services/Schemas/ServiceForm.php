@@ -70,6 +70,19 @@ class ServiceForm
                     ->hintAction(MediaLibrary::pickerAction())
                     ->nullable(),
 
+                FileUpload::make('cta_background')
+                    ->label('Closing CTA background image')
+                    ->helperText('Sits behind the closing "Let\'s talk" block on this page, darkened so the white text stays readable. Leave empty to use the shared image from Services Page → CTA.')
+                    ->disk('public')
+                    ->directory('services')
+                    ->visibility('public')
+                    ->image()
+                    ->imageEditor()
+                    ->openable()
+                    ->downloadable()
+                    ->hintAction(MediaLibrary::pickerAction())
+                    ->nullable(),
+
                 Builder::make('content_blocks')
                     ->label('Page content')
                     ->helperText('Build the service page out of sections, in any order and mix.')

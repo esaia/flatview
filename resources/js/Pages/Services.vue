@@ -492,7 +492,7 @@ onUnmounted(() => {
             <!-- Closing CTA -->
             <section class="relative bg-[#0e0e0e] text-white overflow-hidden">
                 <img
-                    src="/images/services-cta.webp"
+                    :src="settings.ctaBackground || '/images/services-cta.webp'"
                     alt=""
                     loading="lazy"
                     decoding="async"
