@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DemoProject;
 use App\Models\HomepageSetting;
 use App\Models\Service;
+use App\Support\RichText;
 use Inertia\Inertia;
 
 class ServicesController extends Controller
@@ -132,6 +133,18 @@ class ServicesController extends Controller
             'buttonText' => $get('services_cta_button_text', 'Schedule a meeting'),
             'buttonLink' => $get('services_cta_button_link', '/contact'),
         ];
+
+        // The image+text block's copy became a rich editor; blocks saved before
+        // that still hold plain text, which the page renders as HTML.
+        $service->content_blocks = collect($service->content_blocks ?? [])
+            ->map(function (array $block): array {
+                if (($block['type'] ?? null) === 'image_text') {
+                    $block['data']['text'] = RichText::fromPlain($block['data']['text'] ?? null);
+                }
+
+                return $block;
+            })
+            ->all();
 
         $otherServices = Service::where('is_active', true)
             ->where('id', '!=', $service->id)

@@ -93,13 +93,35 @@ function imgSrc(path) {
                         </div>
                         <div>
                             <h3 class="display text-2xl md:text-3xl text-black mb-4 leading-snug" style="font-weight: 400;">{{ block.data.heading }}</h3>
-                            <p class="text-sm md:text-base text-black/45 font-light leading-relaxed">{{ block.data.text }}</p>
+                            <!-- Rich text from the editor. Blocks saved before
+                                 this field became an editor arrive as HTML too:
+                                 the controller promotes their plain text. -->
+                            <div
+                                class="prose-service text-sm md:text-base text-black/45 font-light leading-relaxed"
+                                v-html="block.data.text"
+                            />
+
+                            <!-- Optional call to action, styled as the standalone
+                                 button block so both read as the same control. -->
+                            <a
+                                v-if="block.data.button_label && block.data.button_url"
+                                :href="block.data.button_url"
+                                :target="block.data.button_new_tab ? '_blank' : null"
+                                :rel="block.data.button_new_tab ? 'noopener noreferrer' : null"
+                                class="inline-flex items-center gap-3 mt-8 px-7 py-4 text-[11px] tracking-[0.25em] uppercase transition-colors duration-300 group"
+                                :class="block.data.button_style === 'outline'
+                                    ? 'border border-black/15 text-black hover:bg-black hover:text-white'
+                                    : 'bg-black text-white hover:bg-black/85'"
+                            >
+                                <span>{{ block.data.button_label }}</span>
+                                <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">↗</span>
+                            </a>
                         </div>
                     </div>
 
                     <!-- Quote -->
                     <blockquote v-else-if="block.type === 'quote'" class="border-l-2 border-black/10 pl-6 md:pl-10 max-w-2xl">
-                        <p class="display text-xl md:text-3xl text-black leading-snug mb-4" style="font-weight: 400;">
+                        <p class="display text-xl md:text-3xl text-black leading-snug mb-4 whitespace-pre-line" style="font-weight: 400;">
                             &ldquo;{{ block.data.quote }}&rdquo;
                         </p>
                         <cite v-if="block.data.attribution" class="text-[11px] tracking-[0.2em] uppercase text-black/40 not-italic">
@@ -127,6 +149,8 @@ function imgSrc(path) {
                     >
                         <a
                             :href="block.data.url"
+                            :target="block.data.new_tab ? '_blank' : null"
+                            :rel="block.data.new_tab ? 'noopener noreferrer' : null"
                             class="inline-flex items-center gap-3 px-7 py-4 text-[11px] tracking-[0.25em] uppercase transition-colors duration-300 group"
                             :class="block.data.style === 'outline'
                                 ? 'border border-black/15 text-black hover:bg-black hover:text-white'
@@ -147,7 +171,7 @@ function imgSrc(path) {
                                 class="py-7 md:py-9 border-b border-black/10"
                             >
                                 <h3 class="display text-xl md:text-2xl text-black mb-2.5 leading-snug" style="font-weight: 400;">{{ feature.title }}</h3>
-                                <p class="text-sm text-black/45 font-light leading-relaxed max-w-md">{{ feature.detail }}</p>
+                                <p class="text-sm text-black/45 font-light leading-relaxed max-w-md whitespace-pre-line">{{ feature.detail }}</p>
                             </div>
                         </div>
                     </div>
@@ -206,6 +230,45 @@ function imgSrc(path) {
 .prose-service :deep(p) { margin-bottom: 1em; }
 .prose-service :deep(p:last-child) { margin-bottom: 0; }
 .prose-service :deep(strong) { color: rgba(0, 0, 0, 0.7); font-weight: 500; }
+
+/* Headings from the editor's H2 / H3 buttons, in the same display face the
+   hand-built section headings use — the body copy around them stays light grey. */
+.prose-service :deep(h1),
+.prose-service :deep(h2),
+.prose-service :deep(h3),
+.prose-service :deep(h4) {
+    font-family: 'Fraunces', Georgia, serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    color: #000;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin-top: 2em;
+    margin-bottom: 0.6em;
+}
+.prose-service :deep(h1) { font-size: 1.75rem; }
+.prose-service :deep(h2) { font-size: 1.5rem; }
+.prose-service :deep(h3) { font-size: 1.25rem; }
+.prose-service :deep(h4) { font-size: 1.0625rem; }
+
+@media (min-width: 768px) {
+    .prose-service :deep(h1) { font-size: 2.25rem; }
+    .prose-service :deep(h2) { font-size: 1.875rem; }
+    .prose-service :deep(h3) { font-size: 1.5rem; }
+    .prose-service :deep(h4) { font-size: 1.125rem; }
+}
+
+/* A heading opening the block shouldn't push itself away from the section top. */
+.prose-service :deep(h1:first-child),
+.prose-service :deep(h2:first-child),
+.prose-service :deep(h3:first-child),
+.prose-service :deep(h4:first-child) { margin-top: 0; }
+
+/* Bolding a whole heading in the editor is common; keep it looking like a heading. */
+.prose-service :deep(h1 strong),
+.prose-service :deep(h2 strong),
+.prose-service :deep(h3 strong),
+.prose-service :deep(h4 strong) { color: inherit; font-weight: 500; }
 .prose-service :deep(ul) { list-style-type: disc; padding-left: 1.25em; margin-bottom: 1em; }
 .prose-service :deep(ol) { list-style-type: decimal; padding-left: 1.25em; margin-bottom: 1em; }
 .prose-service :deep(li) { display: list-item; margin-bottom: 0.4em; }

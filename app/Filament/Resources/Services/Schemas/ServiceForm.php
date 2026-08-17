@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Services\Schemas;
 
 use App\Filament\Support\MediaLibrary;
+use App\Support\RichText;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\FileUpload;
@@ -12,6 +13,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
 
@@ -99,8 +101,10 @@ class ServiceForm
                                 TextInput::make('heading')
                                     ->required(),
 
-                                Textarea::make('text')
-                                    ->rows(4)
+                                // Was a plain textarea, so older blocks hold raw
+                                // text; it is promoted to HTML on the way in.
+                                RichEditor::make('text')
+                                    ->formatStateUsing(fn (?string $state): ?string => RichText::fromPlain($state))
                                     ->required(),
 
                                 Select::make('image_position')
@@ -108,6 +112,28 @@ class ServiceForm
                                     ->options(['left' => 'Left', 'right' => 'Right'])
                                     ->default('left')
                                     ->required(),
+
+                                // Optional call to action under the text. The
+                                // link is only demanded once a label is given,
+                                // so a block without a button stays valid.
+                                TextInput::make('button_label')
+                                    ->label('Button text')
+                                    ->placeholder('Get in touch')
+                                    ->helperText('Optional — leave empty for no button.'),
+
+                                TextInput::make('button_url')
+                                    ->label('Button link')
+                                    ->placeholder('/contact')
+                                    ->required(fn (Get $get): bool => filled($get('button_label'))),
+
+                                Select::make('button_style')
+                                    ->label('Button style')
+                                    ->options(['solid' => 'Solid', 'outline' => 'Outline'])
+                                    ->default('solid'),
+
+                                Toggle::make('button_new_tab')
+                                    ->label('Open in a new tab')
+                                    ->default(false),
                             ]),
 
                         Block::make('quote')
@@ -164,6 +190,10 @@ class ServiceForm
                                     ->options(['left' => 'Left', 'center' => 'Center'])
                                     ->default('left')
                                     ->required(),
+
+                                Toggle::make('new_tab')
+                                    ->label('Open in a new tab')
+                                    ->default(false),
                             ]),
 
                         Block::make('feature_list')
