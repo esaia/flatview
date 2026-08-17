@@ -13,9 +13,11 @@ import Filters from "../components/demo/uiComponents/Filters.vue";
 import Badge from "../components/demo/uiComponents/Badge.vue";
 import PreviewModal from "../components/demo/uiComponents/PreviewModal.vue";
 import FlatPreview from "../components/demo/preview/FlatPreview.vue";
+import FlatPriceHistoryModal from "../components/demo/uiComponents/FlatPriceHistoryModal.vue";
 import Area from "../components/icons/Area.vue";
 import Bed from "../components/icons/Bed.vue";
 import Floor from "../components/icons/Floor.vue";
+import LineChartIcon from "../components/icons/LineChartIcon.vue";
 import {
   currencySymbol,
   getArea,
@@ -34,7 +36,8 @@ import { useGlobalStore } from "../store/useGlobal";
 
 const globalStore = useGlobalStore();
 const { getMetaValue } = globalStore;
-const { flats, shortcodeData, openReservedFlat, openSoldFlat } = storeToRefs(globalStore);
+const { flats, shortcodeData, openReservedFlat, openSoldFlat, hasPriceHistoryAddon } =
+  storeToRefs(globalStore);
 const getFloorById = useGetFloorById();
 
 const filterOptions = normalizeFilterOptionsMeta(getMetaValue("filter_options"));
@@ -253,6 +256,22 @@ const originalPriceLabel = (flat: any) => {
 
 const isHighlightedPrice = (flat: any) => isRequestPrice(flat) || hasOfferPrice(flat);
 
+// The chart next to a price, on both the cards and the table. Two recorded
+// points are the minimum that draws a line, which is the rule the flat modal
+// uses too; units showing a status badge or "request price" have no figure to
+// chart, so they get no button either.
+const priceHistoryFlat = ref<any>(null);
+
+const hasPriceHistory = (flat: any) =>
+  hasPriceHistoryAddon.value &&
+  (flat?.price_history?.length ?? 0) >= 2 &&
+  !flat?.conf &&
+  !isRequestPrice(flat);
+
+const openPriceHistory = (flat: any) => {
+  priceHistoryFlat.value = flat;
+};
+
 const areaLabel = (flat: any) => {
   const type = flatType(flat);
   if (!type?.area_m2) return "";
@@ -459,11 +478,21 @@ const floors = computed(() => shortcodeData.value?.floors);
             <!-- Prices carry the project's primary colour, as they do in the
                  flat modal; a discounted one is emphasised further. -->
             <span
-              class="block text-lg md:text-xl tabular-nums"
+              class="flex items-center justify-end gap-1.5 text-lg md:text-xl tabular-nums"
               :class="isHighlightedPrice(flat) ? 'font-medium' : ''"
               style="color: var(--primary-color);"
             >
               <span :class="isRequestPrice(flat) ? 'capitalize' : ''">{{ priceLabel(flat) }}</span>
+              <button
+                v-if="hasPriceHistory(flat)"
+                type="button"
+                class="shrink-0 opacity-55 transition-opacity duration-300 hover:opacity-100"
+                :title="tr('price history')"
+                :aria-label="tr('price history')"
+                @click.stop="openPriceHistory(flat)"
+              >
+                <LineChartIcon class="size-[18px] [&_g]:fill-current" />
+              </button>
             </span>
           </span>
         </div>
@@ -552,11 +581,21 @@ const floors = computed(() => shortcodeData.value?.floors);
                   {{ originalPriceLabel(flat) }}
                 </span>
                 <span
-                  class="block text-lg tabular-nums"
+                  class="flex items-center justify-end gap-1.5 text-lg tabular-nums"
                   :class="isHighlightedPrice(flat) ? 'font-medium capitalize' : ''"
                   style="color: var(--primary-color);"
                 >
                   {{ priceLabel(flat) || "—" }}
+                  <button
+                    v-if="hasPriceHistory(flat)"
+                    type="button"
+                    class="shrink-0 opacity-55 transition-opacity duration-300 hover:opacity-100"
+                    :title="tr('price history')"
+                    :aria-label="tr('price history')"
+                    @click.stop="openPriceHistory(flat)"
+                  >
+                    <LineChartIcon class="size-[18px] [&_g]:fill-current" />
+                  </button>
                 </span>
               </template>
             </td>
@@ -582,6 +621,16 @@ const floors = computed(() => shortcodeData.value?.floors);
         <PreviewModal v-if="showFlatModal && activeFlat" @close="closeFlat">
           <FlatPreview :flat="activeFlat" :floors="floors" />
         </PreviewModal>
+      </Transition>
+    </teleport>
+
+    <teleport to="body">
+      <Transition name="ire-fade-in-out" mode="out-in">
+        <FlatPriceHistoryModal
+          v-if="priceHistoryFlat"
+          :price-history="priceHistoryFlat.price_history"
+          @close="priceHistoryFlat = null"
+        />
       </Transition>
     </teleport>
   </div>

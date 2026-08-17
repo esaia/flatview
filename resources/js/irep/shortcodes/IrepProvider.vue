@@ -27,7 +27,7 @@ const irePlugin = {
   translations: {},
   is_premium: true,
   is_gold: true,
-  price_history_addon: false,
+  price_history_addon: true,
 };
 
 const globalStore = createGlobalStore(

@@ -66,7 +66,7 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->plugins([
-                FilamentIrepPlugin::make(),
+                FilamentIrepPlugin::make()->priceHistory(),
             ]);
     }
 }
