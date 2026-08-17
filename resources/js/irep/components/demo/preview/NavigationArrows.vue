@@ -14,9 +14,21 @@ defineEmits<{
 // full-width overlay so the canvas spans the viewport and `left-1/2` still
 // centers correctly; on desktop the sidebar is inline, so we must stay
 // `absolute` to center within the (narrower) canvas rather than the viewport.
-withDefaults(defineProps<{ pinToViewport?: boolean }>(), {
-  pinToViewport: false,
-});
+// `prevDisabled`/`nextDisabled` are set when the image set does not loop and
+// has no further snap point that way — the button is dimmed and inert rather
+// than clickable with nothing to rotate to.
+withDefaults(
+  defineProps<{
+    pinToViewport?: boolean;
+    prevDisabled?: boolean;
+    nextDisabled?: boolean;
+  }>(),
+  {
+    pinToViewport: false,
+    prevDisabled: false,
+    nextDisabled: false,
+  },
+);
 </script>
 
 <template>
@@ -25,9 +37,14 @@ withDefaults(defineProps<{ pinToViewport?: boolean }>(), {
     :class="{ 'irep-navigation-arrows--pinned': pinToViewport }"
   >
     <div
-      class="irep-navigation-arrows__prev ire-flex ire-h-12 ire-w-12 ire-cursor-pointer ire-items-center ire-justify-center ire-rounded-xl ire-bg-white/70 ire-shadow-md ire-backdrop-blur-sm ire-transition hover:ire-bg-white"
+      class="irep-navigation-arrows__prev ire-flex ire-h-12 ire-w-12 ire-items-center ire-justify-center ire-rounded-xl ire-bg-white/70 ire-shadow-md ire-backdrop-blur-sm ire-transition"
+      :class="
+        prevDisabled
+          ? 'ire-cursor-default ire-opacity-40'
+          : 'ire-cursor-pointer hover:ire-bg-white'
+      "
       @pointerdown.stop
-      @click.stop="$emit('prev')"
+      @click.stop="!prevDisabled && $emit('prev')"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -44,9 +61,14 @@ withDefaults(defineProps<{ pinToViewport?: boolean }>(), {
       </svg>
     </div>
     <div
-      class="irep-navigation-arrows__next ire-flex ire-h-12 ire-w-12 ire-cursor-pointer ire-items-center ire-justify-center ire-rounded-xl ire-bg-white/70 ire-shadow-md ire-backdrop-blur-sm ire-transition hover:ire-bg-white"
+      class="irep-navigation-arrows__next ire-flex ire-h-12 ire-w-12 ire-items-center ire-justify-center ire-rounded-xl ire-bg-white/70 ire-shadow-md ire-backdrop-blur-sm ire-transition"
+      :class="
+        nextDisabled
+          ? 'ire-cursor-default ire-opacity-40'
+          : 'ire-cursor-pointer hover:ire-bg-white'
+      "
       @pointerdown.stop
-      @click.stop="$emit('next')"
+      @click.stop="!nextDisabled && $emit('next')"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

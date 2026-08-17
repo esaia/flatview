@@ -37,7 +37,7 @@ const props = withDefaults(
         pathsFillOnHoverOnly?: boolean;
     }>(),
     {
-        sensitivity: 100,
+        sensitivity: 30,
         snapDurationMs: 300,
         pathsFillOnHoverOnly: false,
     },
@@ -72,11 +72,17 @@ const reverse360 = computed(() => isMetaOn("is_360_reverse", false));
 
 // "Image change speed" is a 1–100 dial in the admin; a higher number means a
 // shorter drag per frame, so it maps inversely onto the drag sensitivity.
+// The px-per-frame range is kept narrow on purpose: past ~70px a drag across
+// the whole viewport barely advances the set, so the top half of the dial
+// would otherwise feel identical (and broken).
 const dragSensitivity = computed(() => {
-    const speed = Number(getMetaValue("image_change_speed"));
-    if (!Number.isFinite(speed) || speed <= 0) return props.sensitivity;
+    const raw = Number(getMetaValue("image_change_speed"));
+    if (!Number.isFinite(raw) || raw <= 0) return props.sensitivity;
 
-    return Math.max(4, Math.round(200 - Math.min(100, speed) * 1.8));
+    const speed = Math.min(100, Math.max(1, raw));
+
+    // 1 → 60px of drag per frame (slowest), 100 → 6px (fastest).
+    return Math.round(60 - ((speed - 1) / 99) * 54);
 });
 
 const cursor360 = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='36' viewBox='0 0 120 36'%3E%3Ctext x='60' y='26' text-anchor='middle' font-family='Arial,sans-serif' font-size='22' font-weight='700' fill='white'%3E%E2%80%B9 360%C2%B0 %E2%80%BA%3C/text%3E%3C/svg%3E") 60 18, auto`;
@@ -201,6 +207,8 @@ const {
     onPointerDown,
     onTapClick,
     snapToNearestWithPolygons,
+    canRotateNext,
+    canRotatePrev,
     focusFlatOnViewer,
 } = useProject360({
     frames,
@@ -484,6 +492,8 @@ provide("focusFlatOnViewer", (flat: { id?: string } | null) => {
 
                             <NavigationArrows
                                 :pin-to-viewport="isStandalonePage"
+                                :prev-disabled="!canRotatePrev"
+                                :next-disabled="!canRotateNext"
                                 @prev="handleNav(-1)"
                                 @next="handleNav(1)"
                                 @mouseenter="nearNav = true"

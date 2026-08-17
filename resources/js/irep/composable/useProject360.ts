@@ -91,6 +91,10 @@ export function useProject360(options: UseProject360Options) {
     svgVisibleFlatIds,
   } = options;
 
+  // "360 loop" off means the image set has two ends: dragging, arrows and
+  // snapping all stop there instead of continuing round to the other side.
+  const wraps = () => loop?.value !== false;
+
   let firstFrameSignalled = false;
 
   const globalStore = useGlobalStore();
@@ -302,7 +306,7 @@ export function useProject360(options: UseProject360Options) {
     const len = total.value;
     if (len <= 0) return;
 
-    const goal = mod(targetIdx, len);
+    const goal = wraps() ? mod(targetIdx, len) : clampToBounds(targetIdx);
     if (startIdx === goal) {
       const cached = imageCache.get(goal);
       if (cached) {
@@ -325,7 +329,10 @@ export function useProject360(options: UseProject360Options) {
     const backwardSteps = forwardSteps === 0 ? 0 : forwardSteps - len;
 
     let deltaSteps: number;
-    if (direction > 0) {
+    if (!wraps()) {
+      // The set has ends, so the only way to the goal is straight there.
+      deltaSteps = goal - startIdx;
+    } else if (direction > 0) {
       deltaSteps = forwardSteps !== 0 ? forwardSteps : backwardSteps;
     } else if (direction < 0) {
       deltaSteps = backwardSteps !== 0 ? backwardSteps : forwardSteps;
@@ -386,23 +393,73 @@ export function useProject360(options: UseProject360Options) {
   // Polygon-aware snapping
   // ---------------------------------------------------------------------------
 
+  /** Frames that carry polygons — the only ones rotation ever settles on. */
+  const snapIndices = computed(() => {
+    const arr = frames.value;
+    const out: number[] = [];
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i]?.polygon_data?.length) out.push(i);
+    }
+    return out;
+  });
+
+  /**
+   * How far rotation may travel. A looping set has no ends; a non-looping one
+   * stops at its outermost snap points, since past them there is nothing to
+   * settle on and the view would only spring back.
+   */
+  const rotationBounds = computed(() => {
+    const len = total.value;
+    if (len <= 0) return { min: 0, max: 0 };
+
+    const valid = snapIndices.value;
+    if (!wraps() && valid.length) {
+      return { min: valid[0], max: valid[valid.length - 1] };
+    }
+
+    return { min: 0, max: len - 1 };
+  });
+
+  const clampToBounds = (idx: number) =>
+    clamp(idx, rotationBounds.value.min, rotationBounds.value.max);
+
+  /**
+   * Whether the arrows can still rotate this way — false once a non-looping set
+   * has no snap point left on that side, so the button can be disabled instead
+   * of doing nothing.
+   */
+  const canRotate = (requestedDirection: -1 | 1) => {
+    if (wraps()) return true;
+
+    const valid = snapIndices.value;
+    if (!valid.length) return false;
+
+    const direction = reverse?.value ? -requestedDirection : requestedDirection;
+    const here = frame.value;
+
+    return direction > 0 ? valid.some((i) => i > here) : valid.some((i) => i < here);
+  };
+
+  const canRotateNext = computed(() => canRotate(1));
+  const canRotatePrev = computed(() => canRotate(-1));
+
   const snapToNearestWithPolygons = (requestedDirection: -1 | 0 | 1) => {
     // A reversed image set turns the arrows around too, so "next" keeps meaning
     // the same visual direction.
     const direction = (reverse?.value ? -requestedDirection : requestedDirection) as -1 | 0 | 1;
-    const arr = frames.value;
     const here = frame.value;
     const len = total.value;
     if (len <= 0) return;
 
-    const validIndices: number[] = [];
-    for (let i = 0; i < arr.length; i++) {
-      if (arr[i]?.polygon_data?.length) validIndices.push(i);
-    }
+    const validIndices = snapIndices.value;
     if (!validIndices.length) return;
 
-    const forwardDist = (i: number) => mod(i - here, len);
-    const backwardDist = (i: number) => mod(here - i, len);
+    // Without looping, a frame on the far side of an end is unreachable rather
+    // than "one step away the other way round".
+    const forwardDist = (i: number) =>
+      wraps() ? mod(i - here, len) : i >= here ? i - here : Infinity;
+    const backwardDist = (i: number) =>
+      wraps() ? mod(here - i, len) : i <= here ? here - i : Infinity;
 
     const pickNearest = (excludeHere: boolean) => {
       let bestIdx = here;
@@ -420,7 +477,7 @@ export function useProject360(options: UseProject360Options) {
 
     if (direction > 0) {
       const ahead = validIndices.filter(
-        (i) => i !== here && forwardDist(i) > 0,
+        (i) => i !== here && Number.isFinite(forwardDist(i)) && forwardDist(i) > 0,
       );
       if (ahead.length) {
         const best = ahead.reduce((a, b) =>
@@ -429,13 +486,16 @@ export function useProject360(options: UseProject360Options) {
         animateTo(best, direction);
         return;
       }
+      // At the end of a non-looping set there is nothing ahead to snap to, and
+      // falling back to the nearest would drag the view backwards.
+      if (!wraps()) return;
       animateTo(pickNearest(true), direction);
       return;
     }
 
     if (direction < 0) {
       const behind = validIndices.filter(
-        (i) => i !== here && backwardDist(i) > 0,
+        (i) => i !== here && Number.isFinite(backwardDist(i)) && backwardDist(i) > 0,
       );
       if (behind.length) {
         const best = behind.reduce((a, b) =>
@@ -444,6 +504,7 @@ export function useProject360(options: UseProject360Options) {
         animateTo(best, direction);
         return;
       }
+      if (!wraps()) return;
       animateTo(pickNearest(true), direction);
       return;
     }
@@ -831,8 +892,9 @@ export function useProject360(options: UseProject360Options) {
     const steps = Math.round((-dx * direction) / sens);
     const target = dragStartIdx.value + steps;
 
-    // Without looping the set stops at its ends rather than wrapping around.
-    frame.value = loop?.value === false ? clamp(target, 0, len - 1) : mod(target, len);
+    // Without looping the set stops at its last snap point rather than
+    // wrapping around, so a drag can't run off into frames it can't rest on.
+    frame.value = wraps() ? mod(target, len) : clampToBounds(target);
   };
 
   const onPointerMove = (e: PointerEvent) => {
@@ -891,11 +953,14 @@ export function useProject360(options: UseProject360Options) {
       const sens = sensitivity.value > 0 ? sensitivity.value : 12;
       const dx = lastClientX.value - dragStartX.value;
       const len = total.value;
-      const steps = Math.round(-dx / (sens > 0 ? sens : 12));
+      // Must match applyDragDelta, reverse included, or releasing the pointer
+      // on a reversed set snaps the frame back the way the drag came from.
+      const steps = Math.round((-dx * (reverse?.value ? -1 : 1)) / sens);
       const direction: -1 | 0 | 1 = steps === 0 ? 0 : steps > 0 ? 1 : -1;
 
       if (len > 0) {
-        frame.value = mod(dragStartIdx.value + steps, len);
+        const target = dragStartIdx.value + steps;
+        frame.value = wraps() ? mod(target, len) : clampToBounds(target);
       }
 
       snapToNearestWithPolygons(direction);
@@ -1123,6 +1188,8 @@ export function useProject360(options: UseProject360Options) {
     onPointerDown,
     onTapClick,
     snapToNearestWithPolygons,
+    canRotateNext,
+    canRotatePrev,
     focusFlatOnViewer,
   };
 }
