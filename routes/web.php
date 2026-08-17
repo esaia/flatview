@@ -4,6 +4,7 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DemoProjectController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MediaLibraryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\SitemapController;
@@ -76,6 +77,13 @@ Route::post('/irep/reservation', function (Request $request) {
 Route::get('/admin/sync/download/{archive}', SyncArchiveController::class)
     ->middleware('auth')
     ->name('admin.sync.download');
+
+// Trash button on a media-library tile. Kept out of Livewire because the picker
+// modal is hosted by whichever admin page opened it, so there is no one
+// component to put the method on.
+Route::post('/admin/media-library/delete', [MediaLibraryController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('admin.media-library.destroy');
 
 require __DIR__.'/auth.php';
 

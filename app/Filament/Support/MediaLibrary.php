@@ -97,6 +97,29 @@ class MediaLibrary
         Storage::disk('public')->delete($path);
     }
 
+    /**
+     * Delete an image outright from the public disk, for the trash button on a
+     * library tile. Unlike `deleteIfOwned()` this is not scoped to one field's
+     * folder — the editor is managing the library itself — so the path is
+     * checked to be an image inside the disk and nothing else.
+     */
+    public static function delete(string $path): bool
+    {
+        $path = ltrim(str_replace('\\', '/', $path), '/');
+
+        if ($path === '' || str_contains($path, '..') || ! static::isImage($path)) {
+            return false;
+        }
+
+        $disk = Storage::disk('public');
+
+        if (! $disk->exists($path)) {
+            return false;
+        }
+
+        return $disk->delete($path);
+    }
+
     /** Whether the target FileUpload accepts multiple files. */
     protected static function isMultiple(Field $component): bool
     {

@@ -9,6 +9,10 @@
         x-data="{
             multiple: @js($isMultiSelect),
             selection: $wire.$entangle('{{ $statePath }}'),
+            deleted: [],
+            pendingDelete: null,
+            disarmTimer: null,
+            error: '',
             isSelected(path) { return this.selection.includes(path) },
             toggle(path) {
                 if (this.isSelected(path)) {
@@ -18,6 +22,53 @@
                 } else {
                     this.selection = [path]
                 }
+            },
+            /* Deleting is permanent, so the first click only arms the button and
+               the second one goes through. It disarms itself after a few
+               seconds, or as soon as another tile is armed. */
+            armDelete(path) {
+                if (this.pendingDelete !== path) {
+                    this.pendingDelete = path
+                    clearTimeout(this.disarmTimer)
+                    this.disarmTimer = setTimeout(() => (this.pendingDelete = null), 4000)
+
+                    return
+                }
+
+                this.destroy(path)
+            },
+            async destroy(path) {
+                this.error = ''
+                clearTimeout(this.disarmTimer)
+                this.pendingDelete = null
+
+                try {
+                    const response = await fetch(@js(route('admin.media-library.destroy')), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': @js(csrf_token()),
+                        },
+                        body: JSON.stringify({ path }),
+                    })
+
+                    if (! response.ok) {
+                        const body = await response.json().catch(() => ({}))
+                        this.error = body.message || 'That image could not be deleted.'
+
+                        return
+                    }
+                } catch (e) {
+                    this.error = 'That image could not be deleted.'
+
+                    return
+                }
+
+                /* The grid is server-rendered, so the tile is hidden here rather
+                   than re-fetched; switching folders reloads the real list. */
+                this.deleted = [...this.deleted, path]
+                this.selection = this.selection.filter((p) => p !== path)
             },
         }"
         class="fv-media"
@@ -32,12 +83,15 @@
                 <p>No images have been uploaded yet.</p>
             </div>
         @else
+            <p class="fv-media__error" x-show="error" x-text="error" x-cloak></p>
+
             <div class="fv-media__grid">
                 @foreach ($images as $image)
                     @php $path = $image['path']; @endphp
                     <div
                         role="{{ $isMultiSelect ? 'checkbox' : 'radio' }}"
                         tabindex="0"
+                        x-show="! deleted.includes(@js($path))"
                         :aria-checked="isSelected(@js($path))"
                         @click="toggle(@js($path))"
                         @keydown.enter.prevent="toggle(@js($path))"
@@ -52,6 +106,26 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" width="14" height="14">
                                 <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
+                        </span>
+
+                        <button
+                            type="button"
+                            class="fv-tile__delete"
+                            :class="pendingDelete === @js($path) && 'fv-tile__delete--armed'"
+                            :title="pendingDelete === @js($path) ? 'Click again to delete' : 'Delete image'"
+                            :aria-label="pendingDelete === @js($path) ? 'Click again to delete' : 'Delete image'"
+                            @click.stop="armDelete(@js($path))"
+                            @keydown.enter.stop.prevent="armDelete(@js($path))"
+                            @keydown.space.stop.prevent="armDelete(@js($path))"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14" />
+                                <path d="M10 11v6M14 11v6" />
+                            </svg>
+                        </button>
+
+                        <span class="fv-tile__confirm" x-show="pendingDelete === @js($path)" x-cloak>
+                            Click again to delete
                         </span>
 
                         <span class="fv-tile__name">{{ $image['name'] }}</span>
@@ -146,6 +220,75 @@
             opacity: 1;
             transform: scale(1);
         }
+
+        /* Trash button — appears on hover, and stays visible once armed so the
+           second, destructive click is always aimed at something the eye sees. */
+        .fv-tile__delete {
+            position: absolute;
+            top: 0.45rem;
+            left: 0.45rem;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.55rem;
+            height: 1.55rem;
+            padding: 0;
+            border: 0;
+            border-radius: 9999px;
+            cursor: pointer;
+            color: #fff;
+            background: rgba(24, 24, 27, 0.72);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: scale(0.7);
+            transition: opacity 0.16s ease, transform 0.18s ease, background 0.16s ease;
+        }
+
+        .fv-tile:hover .fv-tile__delete,
+        .fv-tile:focus-within .fv-tile__delete,
+        .fv-tile__delete--armed {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .fv-tile__delete:hover { background: #dc2626; }
+
+        .fv-tile__delete--armed,
+        .fv-tile__delete--armed:hover {
+            background: #dc2626;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(255, 255, 255, 0.85);
+        }
+
+        .fv-tile__confirm {
+            position: absolute;
+            top: 0.45rem;
+            left: 2.25rem;
+            right: 0.45rem;
+            z-index: 3;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.35rem;
+            font-size: 0.6rem;
+            line-height: 1.15rem;
+            font-weight: 600;
+            color: #fff;
+            background: #dc2626;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            pointer-events: none;
+        }
+
+        .fv-media__error {
+            margin: 0 0.5rem 0.5rem;
+            padding: 0.5rem 0.7rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            color: #b91c1c;
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        [x-cloak] { display: none !important; }
 
         /* Filename label on hover */
         .fv-tile__name {
