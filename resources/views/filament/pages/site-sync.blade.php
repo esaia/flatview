@@ -52,6 +52,66 @@
                 <x-filament::button disabled>Importing — do not close this tab…</x-filament::button>
             </div>
         </div>
+
+        <x-filament::section heading="Archives on this server"
+            description="Everything in storage/app/private/sync — exports you built here and the automatic backups taken before an import. They are never deleted on their own.">
+            @php($archives = $this->getArchiveSets())
+
+            @if (filled($archives))
+                <x-slot name="afterHeader">
+                    {{ $this->deleteAllArchivesAction }}
+                </x-slot>
+
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    @foreach ($archives as $archive)
+                        <div style="border-radius: 0.5rem; background: rgba(0,0,0,0.04); padding: 0.5rem 0.75rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+                                <span style="font-family: ui-monospace, monospace; font-size: 0.8125rem; word-break: break-all;">
+                                    {{ $archive['name'] }}
+                                </span>
+                                <span style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+                                    <span style="font-size: 0.75rem; opacity: 0.7;">
+                                        {{ $archive['size'] }} · {{ $archive['modified'] }}
+                                        @if ($archive['is_split'])
+                                            · {{ count($archive['parts']) }} parts
+                                        @endif
+                                    </span>
+                                    @unless ($archive['is_split'])
+                                        <x-filament::button size="xs" color="gray" tag="a" href="{{ $archive['parts'][0]['url'] }}" icon="heroicon-o-arrow-down-tray">
+                                            Download
+                                        </x-filament::button>
+                                    @endunless
+                                    {{ ($this->deleteArchiveAction)(['archive' => $archive['name'], 'parts' => count($archive['parts'])]) }}
+                                </span>
+                            </div>
+
+                            @if ($archive['is_split'])
+                                <p style="font-size: 0.75rem; opacity: 0.7; margin-top: 0.5rem;">
+                                    Split export — download every part to import it elsewhere.
+                                </p>
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.375rem;">
+                                    @foreach ($archive['parts'] as $part)
+                                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-left: 0.75rem; border-left: 2px solid rgba(0,0,0,0.12);">
+                                            <span style="font-family: ui-monospace, monospace; font-size: 0.75rem; word-break: break-all; opacity: 0.85;">
+                                                {{ $part['filename'] }}
+                                            </span>
+                                            <span style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+                                                <span style="font-size: 0.75rem; opacity: 0.7;">{{ $part['size'] }}</span>
+                                                <x-filament::button size="xs" color="gray" tag="a" href="{{ $part['url'] }}" icon="heroicon-o-arrow-down-tray">
+                                                    Download
+                                                </x-filament::button>
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p style="font-size: 0.875rem; opacity: 0.7;">No archives here yet.</p>
+            @endif
+        </x-filament::section>
     </div>
 
     <x-filament::section collapsible collapsed heading="How syncing works">

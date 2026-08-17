@@ -224,6 +224,100 @@ class SiteSync extends Page
         }
     }
 
+    /**
+     * Archives currently on this server, one entry per backup — the parts of a
+     * split export are folded into the archive they belong to.
+     *
+     * @return array<int, array{name: string, parts: array<int, array<string, mixed>>, size: string, modified: string, is_split: bool}>
+     */
+    public function getArchiveSets(): array
+    {
+        return array_map(fn (array $set) => [
+            ...$set,
+            'parts' => array_map(fn (array $part) => $part + [
+                'url' => route('admin.sync.download', ['archive' => $part['filename']]),
+            ], $set['parts']),
+        ], SyncStorage::sets());
+    }
+
+    public function deleteArchiveAction(): Action
+    {
+        return Action::make('deleteArchive')
+            ->label('Delete')
+            ->icon('heroicon-o-trash')
+            ->color('danger')
+            ->size('xs')
+            ->link()
+            ->requiresConfirmation()
+            ->modalHeading('Delete this archive')
+            ->modalDescription(fn (array $arguments) => sprintf(
+                'Permanently removes %s%s from this server. Download it first if you still need it.',
+                $arguments['archive'] ?? '',
+                ($arguments['parts'] ?? 1) > 1 ? sprintf(' and all %s of its parts', $arguments['parts']) : '',
+            ))
+            ->modalSubmitActionLabel('Yes, delete')
+            ->action(function (array $arguments) {
+                $name = (string) ($arguments['archive'] ?? '');
+                $deleted = SyncStorage::deleteSet($name);
+
+                $this->forgetDeletedArchives();
+
+                Notification::make()
+                    ->title($deleted > 0 ? 'Archive deleted' : 'Archive not found')
+                    ->body($deleted > 0
+                        ? sprintf('%s (%s file%s)', $name, $deleted, $deleted === 1 ? '' : 's')
+                        : 'It may already have been removed.')
+                    ->status($deleted > 0 ? 'success' : 'warning')
+                    ->send();
+            });
+    }
+
+    public function deleteAllArchivesAction(): Action
+    {
+        return Action::make('deleteAllArchives')
+            ->label('Delete all')
+            ->icon('heroicon-o-trash')
+            ->color('danger')
+            ->outlined()
+            ->size('sm')
+            ->requiresConfirmation()
+            ->modalHeading('Delete every archive')
+            ->modalDescription('Removes all exports and automatic backups from storage/app/private/sync. This cannot be undone.')
+            ->modalSubmitActionLabel('Yes, delete them all')
+            ->visible(fn () => SyncStorage::files() !== [])
+            ->action(function () {
+                $deleted = 0;
+
+                foreach (SyncStorage::files() as $file) {
+                    $deleted += (int) SyncStorage::delete($file['filename']);
+                }
+
+                $this->forgetDeletedArchives();
+
+                Notification::make()
+                    ->title(sprintf('%s archive%s deleted', $deleted, $deleted === 1 ? '' : 's'))
+                    ->success()
+                    ->send();
+            });
+    }
+
+    /**
+     * Drop references to files that no longer exist: the import form may have
+     * one selected, and the export section may still be linking to it.
+     */
+    private function forgetDeletedArchives(): void
+    {
+        $this->importData['server_files'] = array_values(array_filter(
+            (array) ($this->importData['server_files'] ?? []),
+            'is_file',
+        ));
+
+        $this->exportedFiles = array_values(array_filter(
+            $this->exportedFiles,
+            fn (array $file) => is_file(SyncStorage::path($file['filename'])),
+        ));
+    }
+
     public function importAction(): Action
     {
         return Action::make('import')

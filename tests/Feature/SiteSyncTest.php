@@ -135,6 +135,72 @@ class SiteSyncTest extends TestCase
             ->assertDownload($filename);
     }
 
+    public function test_an_archive_can_be_deleted_from_the_admin_page(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $filename = basename((new SiteExporter)->export(['website'], includeFiles: false)['path']);
+
+        Livewire::test(SiteSyncPage::class)
+            ->assertSee($filename)
+            ->callAction('deleteArchive', arguments: ['archive' => $filename])
+            ->assertHasNoActionErrors()
+            ->assertDontSee($filename);
+
+        $this->assertFileDoesNotExist(SyncStorage::path($filename));
+    }
+
+    public function test_a_split_export_is_listed_and_deleted_as_one_archive(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Storage::disk('public')->put('menu/hero.jpg', random_bytes(120 * 1024));
+        MenuItem::create(['label' => 'Projects', 'href' => '/projects', 'sort_order' => 1, 'is_active' => true]);
+
+        $result = (new SiteExporter)->export(['website'], partSize: 16 * 1024);
+        $this->assertGreaterThan(1, count($result['files']));
+
+        $sets = SyncStorage::sets();
+        $this->assertCount(1, $sets, 'Every part belongs to the same archive.');
+        $this->assertSame($result['filename'], $sets[0]['name']);
+        $this->assertTrue($sets[0]['is_split']);
+        $this->assertCount(count($result['files']), $sets[0]['parts']);
+
+        Livewire::test(SiteSyncPage::class)
+            ->callAction('deleteArchive', arguments: ['archive' => $result['filename']])
+            ->assertHasNoActionErrors();
+
+        $this->assertSame([], SyncStorage::files(), 'Deleting the archive removes every part.');
+    }
+
+    public function test_delete_all_removes_every_archive(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        (new SiteExporter)->export(['website'], includeFiles: false);
+        // A second export in the same second reuses the timestamped name, so an
+        // older-looking archive is written by hand.
+        file_put_contents(SyncStorage::path('flatview-2020-01-01-000000-full.zip'), 'stub');
+
+        $this->assertCount(2, SyncStorage::files());
+
+        Livewire::test(SiteSyncPage::class)
+            ->callAction('deleteAllArchives')
+            ->assertHasNoActionErrors();
+
+        $this->assertSame([], SyncStorage::files());
+    }
+
+    public function test_deleting_cannot_reach_outside_the_sync_folder(): void
+    {
+        file_put_contents(storage_path('outside.txt'), 'keep me');
+
+        $this->assertFalse(SyncStorage::delete('../outside.txt'));
+        $this->assertFileExists(storage_path('outside.txt'));
+
+        unlink(storage_path('outside.txt'));
+    }
+
     public function test_archive_download_cannot_reach_outside_the_sync_folder(): void
     {
         $this->actingAs(User::factory()->create())
